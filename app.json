@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "scheme": "acme",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "platforms": [
+      "web"
+    ],
+    "web": {
+      "output": "static"
+    },
+    "name": "Baserti-Appointment-booking-app",
+    "slug": "Baserti-Appointment-booking-app"
+  }
+}
