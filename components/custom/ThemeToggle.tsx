@@ -6,9 +6,9 @@ import { Text } from "@/components/ui/Text"
 export default function ThemeToggleButton() {
   const { colorScheme, setColorScheme } = useColorScheme();
 
-  useEffect(() => {
-    setColorScheme('dark');
-  }, []);
+  // useEffect(() => {
+  //   setColorScheme('dark');
+  // }, []);
 
   const toggleColorScheme = () => {
     setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
