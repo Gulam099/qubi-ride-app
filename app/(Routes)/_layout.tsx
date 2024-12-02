@@ -29,6 +29,12 @@ export default function TabLayout() {
           title: "Home",
         }}
       />
+      <Tabs.Screen
+        name="(auth)"
+        options={{
+          title: "Auth",
+        }}
+      />
     </Tabs>
   );
 }

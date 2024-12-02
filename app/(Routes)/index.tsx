@@ -3,6 +3,8 @@ import { Image, StyleSheet, Platform, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Text } from "@/components/ui/Text";
 import ThemeToggleButton from '@/components/custom/ThemeToggle';
+import { EmojiHappy } from 'iconsax-react-native';
+import WelcomeScreen from '@/features/Home/Components/WelcomeScreen';
 
 export default function HomeScreen() {
   return (
@@ -10,6 +12,7 @@ export default function HomeScreen() {
       <ThemeToggleButton/>
     <Button>
       <Text>Default</Text>
+      <EmojiHappy color="#000" variant="Bulk" size={20} />
     </Button>
     <Button variant="destructive">
       <Text>Destructive hae !</Text>
