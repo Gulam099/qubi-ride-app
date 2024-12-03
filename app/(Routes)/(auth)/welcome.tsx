@@ -1,7 +1,27 @@
-import { View, Text } from "react-native";
 import React from "react";
-import WelcomeScreen from "@/features/Home/Components/WelcomeScreen";
+import WelcomeScreen from "@/features/Home/Components/welcomeScreeenSlider";
+import { View } from "react-native";
+import LangToggleButton from "@/components/custom/LangToggle";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { useRouter } from "expo-router";
 
 export default function welcome() {
-  return <WelcomeScreen />;
+  const router = useRouter();
+
+  return (
+    <View className="w-full h-full relative">
+      <View className="absolute top-16  z-50 flex flex-row w-full justify-between ">
+        <LangToggleButton className="rounded-none rounded-r-full px-8 w-24" />
+        <Button
+          variant={"ghost"}
+          onPress={() => router.push("/login")}
+          className="px-8 mr-4 "
+        >
+          <Text className="text-white">Skip</Text>
+        </Button>
+      </View>
+      <WelcomeScreen />
+    </View>
+  );
 }
