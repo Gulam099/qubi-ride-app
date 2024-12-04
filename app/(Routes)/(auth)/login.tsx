@@ -7,11 +7,15 @@ import PhoneInputLoginForm from "@/features/auth/components/phone-input-login";
 import VerifyOtpInputLoginForm from "@/features/auth/components/verify-opt-input";
 import {
   LogDataType,
+  NationalIdVerificationDataType,
   VerificationDataType,
 } from "@/features/auth/types/auth.types";
+import NationalIdVerificationInputLoginForm from "@/features/auth/components/national-id-verification";
 
 export default function SignInPage() {
   const [LogData, setLogData] = useState<LogDataType>({
+    country: "",
+    countryCode: "",
     phoneNumber: "",
     rememberMyDetails: false,
     isSubmittedSuccess: false,
@@ -24,6 +28,12 @@ export default function SignInPage() {
       otpResendTime: 60,
     });
 
+  const [NationalIdVerificationData, setNationalIdVerificationData] =
+    useState<NationalIdVerificationDataType>({
+      isNationalIdSubmittedSuccess: false,
+      nationalId: "",
+    });
+
   return (
     <View className=" bg-background  w-full py-24">
       {/* Language Toggle */}
@@ -34,6 +44,8 @@ export default function SignInPage() {
       {/* Logo */}
       <View className="flex justify-center items-center w-screen">
         <Logo className="w-32 h-32" />
+        {/* <Text className="font-noto-medium" >لمّا كان الاعتراف</Text>
+        <Text className="font-notoArabic font-medium" style={{fontFamily:'NotoKufiArabic_500Medium'}} >لمّا كان الاعتراف</Text> */}
       </View>
 
       {/* Forms */}
@@ -46,9 +58,17 @@ export default function SignInPage() {
           LogData={LogData}
           setLogData={setLogData}
         />
+      ) : !NationalIdVerificationData.isNationalIdSubmittedSuccess ? (
+        <NationalIdVerificationInputLoginForm
+          LogData={LogData}
+          setLogData={setLogData}
+          NationalIdVerificationData={NationalIdVerificationData}
+          setNationalIdVerificationData={setNationalIdVerificationData}
+        />
       ) : (
-        <Text>CA verification</Text>
-      )}
+        <Text>Logeed in</Text>
+      )
+    }
     </View>
   );
 }

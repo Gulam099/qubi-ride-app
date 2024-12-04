@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const LogDataSchema = z.object({
+  country: z.string(),
+  countryCode: z.string(),
   phoneNumber: z.string(),
   rememberMyDetails: z.boolean(),
   isSubmittedSuccess: z.boolean(),
@@ -10,5 +12,10 @@ export const VerificationDataSchema = z.object({
   isVerified: z.boolean(),
   otp: z.string(),
   otpLength: z.number(),
-  otpResendTime : z.number(),
+  otpResendTime: z.number(),
+});
+
+export const NationalIdVerificationDataSchema = z.object({
+  nationalId: z.string(),
+  isNationalIdSubmittedSuccess: z.boolean(),
 });

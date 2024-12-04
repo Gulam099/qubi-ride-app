@@ -4,11 +4,11 @@ import { Text } from "@/components/ui/Text";
 import { cn } from "@/lib/utils";
 
 export default function LangToggleButton(props:{className?:string}) {
-  const [Lang, setLang] = useState("Hello");
+  const [Lang, setLang] = useState("عربي");
   const {className} = props;
 
   const toggleLang = () => {
-    setLang(Lang === "عربي" ? "Hello" : "عربي");
+    setLang(Lang === "عربي" ?  "English" : "عربي" );
   };
 
   return (

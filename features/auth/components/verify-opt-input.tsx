@@ -1,14 +1,7 @@
 import { View, Text, ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
-import Logo from "@/components/custom/Logo";
 import { Controller, useForm } from "react-hook-form";
-import PhoneInput, { ICountry } from "react-native-international-phone-number";
-import { ArrowDown2, Edit2 } from "iconsax-react-native";
-import { Label } from "@/components/ui/Label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
-import { AlertTriangle } from "lucide-react-native";
-import { Switch } from "@/components/ui/Switch";
 import { LogDataType, VerificationDataType } from "../types/auth.types";
 import { OtpInput } from "react-native-otp-entry";
 
@@ -25,8 +18,6 @@ export default function VerifyOtpInputLoginForm(props: {
   setLogData: React.Dispatch<React.SetStateAction<LogDataType>>;
 }) {
   const { VerificationData, setVerificationData, LogData, setLogData } = props;
-  const [selectedCountry, setSelectedCountry] = useState<null | ICountry>(null);
-
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState<number>(VerificationData.otpResendTime);
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
@@ -92,7 +83,10 @@ export default function VerifyOtpInputLoginForm(props: {
                 phoneNumber: "",
                 isSubmittedSuccess: false,
                 rememberMyDetails: LogData.rememberMyDetails,
+                country: "",
+                countryCode: "",
               });
+              console.log("Resend OTP");
             }}
             variant={"link"}
           >
@@ -126,20 +120,19 @@ export default function VerifyOtpInputLoginForm(props: {
             {errors.otp.message}
           </Text>
         )}
-
       </View>
 
       <Button
-      variant={"outline"}
-      disabled={isDisabled}
-      onPress={handleResendOtp}
-    >
-      {isDisabled ? (
-        <Text>{`Resend in ${timer}s`}</Text>
-      ) : (
-        <Text>Resend OTP</Text>
-      )}
-    </Button>
+        variant={"outline"}
+        disabled={isDisabled}
+        onPress={handleResendOtp}
+      >
+        {isDisabled ? (
+          <Text>{`Resend in ${timer}s`}</Text>
+        ) : (
+          <Text>Resend OTP</Text>
+        )}
+      </Button>
 
       {/* Submit Button */}
       <Button

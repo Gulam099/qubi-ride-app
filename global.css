@@ -46,4 +46,49 @@
         --input: 240 3.7% 15.9%;
         --ring: 240 4.9% 83.9%;
     }
+    /* Set default font for all elements */
+* {
+    font-family: 'NotoKufiArabic_400Regular', sans-serif; /* Default font */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Custom font classes */
+  .font-thin {
+    font-family: 'NotoKufiArabic_100Thin', sans-serif;
+  }
+  
+  .font-extralight {
+    font-family: 'NotoKufiArabic_200ExtraLight', sans-serif;
+  }
+  
+  .font-light {
+    font-family: 'NotoKufiArabic_300Light', sans-serif;
+  }
+  
+  .font-regular {
+    font-family: 'NotoKufiArabic_400Regular', sans-serif;
+  }
+  
+  .font-noto-medium {
+    font-family: 'NotoKufiArabic_500Medium', sans-serif;
+  }
+  
+  .font-semibold {
+    font-family: 'NotoKufiArabic_600SemiBold', sans-serif;
+  }
+  
+  .font-bold {
+    font-family: 'NotoKufiArabic_700Bold', sans-serif;
+  }
+  
+  .font-extrabold {
+    font-family: 'NotoKufiArabic_800ExtraBold', sans-serif;
+  }
+  
+  .font-black {
+    font-family: 'NotoKufiArabic_900Black', sans-serif;
+  }
+  
 }

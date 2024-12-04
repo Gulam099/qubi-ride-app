@@ -1,6 +1,5 @@
 import { View, Text, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
-import Logo from "@/components/custom/Logo";
 import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { ICountry } from "react-native-international-phone-number";
 import { ArrowDown2 } from "iconsax-react-native";
@@ -38,16 +37,19 @@ export default function PhoneInputLoginForm(props: {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    data.phoneNumber = `${selectedCountry?.callingCode} ${data.phoneNumber}`;
-    console.log("Form Data Submitted:", data);
+    data.phoneNumber = `${data.phoneNumber}`;
+    const finalData:LogDataType = {
+      ...data,
+      isSubmittedSuccess: true,
+      countryCode: `${selectedCountry?.callingCode} `,
+      country: `${selectedCountry?.cca2} `,
+    };
+    console.log("Form Data Submitted:", finalData);
 
     // Simulate an API call
     setTimeout(() => {
       setLoading(false);
-      setLogData({
-        ...data,
-        isSubmittedSuccess: true,
-      });
+      setLogData(finalData);
     }, 2000);
   };
 
