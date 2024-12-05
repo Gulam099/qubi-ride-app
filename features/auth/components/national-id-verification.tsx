@@ -50,10 +50,10 @@ export default function NationalIdVerificationInputLoginForm(props: {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    const FinalData:NationalIdVerificationDataType={
-        ...data ,
-        isNationalIdSubmittedSuccess:true
-    }
+    const FinalData: NationalIdVerificationDataType = {
+      ...data,
+      isNationalIdSubmittedSuccess: true,
+    };
     console.log("Form Data Submitted:", FinalData);
 
     // Simulate an API call
@@ -61,6 +61,16 @@ export default function NationalIdVerificationInputLoginForm(props: {
       setLoading(false);
       setNationalIdVerificationData(FinalData);
     }, 2000);
+  };
+
+  const handelNationIdSkip = () => {
+    setTimeout(() => {
+      setLoading(false);
+      setNationalIdVerificationData({
+        nationalId: "",
+        isNationalIdSubmittedSuccess: true,
+      });
+    }, 1000);
   };
 
   return (
@@ -91,7 +101,7 @@ export default function NationalIdVerificationInputLoginForm(props: {
               </Label>
               <Input
                 ref={inputRef}
-                keyboardType = 'numeric'
+                keyboardType="numeric"
                 placeholder="Enter your National ID"
                 value={value}
                 onChangeText={onChange}
@@ -116,6 +126,10 @@ export default function NationalIdVerificationInputLoginForm(props: {
         } text-white py-3 rounded-md`}
       >
         {loading ? <ActivityIndicator color="#fff" /> : <Text>Submit</Text>}
+      </Button>
+
+      <Button onPress={handelNationIdSkip} variant={"ghost"} className="w-full">
+        <Text>Skip</Text>
       </Button>
     </View>
   );

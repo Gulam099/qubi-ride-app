@@ -1,13 +1,11 @@
-
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
-import { ThemeProvider } from '@/Provider/ThemeProvider';
+import { ThemeProvider } from "@/Provider/ThemeProvider";
 import {
   useFonts,
   NotoKufiArabic_100Thin,
@@ -19,14 +17,16 @@ import {
   NotoKufiArabic_700Bold,
   NotoKufiArabic_800ExtraBold,
   NotoKufiArabic_900Black,
-} from '@expo-google-fonts/noto-kufi-arabic';
-import { UserProvider } from '@/features/user/provider/UserProvider';
+} from "@expo-google-fonts/noto-kufi-arabic";
+
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "@/store";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   let [loaded, error] = useFonts({
     NotoKufiArabic_100Thin,
     NotoKufiArabic_200ExtraLight,
@@ -50,15 +50,19 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider >
-      {/* <UserProvider> */}
-      <Stack>
-        <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <ThemeProvider>
+          {/* <UserProvider> */}
+          <Stack>
+            <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
 
-      {/* </UserProvider> */}
-    </ThemeProvider>
+          {/* </UserProvider> */}
+        </ThemeProvider>
+      </PersistGate>
+    </Provider>
   );
 }

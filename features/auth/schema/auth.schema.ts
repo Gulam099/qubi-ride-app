@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const RoleDataSchema = z.enum(["patient", "specialist", "admin" , "default"]);
+
 export const LogDataSchema = z.object({
   country: z.string(),
   countryCode: z.string(),
