@@ -1,1 +1,2 @@
 export const AppLogo = require('@/assets/images/icon.png')
+

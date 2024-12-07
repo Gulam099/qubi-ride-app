@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Text } from "@/components/ui/Text";
 import LangToggleButton from "@/components/custom/LangToggle";
-import Logo from "@/components/custom/Logo";
+import Logo from "@/features/Home/Components/Logo";
 import PhoneInputLoginForm from "@/features/auth/components/phone-input-login";
 import VerifyOtpInputLoginForm from "@/features/auth/components/verify-opt-input";
 import {
@@ -76,7 +76,7 @@ export default function SignInPage() {
 
       {/* Logo */}
       <View className="flex justify-center items-center w-screen">
-        <Logo className="w-32 h-32" />
+        <Logo size={150} />
         {/* <Text className="font-noto-medium" >لمّا كان الاعتراف</Text>
         <Text className="font-notoArabic font-medium" style={{fontFamily:'NotoKufiArabic_500Medium'}} >لمّا كان الاعتراف</Text> */}
       </View>
