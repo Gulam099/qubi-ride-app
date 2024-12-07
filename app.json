@@ -1,14 +1,14 @@
 {
   "expo": {
     "name": "Baserti-Appointment-booking-app",
-    "slug": "Baserti-Appointment-booking-app",
+    "slug": "baserti",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash":{
+    "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
@@ -20,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.baserti"
     },
     "web": {
       "bundler": "metro",
@@ -42,6 +43,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ac15d305-e884-4429-96d6-19f501c12713"
+      }
+    },
+    "owner": "zahidwalker"
   }
 }
