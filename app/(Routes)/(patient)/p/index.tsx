@@ -1,11 +1,16 @@
 import { View, Text, ImageBackground } from "react-native";
 import React from "react";
-import {  useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
-import {  H3 } from "@/components/ui/Typography";
+import { H3 } from "@/components/ui/Typography";
 import { Calendar, Clock } from "iconsax-react-native";
+import {
+  PatientHomeImage,
+  PatientPageInstantMenuImage,
+} from "@/features/patient/constPatient";
+import { Image } from "react-native";
 
 export default function PatientPage() {
   const user = useSelector((state: any) => state.user);
@@ -15,51 +20,48 @@ export default function PatientPage() {
 
   const router = useRouter();
 
-  const image = require("@/features/Home/assets/images/PatientPageBackgroundImage.png");
   return (
-    <ImageBackground source={image} className="bg-cover flex-1 ">
-      <View className="px-2 py-8 flex gap-6 flex-col">
+    <View className=" flex gap-6 flex-col">
+      <Image source={PatientHomeImage} className="bg-cover w-full " />
+      <View className="flex gap-6 flex-col px-4">
+        <H3 className="text-center">What type of consultation do you need?</H3>
+
+        {[
+          {
+            title: "Instant",
+            desc: "Immediate sessions with a specialist",
+
+            image: PatientPageInstantMenuImage,
+          },
+          {
+            title: "Scheduled",
+            desc: "Book your appointment with the appropriate specialist for you.",
+          },
+        ].map((e, i) => (
+          <View
+            key={e.title}
+            className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40"
+          >
+            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
+            <View className="w-2/3 flex flex-col justify-end">
+              <H3 className="font-normal">{e.title}</H3>
+              <Text className=" text-base font-normal">{e.desc}</Text>
+            </View>
+            <View className="flex justify-end w-1/3  items-end">
+              {e.image && <Image source={e.image} />}
+            </View>
+          </View>
+        ))}
+
         <Button
-          className="bg-neutral-300/50 backdrop-blur-md"
+          className="bg-blue-50/30 backdrop-blur-md "
           onPress={() => router.push("/p/account/notification")}
         >
-          <Text className="font-medium text-left w-full text-white">
+          <Text className="font-medium text-left w-full ">
             Help me find the right consultant{" "}
           </Text>
         </Button>
-
-        <H3 className="text-white">What type of consultation do you need?</H3>
-
-        <View className="flex flex-row gap-4 w-full ">
-          {[
-            {
-              title: "Scheduled",
-              desc: "Book your appointment with the appropriate specialist for you.",
-              icon: Calendar,
-            },
-            {
-              title: "Instant",
-              desc: "Immediate sessions with a specialist",
-              icon: Clock,
-            },
-          ].map((e, i) => (
-            <View
-              key={e.title}
-              className="flex-1 flex justify-between aspect-square rounded-xl p-4 bg-neutral-300/20 backdrop-blur-md"
-            >
-              <View className="flex justify-end w-full items-end">
-                <e.icon color="white" size={30} className="w-full " />
-              </View>
-              <View>
-                <H3 className="text-white">{e.title}</H3>
-                <Text className="text-neutral-200 text-base font-normal">
-                  {e.desc}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }

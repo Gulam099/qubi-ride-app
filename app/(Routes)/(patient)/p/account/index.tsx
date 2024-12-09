@@ -39,7 +39,7 @@ export default function AccountPage() {
   const [Interests, setInterests] = useState([
     {
       title: "My Interests",
-      shadowColor: colors.gray[100],
+      shadowColor: colors.blue[100],
       backgroundColor: colors.primary[800],
       iconColor: "white",
       items: [
@@ -52,7 +52,7 @@ export default function AccountPage() {
   const [sections, setSections] = useState([
     {
       title: "Medical file",
-      shadowColor: colors.leaves[500],
+      shadowColor: colors.blue[100],
       className: "",
       backgroundColor: "white",
       iconColor: colors.gray[700],
@@ -69,7 +69,7 @@ export default function AccountPage() {
     },
     {
       title: "My information",
-      shadowColor: colors.primary[700],
+      shadowColor: colors.blue[100],
       className: "",
       backgroundColor: "white",
       iconColor: colors.gray[700],
@@ -145,10 +145,10 @@ export default function AccountPage() {
 
               <AccountCard
                 className=""
-                iconColor={"white"}
+                iconColor={colors.gray[700]}
                 iconSize={28}
-                shadowColor={colors.gray[100]}
-                backgroundColor={colors.primary[800]}
+                shadowColor={colors.blue[100]}
+                backgroundColor={"white"}
                 icon={Add}
                 label={"Select my interests"}
                 link={"/"}

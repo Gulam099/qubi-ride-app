@@ -4,6 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { LogDataType, VerificationDataType } from "../types/auth.types";
 import { OtpInput } from "react-native-otp-entry";
+import colors from "@/utils/colors";
 
 type FormData = {
   otp: string;
@@ -75,7 +76,7 @@ export default function VerifyOtpInputLoginForm(props: {
         </Text>
         <View className="flex flex-row gap-6  w-full ">
           <Text className="text-wrap flex-1">
-            Enter the verification code sent to the number {LogData.phoneNumber}
+            Enter the verification code sent to the number {LogData.countryCode} {LogData.phoneNumber}
           </Text>
           <Button
             onPress={() => {
@@ -105,7 +106,7 @@ export default function VerifyOtpInputLoginForm(props: {
           render={({ field: { onChange, value } }) => (
             <OtpInput
               numberOfDigits={VerificationData.otpLength}
-              focusColor="green"
+              focusColor={colors.primary[500]}
               focusStickBlinkingDuration={500}
               onTextChange={onChange}
               onFilled={() => handleSubmit(onSubmit)}
@@ -139,10 +140,12 @@ export default function VerifyOtpInputLoginForm(props: {
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
         className={`mt-6 w-full ${
-          loading ? "bg-gray-400" : "bg-green-600"
+          loading ? "bg-gray-400" : "bg-primary-600"
         } text-white py-3 rounded-md`}
       >
-        <Text>{loading ? <ActivityIndicator color="#fff" /> : "Submit"}</Text>
+        <Text className="text-white font-semibold">
+          {loading ? <ActivityIndicator color="#000" /> : "Submit"}
+        </Text>
       </Button>
     </View>
   );

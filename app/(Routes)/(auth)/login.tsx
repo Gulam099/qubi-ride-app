@@ -68,7 +68,7 @@ export default function SignInPage() {
   }
 
   return (
-    <View className=" bg-background  w-full py-24">
+    <View className=" bg-blue-50/40  w-full py-24">
       {/* Language Toggle */}
       <View className="absolute top-16 z-50 flex flex-row w-full justify-between">
         <LangToggleButton className="rounded-none rounded-r-full px-8 w-24" />
@@ -80,29 +80,30 @@ export default function SignInPage() {
         {/* <Text className="font-noto-medium" >لمّا كان الاعتراف</Text>
         <Text className="font-notoArabic font-medium" style={{fontFamily:'NotoKufiArabic_500Medium'}} >لمّا كان الاعتراف</Text> */}
       </View>
-
-      {/* Forms */}
-      {RoleData === "default" ? (
-        <UserRoleSelector RoleData={RoleData} setRoleData={setRoleData} />
-      ) : !LogData.isSubmittedSuccess ? (
-        <PhoneInputLoginForm LogData={LogData} setLogData={setLogData} />
-      ) : !VerificationData.isVerified ? (
-        <VerifyOtpInputLoginForm
-          VerificationData={VerificationData}
-          setVerificationData={setVerificationData}
-          LogData={LogData}
-          setLogData={setLogData}
-        />
-      ) : !NationalIdVerificationData.isNationalIdSubmittedSuccess ? (
-        <NationalIdVerificationInputLoginForm
-          LogData={LogData}
-          setLogData={setLogData}
-          NationalIdVerificationData={NationalIdVerificationData}
-          setNationalIdVerificationData={setNationalIdVerificationData}
-        />
-      ) : (
-        <Text>Logged in</Text>
-      )}
+      <View className="bg-background h-full pt-12 rounded-t-[50px]">
+        {/* Forms */}
+        {RoleData === "default" ? (
+          <UserRoleSelector RoleData={RoleData} setRoleData={setRoleData} />
+        ) : !LogData.isSubmittedSuccess ? (
+          <PhoneInputLoginForm LogData={LogData} setLogData={setLogData} />
+        ) : !VerificationData.isVerified ? (
+          <VerifyOtpInputLoginForm
+            VerificationData={VerificationData}
+            setVerificationData={setVerificationData}
+            LogData={LogData}
+            setLogData={setLogData}
+          />
+        ) : !NationalIdVerificationData.isNationalIdSubmittedSuccess ? (
+          <NationalIdVerificationInputLoginForm
+            LogData={LogData}
+            setLogData={setLogData}
+            NationalIdVerificationData={NationalIdVerificationData}
+            setNationalIdVerificationData={setNationalIdVerificationData}
+          />
+        ) : (
+          <Text>Logged in</Text>
+        )}
+      </View>
     </View>
   );
 }

@@ -5,14 +5,20 @@ import { Link, Redirect, Stack, Tabs } from "expo-router";
 // import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
 import {
   DocumentLike,
+  DocumentText1,
   Home,
   NoteFavorite,
   Notepad,
+  Profile2User,
+  ProfileCircle,
+  ShieldTick,
   UserOctagon,
 } from "iconsax-react-native";
 import { useSelector } from "react-redux";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import colors from "@/utils/colors";
+import { cn } from "@/lib/utils";
+import { View } from "react-native";
 
 export default function PatientLayout() {
   const user = useSelector((state: any) => state.user);
@@ -24,7 +30,7 @@ export default function PatientLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary[600],
+        tabBarActiveTintColor: colors.blue[600],
         headerBackButtonDisplayMode: "generic",
         headerShadowVisible: false,
         headerRight: () => <NotificationIconButton className="mr-4" />,
@@ -38,44 +44,52 @@ export default function PatientLayout() {
         name="p/index"
         options={{
           title: "Home",
-          tabBarStyle: {
-            backgroundColor: "black",
-            borderColor: "black",
-          },
 
           tabBarIcon: ({ color, focused }) => (
-            <Home
-              size={24}
-              color={color}
-              variant={focused ? "Bold" : "Outline"}
-            />
+            <View
+              className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
+            >
+              <Home
+                size={24}
+                color={focused ? "white" : "grey"}
+                variant={focused ? "Bold" : "Outline"}
+              />
+            </View>
           ),
 
           headerLeft: () => (
-            <UserOctagon size={32} color={"black"} className="ml-4" />
+            <View className="pl-4">
+              <ProfileCircle size={32} color={"white"} className="ml-4" />
+            </View>
           ),
           headerTitle: () => (
-            <Link href={"/p/account"} className="ml-4">
-              <Text className="font-semibold text-lg text-black">
+            <Link href={"/p/account"} className="ml-2">
+              <Text className="font-semibold text-lg text-white">
                 Hello , {user.firstName}
               </Text>
             </Link>
           ),
+
+          headerTransparent: true,
           headerStyle: {
-            backgroundColor: "grey",
+            backgroundColor: "#00000056",
           },
         }}
       />
       <Tabs.Screen
         name="p/support/index"
         options={{
-          title: "Group Support",
+          title: "Group",
           tabBarIcon: ({ color, focused, size }) => (
-            <DocumentLike
-              size={24}
-              color={color}
-              variant={focused ? "Bold" : "Outline"}
-            />
+            <View
+              className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
+            >
+              <Profile2User
+                size={24}
+                color={focused ? "white" : "grey"}
+                variant={focused ? "Bold" : "Outline"}
+              />
+            </View>
           ),
         }}
       />
@@ -84,11 +98,15 @@ export default function PatientLayout() {
         options={{
           title: "Programs",
           tabBarIcon: ({ color, focused }) => (
-            <NoteFavorite
-              size={24}
-              color={color}
-              variant={focused ? "Bold" : "Outline"}
-            />
+            <View
+              className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
+            >
+              <ShieldTick
+                size={24}
+                color={focused ? "white" : "grey"}
+                variant={focused ? "Bold" : "Outline"}
+              />
+            </View>
           ),
         }}
       />
@@ -97,19 +115,33 @@ export default function PatientLayout() {
         options={{
           title: "Cultural Library",
           tabBarIcon: ({ color, focused }) => (
-            <Notepad
-              size={24}
-              color={color}
-              variant={focused ? "Bold" : "Outline"}
-            />
+            <View
+              className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
+            >
+              <Notepad
+                size={24}
+                color={focused ? "white" : "grey"}
+                variant={focused ? "Bold" : "Outline"}
+              />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
         name="p/account"
         options={{
-          title: "Baserti",
-          tabBarIcon: ({ color }) => <Logo size={32} />,
+          title: "File",
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
+            >
+              <DocumentText1
+                size={24}
+                color={focused ? "white" : "grey"}
+                variant={focused ? "Bold" : "Outline"}
+              />
+            </View>
+          ),
           headerShown: false,
         }}
       />

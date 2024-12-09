@@ -122,10 +122,10 @@ export default function NationalIdVerificationInputLoginForm(props: {
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
         className={`mt-6 w-full ${
-          loading ? "bg-gray-400" : "bg-green-600"
-        } text-white py-3 rounded-md`}
+          loading ? "bg-gray-400" : "bg-primary-600"
+        }  py-3 rounded-md`}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text>Submit</Text>}
+        {loading ? <ActivityIndicator color="#000" /> : <Text className="text-white font-semibold">Submit</Text>}
       </Button>
 
       <Button onPress={handelNationIdSkip} variant={"ghost"} className="w-full">

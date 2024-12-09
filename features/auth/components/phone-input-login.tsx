@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { AlertTriangle } from "lucide-react-native";
 import { Switch } from "@/components/ui/Switch";
 import { LogDataType } from "../types/auth.types";
+import WarningToast from "@/features/Home/Components/warning";
 
 type FormData = {
   phoneNumber: string;
@@ -38,7 +39,7 @@ export default function PhoneInputLoginForm(props: {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     data.phoneNumber = `${data.phoneNumber}`;
-    const finalData:LogDataType = {
+    const finalData: LogDataType = {
       ...data,
       isSubmittedSuccess: true,
       countryCode: `${selectedCountry?.callingCode} `,
@@ -105,25 +106,17 @@ export default function PhoneInputLoginForm(props: {
         />
       </View>
 
-      {/* Alert Message */}
-      <Alert
-        icon={AlertTriangle}
-        variant="destructive"
-        className="max-w-xl bg-orange-100 border-orange-300"
-      >
-        <AlertTitle>If you wish to apply for tax exemption,</AlertTitle>
-        <AlertDescription>register your ID number.</AlertDescription>
-      </Alert>
+      <WarningToast heading={"If you wish to apply for tax exemption,"} description={"register your ID number."}/>
 
       {/* Submit Button */}
       <Button
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
-        className={`mt-6 w-full ${
-          loading ? "bg-gray-400" : "bg-green-600"
-        } text-white py-3 rounded-md`}
+        className={`mt-6 w-full  py-3 rounded-md ${
+          loading ? "bg-gray-400" : "bg-primary-600"
+        } `}
       >
-        <Text>
+        <Text className="text-white font-semibold">
           {loading ? <ActivityIndicator color="#fff" /> : "Sign in / Log in"}
         </Text>
       </Button>
