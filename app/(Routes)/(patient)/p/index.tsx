@@ -56,7 +56,7 @@ export default function PatientPage() {
 
         <Button
           className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/p/consult")}
+          onPress={() => router.push("/p/account/consult")}
         >
           <Text className="font-medium text-left w-full ">
             Help me find the right consultant{" "}

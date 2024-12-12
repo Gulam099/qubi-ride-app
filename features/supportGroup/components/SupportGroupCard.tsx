@@ -1,0 +1,87 @@
+import { Button } from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
+import colors from "@/utils/colors";
+import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+import { Heart } from "iconsax-react-native";
+import React from "react";
+import {
+  View,
+  Text,
+  Image,
+  ImageSourcePropType,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { RelativePathString, useRouter } from "expo-router";
+
+type SupportGroupCardProps = {
+  title: string;
+  category: string;
+  price: string;
+  recorded: number;
+  rating: number;
+  image: string;
+  onPress: () => void; // Custom handler for "Join"
+  link: string; // Route to navigate to
+};
+
+export default function SupportGroupCard({
+  title,
+  category,
+  price,
+  recorded,
+  rating,
+  image,
+  onPress,
+  link,
+}: SupportGroupCardProps) {
+  const router = useRouter();
+
+  return (
+    <Card className="w-full px-0">
+      {/* Header with clickable title */}
+      <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
+        <CardHeader className="flex flex-row">
+          <View className="w-2/3">
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{category}</CardDescription>
+          </View>
+
+          <View className="w-1/3 flex justify-end items-end">
+            <Button className="aspect-square bg-primary-50/40 p-0 rounded-full">
+              <Heart size="24" color={colors.primary[500]} />
+            </Button>
+          </View>
+        </CardHeader>
+      </TouchableOpacity>
+
+      {/* Content with clickable image */}
+      <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
+        <CardContent className="px-0 rounded-none">
+          <Image
+            source={image as ImageSourcePropType}
+            className="w-full h-[undefined] aspect-video rounded-md"
+            resizeMode="cover"
+          />
+        </CardContent>
+      </TouchableOpacity>
+
+      {/* Footer with "Join" button */}
+      <CardFooter className="flex flex-row justify-between items-center">
+        <View>
+          <Text>{currencyFormatter(price)}</Text>
+        </View>
+        <Button onPress={onPress}>
+          <Text className="text-white font-semibold">Join</Text>
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}

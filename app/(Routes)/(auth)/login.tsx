@@ -16,11 +16,12 @@ import UserRoleSelector from "@/features/auth/components/user-role-selector";
 import { useDispatch, useSelector } from "react-redux";
 import { Redirect } from "expo-router";
 import { login, logout, updateUser } from "@/store/user/user";
+import { UserType } from "@/features/user/types/user.type";
 
 export default function SignInPage() {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user);
-  const [RoleData, setRoleData] = useState<RoleType>("default");
+  const [RoleData, setRoleData] = useState<RoleType>("patient");
   const [LogData, setLogData] = useState<LogDataType>({
     country: "",
     countryCode: "",

@@ -20,6 +20,7 @@ export default function AccountAppointmentsPage() {
             { title: "My Sessions", link: "/" },
           ].map((e, i) => (
             <Button
+            key={e.link + i}
               onPress={() => router.push(e.link as RelativePathString)}
               className="flex-1 rounded-2xl"
             >
@@ -37,6 +38,7 @@ export default function AccountAppointmentsPage() {
             { title: "Current", link: "/" },
           ].map((e, i) => (
             <Button
+            key={e.link + i}
               onPress={() => router.push(e.link as RelativePathString)}
               className="flex-1 rounded-2xl"
             >

@@ -5,7 +5,6 @@ import { Text } from "@/components/ui/Text";
 import ThemeToggleButton from "@/components/custom/ThemeToggle";
 import { EmojiHappy } from "iconsax-react-native";
 import { Link, Redirect } from "expo-router";
-import CounterComponent from "@/components/CounterComponent";
 import UserComponent from "@/components/UserComponent";
 import { useDispatch, useSelector } from "react-redux";
 import { RoleType } from "@/features/auth/types/auth.types";
@@ -43,7 +42,6 @@ export default function HomeScreen() {
       return (
         <View className="flex-1 justify-center items-center gap-5">
           <ThemeToggleButton />
-          <CounterComponent />
           <UserComponent />
           <Button>
             <Link href={"/welcome"}>

@@ -3,7 +3,7 @@ import { UserType } from "@/features/user/types/user.type";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: UserType = {
-  role: "default",
+  role: "patient",
   phoneNumber: "",
   country: "",
   nationalId: "",

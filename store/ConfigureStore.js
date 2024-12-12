@@ -3,7 +3,7 @@ import { combineReducers } from "@reduxjs/toolkit";
 import { documentDirectory, EncodingType } from "expo-file-system";
 import { createExpoFileSystemStorage } from "redux-persist-expo-file-system-storage";
 
-import CounterReducer from "./counter/counter";
+import AppStateReducer from "./appState/appState"
 import UserReducer from "./user/user";
 import { persistReducer } from "redux-persist";
 console.log("Document Directory:", documentDirectory);
@@ -32,7 +32,7 @@ const combinePersistReducers = (keys) =>
 
 const reducers = combineReducers({
   ...combinePersistReducers({
-    count: CounterReducer,
+    appState : AppStateReducer,
     user: UserReducer,
   }),
 });

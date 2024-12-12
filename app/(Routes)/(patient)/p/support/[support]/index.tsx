@@ -1,10 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
+import { useLocalSearchParams } from 'expo-router';
 
 export default function SupportPage() {
+    const { support } = useLocalSearchParams();
   return (
     <View>
-      <Text>SupportPage</Text>
+      <Text>SupportPage - {support}</Text>
     </View>
   )
 }

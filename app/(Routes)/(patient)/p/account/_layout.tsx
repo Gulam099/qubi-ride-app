@@ -38,6 +38,24 @@ export default function AccountLayout() {
           title: "Appointments",
         }}
       />
+      <Stack.Screen
+        name="consult"
+        options={{
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: colors.blue[900],
+          },
+          headerTintColor: "white",
+
+          headerRight: () => <NotificationIconButton className="mr-4" />,
+
+          headerTitle: ({ children }) => (
+            <Text className="font-semibold text-lg text-white">
+              Help me find the right consultant
+            </Text>
+          ),
+        }}
+      />
     </Stack>
   );
 }
