@@ -10,17 +10,34 @@ export default function AccountLayout() {
       screenOptions={{
         headerBackButtonDisplayMode: "generic",
         headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: colors.gray[500],
-        },
+
+        headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerTitle: ({ children }) => (
-          <Text className="font-semibold text-lg text-white">
-            My {children}
-          </Text>
+          <Text className="font-semibold text-lg ">My {children}</Text>
         ),
         headerBackButtonMenuEnabled: true,
       }}
-    />
+    >
+      <Stack.Screen
+        name="index"
+        options={{
+          title: "In",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="calendar/index"
+        options={{
+          title: "Calender",
+        }}
+      />
+      <Stack.Screen
+        name="appointment/index"
+        options={{
+          title: "Appointments",
+        }}
+      />
+    </Stack>
   );
 }

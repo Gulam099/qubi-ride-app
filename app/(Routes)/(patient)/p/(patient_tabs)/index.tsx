@@ -11,6 +11,7 @@ import {
   PatientPageInstantMenuImage,
 } from "@/features/patient/constPatient";
 import { Image } from "react-native";
+import { cn } from "@/lib/utils";
 
 export default function PatientPage() {
   const user = useSelector((state: any) => state.user);
@@ -22,7 +23,7 @@ export default function PatientPage() {
 
   return (
     <View className=" flex gap-6 flex-col">
-      <Image source={PatientHomeImage} className="bg-cover w-full " />
+      <Image source={PatientHomeImage} className={cn("w-full h-[undefined] aspect-[375/295]")} />
       <View className="flex gap-6 flex-col px-4">
         <H3 className="text-center">What type of consultation do you need?</H3>
 
@@ -48,14 +49,14 @@ export default function PatientPage() {
               <Text className=" text-base font-normal">{e.desc}</Text>
             </View>
             <View className="flex justify-end w-1/3  items-end">
-              {e.image && <Image source={e.image} />}
+              {e.image && <Image source={e.image} className={cn("w-full h-[undefined] aspect-square")} />}
             </View>
           </View>
         ))}
 
         <Button
           className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/p/account/notification")}
+          onPress={() => router.push("/p/consult")}
         >
           <Text className="font-medium text-left w-full ">
             Help me find the right consultant{" "}

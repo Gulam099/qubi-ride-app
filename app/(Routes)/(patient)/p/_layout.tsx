@@ -1,7 +1,7 @@
 import { Stack, Tabs } from "expo-router";
 import React from "react";
 
-export default function TabLayout() {
+export default function PatientTabLayout() {
   return (
     // <Stack
     //   screenOptions={{
@@ -11,9 +11,10 @@ export default function TabLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        headerBackButtonDisplayMode:"generic"
       }}
     >
-      <Stack.Screen name="(patient)/p" options={{ headerShown: false }} />
+      <Stack.Screen name="consult" options={{ headerShown: false }} />
     </Stack>
   );
 }

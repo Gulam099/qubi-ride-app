@@ -35,16 +35,20 @@ export default function PatientLayout() {
         headerShadowVisible: false,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerStyle: {
-          backgroundColor: colors.gray[500],
+          backgroundColor: colors.blue[900],
         },
+        headerTitle: ({ children }) => (
+          <Text className="font-semibold text-lg text-white">
+            {children}
+          </Text>
+        ),
         headerBackgroundContainerStyle: "",
       }}
     >
       <Tabs.Screen
-        name="p/index"
+        name="index"
         options={{
           title: "Home",
-
           tabBarIcon: ({ color, focused }) => (
             <View
               className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
@@ -77,7 +81,7 @@ export default function PatientLayout() {
         }}
       />
       <Tabs.Screen
-        name="p/support/index"
+        name="support/index"
         options={{
           title: "Group",
           tabBarIcon: ({ color, focused, size }) => (
@@ -94,7 +98,7 @@ export default function PatientLayout() {
         }}
       />
       <Tabs.Screen
-        name="p/program/index"
+        name="program/index"
         options={{
           title: "Programs",
           tabBarIcon: ({ color, focused }) => (
@@ -111,7 +115,7 @@ export default function PatientLayout() {
         }}
       />
       <Tabs.Screen
-        name="p/library/index"
+        name="library/index"
         options={{
           title: "Cultural Library",
           tabBarIcon: ({ color, focused }) => (
@@ -128,7 +132,7 @@ export default function PatientLayout() {
         }}
       />
       <Tabs.Screen
-        name="p/account"
+        name="account"
         options={{
           title: "File",
           tabBarIcon: ({ color, focused }) => (
@@ -143,6 +147,7 @@ export default function PatientLayout() {
             </View>
           ),
           headerShown: false,
+          
         }}
       />
     </Tabs>

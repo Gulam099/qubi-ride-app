@@ -77,8 +77,6 @@ export default function SignInPage() {
       {/* Logo */}
       <View className="flex justify-center items-center w-screen">
         <Logo size={150} />
-        {/* <Text className="font-noto-medium" >لمّا كان الاعتراف</Text>
-        <Text className="font-notoArabic font-medium" style={{fontFamily:'NotoKufiArabic_500Medium'}} >لمّا كان الاعتراف</Text> */}
       </View>
       <View className="bg-background h-full pt-12 rounded-t-[50px]">
         {/* Forms */}

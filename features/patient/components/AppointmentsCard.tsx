@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function AccountAppointmentsPage() {
+export default function AppointmentsCard() {
   return (
     <View>
-      <Text>AccountAppointmentsPage</Text>
+      <Text>appointmentsCard</Text>
     </View>
   )
 }

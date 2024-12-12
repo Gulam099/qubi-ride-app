@@ -14,7 +14,7 @@ export default function NotificationIconButton(props: { className?: string }) {
       variant={"secondary"}
       className={cn(
         props.className,
-        "border aspect-square size-5 relative p-2"
+        "border aspect-square size-5 relative p-2 bg-background"
       )}
     >
       <View className="size-[0.60rem] bg-red-500 rounded-full absolute top-2 right-2 z-10"></View>

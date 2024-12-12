@@ -30,11 +30,11 @@ export default function AccountPage() {
   const user = useSelector((state: any) => state.user);
   const router = useRouter();
 
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
 
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
+  // useEffect(() => {
+  //   navigation.setOptions({ headerShown: false });
+  // }, [navigation]);
 
   const [Interests, setInterests] = useState([
     {
