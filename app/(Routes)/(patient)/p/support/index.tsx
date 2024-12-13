@@ -52,6 +52,7 @@ export default function SupportPage() {
       {/* List of Support Groups */}
       <FlatList
         data={supportGroups}
+        showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <SupportGroupCard
@@ -61,7 +62,9 @@ export default function SupportPage() {
             recorded={item.recorded}
             rating={item.rating}
             image={item.image}
-            onPress={() => handleCardPress(item.id)} link={`p/support/${toKebabCase(item.title)}/index`}          />
+            onPress={() => handleCardPress(item.id)}
+            link={`/p/support/${toKebabCase(item.title)}`}
+          />
         )}
         contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
       />

@@ -1,0 +1,21 @@
+import { View, Text } from "react-native";
+import React from "react";
+import { Stack, useLocalSearchParams } from "expo-router";
+import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
+import BackButton from "@/features/Home/Components/BackButton";
+import { toTitleCase } from "@/utils/string.utils";
+
+export default function SupportGroupIndPag() {
+  const { support } = useLocalSearchParams();
+  return (
+    <Stack
+      screenOptions={{
+        headerLeft:()=> <BackButton/>,
+        headerTitle: ({ children }) => (
+          <Text className="font-semibold text-lg ">{toTitleCase(support)}</Text>
+        ),
+        headerRight: () => <NotificationIconButton className="mr-4" />,
+      }}
+    />
+  );
+}

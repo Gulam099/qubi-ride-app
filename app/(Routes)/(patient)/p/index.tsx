@@ -12,6 +12,8 @@ import {
 } from "@/features/patient/constPatient";
 import { Image } from "react-native";
 import { cn } from "@/lib/utils";
+import { StatusBar } from "expo-status-bar";
+import colors from "@/utils/colors";
 
 export default function PatientPage() {
   const user = useSelector((state: any) => state.user);

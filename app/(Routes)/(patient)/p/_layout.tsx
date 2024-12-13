@@ -1,9 +1,11 @@
 import Logo from "@/features/Home/Components/Logo";
 import { TabButton } from "@/features/Home/Components/TabButton";
 import { Text } from "@/components/ui/Text";
-import { Link, Redirect, Stack, Tabs } from "expo-router";
+import { Link, Redirect, Stack, Tabs, useRouter } from "expo-router";
 // import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
 import {
+  ArrowLeft,
+  ArrowLeft2,
   DocumentLike,
   DocumentText1,
   Home,
@@ -19,6 +21,8 @@ import NotificationIconButton from "@/features/Home/Components/NotificationIconB
 import colors from "@/utils/colors";
 import { cn } from "@/lib/utils";
 import { View } from "react-native";
+import { Button } from "@/components/ui/Button";
+import BackButton from "@/features/Home/Components/BackButton";
 
 export default function PatientLayout() {
   const user = useSelector((state: any) => state.user);
@@ -35,12 +39,10 @@ export default function PatientLayout() {
         headerShadowVisible: false,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerStyle: {
-          backgroundColor: colors.blue[900],
+          backgroundColor: "white",
         },
         headerTitle: ({ children }) => (
-          <Text className="font-semibold text-lg text-white">
-            {children}
-          </Text>
+          <Text className="font-semibold text-lg ">{children}</Text>
         ),
         headerBackgroundContainerStyle: "",
       }}
@@ -95,6 +97,8 @@ export default function PatientLayout() {
               />
             </View>
           ),
+          headerShown: false,
+          
         }}
       />
       <Tabs.Screen
@@ -147,7 +151,6 @@ export default function PatientLayout() {
             </View>
           ),
           headerShown: false,
-          
         }}
       />
     </Tabs>

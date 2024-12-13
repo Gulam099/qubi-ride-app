@@ -22,6 +22,7 @@ import {
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "@/store";
+import colors from "@/utils/colors";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -58,7 +59,7 @@ export default function RootLayout() {
             <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
-          <StatusBar style="auto" />
+          <StatusBar style="light" backgroundColor={colors.primary[900]} />
 
           {/* </UserProvider> */}
         </ThemeProvider>

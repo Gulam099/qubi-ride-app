@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/Card";
 import colors from "@/utils/colors";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
-import { Heart } from "iconsax-react-native";
+import { Heart, Moneys, People } from "iconsax-react-native";
 import React from "react";
 import {
   View,
@@ -67,7 +67,7 @@ export default function SupportGroupCard({
         <CardContent className="px-0 rounded-none">
           <Image
             source={image as ImageSourcePropType}
-            className="w-full h-[undefined] aspect-video rounded-md"
+            className="w-full h-[undefined] aspect-video "
             resizeMode="cover"
           />
         </CardContent>
@@ -75,8 +75,17 @@ export default function SupportGroupCard({
 
       {/* Footer with "Join" button */}
       <CardFooter className="flex flex-row justify-between items-center">
-        <View>
-          <Text>{currencyFormatter(price)}</Text>
+        <View className="flex flex-row gap-2 justify-center items-center">
+          <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8 flex justify-center items-center">
+            <Moneys size="18" color={colors.primary[900]} />
+          </View>
+          <Text className="font-medium">{currencyFormatter(price)}</Text>
+        </View>
+        <View className="flex flex-row gap-2 justify-center items-center">
+          <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8 flex justify-center items-center">
+            <People size="18" color={colors.primary[900]} />
+          </View>
+          <Text className="font-medium">{recorded} Recorded</Text>
         </View>
         <Button onPress={onPress}>
           <Text className="text-white font-semibold">Join</Text>
