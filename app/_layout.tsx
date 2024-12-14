@@ -6,6 +6,7 @@ import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
 import { ThemeProvider } from "@/Provider/ThemeProvider";
+import { PortalHost } from '@rn-primitives/portal';
 import {
   useFonts,
   NotoKufiArabic_100Thin,
@@ -60,7 +61,7 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="light" backgroundColor={colors.primary[900]} />
-
+          <PortalHost />
           {/* </UserProvider> */}
         </ThemeProvider>
       </PersistGate>

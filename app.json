@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.baserti"
+      "package": "com.baserti" 
     },
     "web": {
       "bundler": "metro",

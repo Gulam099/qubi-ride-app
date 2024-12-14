@@ -10,13 +10,13 @@ export default function GroupLayout() {
     <Stack
       screenOptions={{
         headerShadowVisible: false,
-        
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          title: "In",headerLeft: () => <BackButton className="p" />,
+          title: "In",
+          headerLeft: () => <BackButton className="p" />,
           headerRight: () => <NotificationIconButton className="mr-4" />,
           headerTitle: () => (
             <Text className="font-semibold text-lg  px-2">Support Group</Text>
@@ -24,7 +24,7 @@ export default function GroupLayout() {
         }}
       />
 
-      <Stack.Screen name="[support]" options={{headerShown:false}} />
+      <Stack.Screen name="[support]" options={{ headerShown: false }} />
     </Stack>
   );
 }

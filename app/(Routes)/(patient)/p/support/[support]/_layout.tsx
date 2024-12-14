@@ -12,7 +12,7 @@ export default function SupportGroupIndPag() {
       screenOptions={{
         headerLeft:()=> <BackButton/>,
         headerTitle: ({ children }) => (
-          <Text className="font-semibold text-lg ">{toTitleCase(support)}</Text>
+          <Text className="font-semibold text-lg ">{toTitleCase(support as string)}</Text>
         ),
         headerRight: () => <NotificationIconButton className="mr-4" />,
       }}

@@ -3,6 +3,7 @@ import React from "react";
 import { Stack } from "expo-router";
 import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
+import BackButton from "@/features/Home/Components/BackButton";
 
 export default function AccountLayout() {
   return (
@@ -10,15 +11,19 @@ export default function AccountLayout() {
       screenOptions={{
         headerBackButtonDisplayMode: "generic",
         headerShadowVisible: false,
-
-        headerBackVisible: true,
+        headerLeft: () => <BackButton className="p" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerTitle: ({ children }) => (
           <Text className="font-semibold text-lg ">My {children}</Text>
         ),
-        headerBackButtonMenuEnabled: true,
       }}
     >
+      <Stack.Screen
+        name="notification/index"
+        options={{
+          title: "Notification",
+        }}
+      />
       <Stack.Screen
         name="index"
         options={{

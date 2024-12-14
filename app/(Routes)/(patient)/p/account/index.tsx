@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { RelativePathString, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { H3, H4 } from "@/components/ui/Typography";
+import { H2, H3, H4 } from "@/components/ui/Typography";
 import {
   Add,
   Book,
@@ -24,11 +24,18 @@ import {
 import colors from "@/utils/colors";
 import AccountCard from "@/features/account/components/AccountCard";
 import { useRouter } from "expo-router";
+import Drawer from "@/components/ui/Drawer";
+import { Image } from "react-native";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
+import { Label } from "@/components/ui/Label";
+import { PatientDeleteAccountOptions } from "@/features/account/constAccount";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user);
   const router = useRouter();
+
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
 
   // const navigation = useNavigation();
 
@@ -90,6 +97,14 @@ export default function AccountPage() {
     return router.push(`${link}` as RelativePathString);
     // Perform state updates or navigation if needed
   };
+
+  const [value, setValue] = React.useState("Comfortable");
+
+  function onLabelPress(label: string) {
+    return () => {
+      setValue(label);
+    };
+  }
 
   return (
     <SafeAreaView>
@@ -186,9 +201,71 @@ export default function AccountPage() {
             >
               <Text className="text-white">Logout</Text>
             </Button>
+
+            <View className="flex-1 justify-center items-center">
+              <Button onPress={() => setIsDrawerVisible(true)} variant={"link"}>
+                <Text className="">Delete Account</Text>
+              </Button>
+
+              <Drawer
+                visible={isDrawerVisible}
+                onClose={() => setIsDrawerVisible(false)}
+                title="My Drawer"
+                height="70%"
+              >
+                <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
+                  <Image
+                    source={require("@/assets/icon/NotificationAlertImage.png")}
+                    className="w-24 h-[undefined] aspect-square"
+                  />
+                  <H3 className="border-none ">Are sure you want to delete </H3>
+                  <Text className="text-lg">Could you tell us why ?</Text>
+                  <RadioGroup
+                    value={value}
+                    onValueChange={setValue}
+                    className="gap-6"
+                  >
+                    {PatientDeleteAccountOptions.map((option) => (
+                      <RadioGroupItemWithLabel
+                        key={option}
+                        value={option}
+                        onLabelPress={onLabelPress(option)}
+                      />
+                    ))}
+                  </RadioGroup>
+                  <Button
+                    onPress={() => setIsDrawerVisible(false)}
+                    className="w-full"
+                  >
+                    <Text className="text-white font-semibold">Submit</Text>
+                  </Button>
+                </View>
+              </Drawer>
+            </View>
           </View>
         </ScrollView>
       </View>
     </SafeAreaView>
+  );
+}
+
+function RadioGroupItemWithLabel({
+  value,
+  onLabelPress,
+}: Readonly<{
+  value: string;
+  onLabelPress: () => void;
+}>) {
+  return (
+    <View className={"flex-row gap-3 items-center "}>
+      <RadioGroupItem aria-labelledby={"label-for-" + value} value={value} />
+      <Label
+        nativeID={"label-for-" + value}
+        onPress={onLabelPress}
+        className="text-lg"
+      >
+        {value}
+      </Label>
+    </View>
   );
 }
