@@ -2,20 +2,25 @@ import { View, Text } from "react-native";
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { ArrowLeft2 } from "iconsax-react-native";
-import { useRouter } from "expo-router";
+import { RelativePathString, useRouter } from "expo-router";
 import { cn } from "@/lib/utils";
 
 export default function BackButton(props: {
   className?: string;
   iconSize?: number;
   iconColor?: string;
+  customBackLink?: string;
 }) {
   const router = useRouter();
 
   return (
     <Button
       className={cn(props.className, "aspect-square")}
-      onPress={() => router.back()}
+      onPress={() =>
+        !props.customBackLink
+          ? router.back()
+          : router.push(props.customBackLink as RelativePathString)
+      }
       variant={"ghost"}
     >
       <ArrowLeft2

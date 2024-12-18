@@ -20,7 +20,10 @@ export default function ConsultPage() {
           Based on your condition, we suggest that you book a session with any
           of the following specialists
         </H3>
-        <Button className=" backdrop-blur-md " onPress={() => router.push("/")}>
+        <Button
+          className=" backdrop-blur-md "
+          onPress={() => router.push("/p/account/consult/filter")}
+        >
           <Text className="font-semibold  text-center text-white">
             Start Now
           </Text>

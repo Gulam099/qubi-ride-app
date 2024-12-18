@@ -1,19 +1,20 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
 
 export default function AccountLayout() {
+  const router = useRouter();
   return (
     <Stack
       screenOptions={{
         headerBackButtonDisplayMode: "generic",
         headerShadowVisible: false,
-        headerLeft: () => <BackButton className="p" />,
+        headerLeft: () => <BackButton className="" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
-        headerTitle: ({ children }) => (
+        headerTitle: ({ children }: { children: any }) => (
           <Text className="font-semibold text-lg ">My {children}</Text>
         ),
       }}
@@ -44,21 +45,23 @@ export default function AccountLayout() {
         }}
       />
       <Stack.Screen
+        name="payment/index"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg ">Payment</Text>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="report/index"
+        options={{
+          title: "Profile Verification Code",
+        }}
+      />
+      <Stack.Screen
         name="consult"
         options={{
-          headerShadowVisible: false,
-          headerStyle: {
-            backgroundColor: colors.blue[900],
-          },
-          headerTintColor: "white",
-
-          headerRight: () => <NotificationIconButton className="mr-4" />,
-
-          headerTitle: ({ children }) => (
-            <Text className="font-semibold text-lg text-white">
-              Help me find the right consultant
-            </Text>
-          ),
+          headerShown: false,
         }}
       />
     </Stack>
