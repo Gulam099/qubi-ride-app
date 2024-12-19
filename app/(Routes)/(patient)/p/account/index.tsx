@@ -29,6 +29,7 @@ import { Image } from "react-native";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Label } from "@/components/ui/Label";
 import { PatientDeleteAccountOptions } from "@/features/account/constAccount";
+import BellAlert from "@/assets/icon/BellAlert.svg";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
@@ -214,10 +215,10 @@ export default function AccountPage() {
                 height="70%"
               >
                 <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-                  <Image
-                    source={require("@/assets/icon/NotificationAlertImage.png")}
-                    className="w-24 h-[undefined] aspect-square"
-                  />
+                  <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
+                    <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
+                    <BellAlert height={80} width={80} />
+                  </View>
                   <H3 className="border-none ">Are sure you want to delete </H3>
                   <Text className="text-lg">Could you tell us why ?</Text>
                   <RadioGroup

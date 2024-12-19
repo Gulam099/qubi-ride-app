@@ -55,7 +55,7 @@ export const ThemeProvider = ({ children }: PropsWithChildren) => {
   );
 
   return (
-    <RNThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>
+    <RNThemeProvider value={isDarkMode ? DefaultTheme : DefaultTheme}>
       {children}
     </RNThemeProvider>
   );

@@ -15,6 +15,7 @@ import {
   DiscountShape,
   EmptyWalletTime,
   Moneys,
+  Warning2,
 } from "iconsax-react-native";
 import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +24,7 @@ import { Switch } from "@/components/ui/Switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { H3 } from "@/components/ui/Typography";
 import Drawer from "@/components/ui/Drawer";
+import Thumb from "@/assets/icon/thumb.svg";
 
 interface Specialist {
   id: string;
@@ -175,7 +177,12 @@ export default function AccountPaymentPage() {
             nativeID="rememberMyDetails"
           />
         </View>
-        <Text className="text-yellow-500 mt-2 text-sm">
+      </View>
+      <View className="bg-yellow-50 border-yellow-500 rounded-2xl mb-4 py-2 px-4 flex flex-row gap-2">
+        <View className="p-1 bg-yellow-400 aspect-square rounded-full w-10 flex justify-center items-center">
+          <Warning2 size="20" color={"white"} />
+        </View>
+        <Text className="text-yellow-500  text-sm">
           You can use the wallet for partial payment and settle the remaining
           amount using Apple Pay or a credit card.
         </Text>
@@ -246,34 +253,28 @@ export default function AccountPaymentPage() {
         </Text>
       </Button>
 
-      {/* <View className="flex-1 justify-center items-center  mt-10 mb-20">
-              <Button onPress={() => setIsDrawerVisible(true)} variant={"link"}>
-                <Text className="">Delete Account</Text>
-              </Button>
+      <View className="flex-1 justify-center items-center  mt-10 mb-20">
+        <Button onPress={() => setIsDrawerVisible(true)} variant={"link"}>
+          <Text className="">This todo appers after Payment</Text>
+        </Button>
 
-              <Drawer
-                visible={isDrawerVisible}
-                onClose={() => setIsDrawerVisible(false)}
-                title="My Drawer"
-                height="70%"
-              >
-                <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-                  <Image
-                    source={require("@/assets/icon/NotificationAlertImage.png")}
-                    className="w-24 h-[undefined] aspect-square"
-                  />
-                  <H3 className="border-none ">Are sure you want to delete </H3>
-                  <Text className="text-lg">Could you tell us why ?</Text>
-                 
-                  <Button
-                    onPress={() => setIsDrawerVisible(false)}
-                    className="w-full"
-                  >
-                    <Text className="text-white font-semibold">Submit</Text>
-                  </Button>
-                </View>
-              </Drawer>
-            </View> */}
+        <Drawer
+          visible={isDrawerVisible}
+          onClose={() => setIsDrawerVisible(false)}
+          title="My Drawer"
+          height="40%"
+          className="max-h-[40%]"
+        >
+          <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
+            <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
+              <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
+              <Thumb height={80} width={80} />
+            </View>
+
+            <H3 className="border-none ">Payment Successful</H3>
+          </View>
+        </Drawer>
+      </View>
     </ScrollView>
   );
 }

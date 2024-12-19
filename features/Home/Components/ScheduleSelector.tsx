@@ -18,7 +18,9 @@ export default function ScheduleSelector({
   CalenderHeading,
   TimeSliderHeading,
 }: ScheduleSelectorProps) {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    selectedDateTime
+  );
 
   // Extract unique dates from availableTimes
   const uniqueDates = Array.from(
