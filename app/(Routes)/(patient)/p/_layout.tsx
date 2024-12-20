@@ -98,11 +98,10 @@ export default function PatientLayout() {
             </View>
           ),
           headerShown: false,
-          
         }}
       />
       <Tabs.Screen
-        name="program/index"
+        name="program"
         options={{
           title: "Programs",
           tabBarIcon: ({ color, focused }) => (
@@ -116,12 +115,13 @@ export default function PatientLayout() {
               />
             </View>
           ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="library/index"
+        name="library"
         options={{
-          title: "Cultural Library",
+          title: "Library",
           tabBarIcon: ({ color, focused }) => (
             <View
               className={cn(focused ? "bg-primary-300 p-1 rounded-full" : "")}
@@ -133,6 +133,7 @@ export default function PatientLayout() {
               />
             </View>
           ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen

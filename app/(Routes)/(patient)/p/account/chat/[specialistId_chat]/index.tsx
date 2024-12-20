@@ -7,7 +7,7 @@ import {
   Image,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/Separator";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 
 export default function ChatScreenSpecialist() {
+  
   const [attachment, setAttachment] = useState(null);
   const { specialistId_chat } = useLocalSearchParams();
   const [messages, setMessages] = useState([
@@ -207,9 +208,6 @@ export default function ChatScreenSpecialist() {
   function toggleCameraFacing() {
     setFacing((current) => (current === "back" ? "front" : "back"));
   }
-
-
-  
 
   return (
     <View className="flex-1 bg-blue-50/10 p-4">

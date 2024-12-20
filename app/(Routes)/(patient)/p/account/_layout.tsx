@@ -45,6 +45,18 @@ export default function AccountLayout() {
         }}
       />
       <Stack.Screen
+        name="favorite/index"
+        options={{
+          title: "Favorites",
+        }}
+      />
+      <Stack.Screen
+        name="family/index"
+        options={{
+          title: "Family",
+        }}
+      />
+      <Stack.Screen
         name="payment/index"
         options={{
           headerTitle: () => (
@@ -60,6 +72,18 @@ export default function AccountLayout() {
       />
       <Stack.Screen
         name="consult"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="chat"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="invoice"
         options={{
           headerShown: false,
         }}
