@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout, updateUser } from "@/store/user/user";
 import { Button } from "@/components/ui/Button";
-import { RelativePathString, useNavigation } from "expo-router";
+import { Link, RelativePathString, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { H2, H3, H4 } from "@/components/ui/Typography";
@@ -12,6 +12,8 @@ import {
   Book,
   Clipboard,
   ClipboardText,
+  Copy,
+  Edit,
   EmptyWalletTime,
   Like1,
   MenuBoard,
@@ -30,6 +32,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Label } from "@/components/ui/Label";
 import { PatientDeleteAccountOptions } from "@/features/account/constAccount";
 import BellAlert from "@/assets/icon/BellAlert.svg";
+import TextureCircle from "@/features/account/assets/images/TextureCircle.svg";
+import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
@@ -110,33 +114,57 @@ export default function AccountPage() {
   return (
     <SafeAreaView>
       <View className="h-full bg-neutral-200">
-        {/* profile */}
-        <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8">
-          <Avatar
-            alt="avatar-with-image"
-            className="size-28 border-2 border-neutral-500"
-          >
-            <AvatarImage
-              source={{
-                uri: "https://avatars.githubusercontent.com/u/72434947?s=400&u=57af259837547b6acea47c895bd847ccc2a4c35b&v=4",
-              }}
-            />
-            <AvatarFallback>
-              <Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
+          contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
+        >
+          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16 relative">
+            <Avatar
+              alt="avatar-with-image"
+              className="size-24 border-2 border-neutral-500"
+            >
+              <AvatarImage
+                source={{
+                  uri: "https://avatars.githubusercontent.com/u/72434947",
+                }}
+              />
+              <AvatarFallback className="bg-primary-500">
+                <Text className="text-3xl text-center font-semibold text-white">
+                  {user.firstName.slice(0, 1)}
+                  {user.lastName.slice(0, 1)}
+                </Text>
+              </AvatarFallback>
+            </Avatar>
+            <View className="flex-1">
+              <Text className="text-lg font-semibold text-white ">
                 {user.firstName} {user.lastName}
               </Text>
-            </AvatarFallback>
-          </Avatar>
+              <CopyToClipboard
+                data={user.role}
+                variant={"ghost"}
+                className="flex justify-start items-start p-0"
+              >
+                <Text className="text-base  text-gray-200 ">
+                  {user.role} <Copy size="16" color={colors.gray[200]} />
+                </Text>
+              </CopyToClipboard>
+              <Link href="/p/account/profile">
+                <Text className="text-blue-100 text-sm underline">
+                  View Profile
+                </Text>
+              </Link>
+            </View>
+            <View className={"absolute -top-4 -right-6"}>
+              <TextureCircle />
+            </View>
 
-          <Text className="text-lg font-semibold text-white">
-            {user.firstName} {user.lastName}
-          </Text>
-        </View>
-
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
-          showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
-        >
+            <Button
+              className="bg-primary-700 p-2 rounded-2xl aspect-square"
+              onPress={() => router.push("/p/account/profile")}
+            >
+              <Edit size="24" color={colors.gray[100]} />
+            </Button>
+          </View>
           <View className="flex justify-center items-center h-full w-full flex-1 p-6 pt-2">
             <View className="flex justify-center items-center flex-row flex-wrap basis-1/3 gap-4">
               {Interests.map((section) => (

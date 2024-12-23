@@ -19,7 +19,9 @@ export default function ProgramLayout() {
           headerLeft: () => <BackButton className="p" />,
           headerRight: () => <NotificationIconButton className="mr-4" />,
           headerTitle: () => (
-            <Text className="font-semibold text-lg  px-2">Cultural Library</Text>
+            <Text className="font-semibold text-lg  px-2">
+              Cultural Library
+            </Text>
           ),
         }}
       />

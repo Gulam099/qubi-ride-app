@@ -5,6 +5,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const initialState: UserType = {
   role: "patient",
   phoneNumber: "",
+  email: "",
+  dateOfBirth: "",
   country: "",
   nationalId: "",
   firstName: "",

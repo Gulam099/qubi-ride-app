@@ -84,7 +84,8 @@
     "zod": "^3.23.8",
     "expo-image-picker": "~16.0.3",
     "expo-camera": "~16.0.10",
-    "expo-document-picker": "~13.0.1"
+    "expo-document-picker": "~13.0.1",
+    "expo-clipboard": "~7.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

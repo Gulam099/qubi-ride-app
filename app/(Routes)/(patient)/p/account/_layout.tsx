@@ -57,6 +57,13 @@ export default function AccountLayout() {
         }}
       />
       <Stack.Screen
+        name="profile/index"
+        options={{
+          title: "Profile",
+        }}
+      />
+      
+      <Stack.Screen
         name="payment/index"
         options={{
           headerTitle: () => (
@@ -84,6 +91,12 @@ export default function AccountLayout() {
       />
       <Stack.Screen
         name="invoice"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="scale"
         options={{
           headerShown: false,
         }}

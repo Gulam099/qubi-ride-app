@@ -59,7 +59,7 @@ const buttonTextVariants = cva(
   }
 );
 
-type ButtonProps = ComponentPropsWithoutRef<typeof Pressable> &
+ type ButtonProps = ComponentPropsWithoutRef<typeof Pressable> &
   VariantProps<typeof buttonVariants>;
 
 const Button = forwardRef<ElementRef<typeof Pressable>, ButtonProps>(
