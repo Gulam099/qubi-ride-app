@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Platform } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { Input } from "@/components/ui/Input";
@@ -12,6 +12,8 @@ import PhoneInput, {
   getCountryByCca2,
 } from "react-native-international-phone-number";
 import { ArrowDown2 } from "iconsax-react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { toast } from "sonner-native";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -31,6 +33,8 @@ export default function ProfilePage() {
   const [selectedCountry, setSelectedCountry] = useState<ICountry | undefined>(
     countryData
   );
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(dateOfBirth);
 
   const {
     control,
@@ -49,12 +53,17 @@ export default function ProfilePage() {
 
   const onSubmit = (data: any) => {
     dispatch(updateUser({ country: selectedCountry?.cca2, ...data }));
+    toast.success("Operation successful!", {
+      className: "bg-green-500",
+      style: { backgroundColor: "blue" },
+      description: "Everything worked as expected.",
+      duration: 5000, // Adjust duration here
+    });
   };
 
   function RadioGroupItemWithLabel({
     value,
     label,
-    selectedValue,
     onChange,
   }: {
     value: any;
@@ -67,7 +76,6 @@ export default function ProfilePage() {
         <RadioGroupItem
           aria-labelledby={`label-for-${value}`}
           value={value}
-          selected={selectedValue === value}
           onPress={() => onChange(value)}
         />
         <Label nativeID={`label-for-${value}`} onPress={() => onChange(value)}>
@@ -76,6 +84,14 @@ export default function ProfilePage() {
       </View>
     );
   }
+
+  const showDatePicker = () => setDatePickerVisible(true);
+  const handleDateChange = (event: any, selectedDateValue: any) => {
+    setDatePickerVisible(Platform.OS === "ios");
+    if (selectedDateValue) {
+      setSelectedDate(selectedDateValue);
+    }
+  };
 
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
@@ -111,7 +127,9 @@ export default function ProfilePage() {
           render={({ field: { onChange, value } }) => (
             <PhoneInput
               value={value}
-              onChangePhoneNumber={onChange}
+              onChangePhoneNumber={(number) => {
+                onChange(number);
+              }}
               selectedCountry={selectedCountry}
               onChangeSelectedCountry={setSelectedCountry}
               customCaret={<ArrowDown2 variant="Bold" size="18" color="#000" />}
@@ -120,6 +138,7 @@ export default function ProfilePage() {
             />
           )}
         />
+
         {errors.phoneNumber && (
           <Text className="text-red-500">
             {errors.phoneNumber.message?.toString()}
@@ -155,12 +174,25 @@ export default function ProfilePage() {
           name="dateOfBirth"
           control={control}
           rules={{ required: "Date of birth is required" }}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              placeholder="Date of Birth"
-              value={value}
-              onChangeText={onChange}
-            />
+          render={({ field: { onChange } }) => (
+            <View>
+              <Button onPress={showDatePicker} className="bg-primary-50 p-2">
+                <Text>
+                  {selectedDate ? selectedDate.toString() : "Select Date"}
+                </Text>
+              </Button>
+              {datePickerVisible && (
+                <DateTimePicker
+                  value={new Date(selectedDate) || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, date) => {
+                    handleDateChange(event, date);
+                    onChange(date);
+                  }}
+                />
+              )}
+            </View>
           )}
         />
         {errors.dateOfBirth && (

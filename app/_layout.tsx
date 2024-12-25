@@ -6,7 +6,7 @@ import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
 import { ThemeProvider } from "@/Provider/ThemeProvider";
-import { PortalHost } from '@rn-primitives/portal';
+import { PortalHost } from "@rn-primitives/portal";
 import {
   useFonts,
   NotoKufiArabic_100Thin,
@@ -24,6 +24,8 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "@/store";
 import colors from "@/utils/colors";
+import { Toaster } from "sonner-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -51,20 +53,21 @@ export default function RootLayout() {
     return null;
   }
 
-  
-
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider>
-          {/* <UserProvider> */}
-          <Stack>
-            <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="light" backgroundColor={colors.primary[900]} />
-          <PortalHost />
-          {/* </UserProvider> */}
+          <GestureHandlerRootView>
+            {/* <UserProvider> */}
+            <Stack>
+              <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <Toaster />
+            <StatusBar style="light" backgroundColor={colors.primary[900]} />
+            <PortalHost />
+            {/* </UserProvider> */}
+          </GestureHandlerRootView>
         </ThemeProvider>
       </PersistGate>
     </Provider>

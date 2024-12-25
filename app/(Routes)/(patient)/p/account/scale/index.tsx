@@ -1,6 +1,9 @@
 import React from "react";
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
+import { Button } from "@/components/ui/Button";
+import { Chart21, Clock, Profile2User } from "iconsax-react-native";
+import colors from "@/utils/colors";
 
 export default function ScalePage() {
   const router = useRouter();
@@ -41,30 +44,39 @@ export default function ScalePage() {
     <View className="p-4 bg-blue-50/10 h-full">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="font-bold text-xl">Scale</Text>
-        <TouchableOpacity
-          className="bg-purple-500 px-4 py-2 rounded-md"
+        <Button
+          className="h-11 max-h-11 py-0 px-0 flex-row bg-primary-50 gap-3"
           onPress={() =>
             router.push("/p/account/scale/record" as RelativePathString)
           }
         >
-          <Text className="text-white font-medium">Record</Text>
-        </TouchableOpacity>
+          <Chart21 size="24" color={colors.primary[500]} />
+          <Text className="text-primary-500 font-semibold">Record</Text>
+        </Button>
       </View>
 
       <FlatList
         data={scales}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
+        contentContainerClassName="gap-4"
+        columnWrapperClassName="gap-4"
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="bg-white p-4 rounded-lg shadow-md mb-4 w-[48%]"
+            className="bg-white p-4 rounded-2xl  flex-1 aspect-[4/3] relative overflow-hidden flex-col justify-between"
             onPress={() => router.push(`${item.link}` as RelativePathString)}
           >
-            <Text className="font-bold text-sm mb-2">{item.title}</Text>
-            <View className="flex-row items-center gap-2">
-              <Text className="text-gray-500 text-xs">⏱ {item.time}</Text>
-              <Text className="text-gray-500 text-xs">👥 {item.users}</Text>
+            <Text className="font-bold text-lg ">{item.title}</Text>
+            <View className="size-36 absolute -top-6 -left-6 bg-blue-50/20 rounded-full"></View>
+            <View className="flex-row items-start justify-start gap-3">
+              <View className="flex-row items-center justify-center gap-2">
+                <Clock size="16" color={colors.primary[500]} />
+                <Text className="text-gray-500 text-xs font-semibold">{item.time}</Text>
+              </View>
+              <View className="flex-row items-center justify-center gap-2">
+                <Profile2User size="16" color={colors.primary[500]} />
+                <Text className="text-gray-500 text-xs font-semibold">{item.users}</Text>
+              </View>
             </View>
           </TouchableOpacity>
         )}

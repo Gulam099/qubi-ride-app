@@ -76,7 +76,8 @@ export default function VerifyOtpInputLoginForm(props: {
         </Text>
         <View className="flex flex-row gap-6  w-full ">
           <Text className="text-wrap flex-1">
-            Enter the verification code sent to the number {LogData.countryCode} {LogData.phoneNumber}
+            Enter the verification code sent to the number {LogData.countryCode}{" "}
+            {LogData.phoneNumber}
           </Text>
           <Button
             onPress={() => {
@@ -112,6 +113,26 @@ export default function VerifyOtpInputLoginForm(props: {
               onFilled={() => handleSubmit(onSubmit)}
               textInputProps={{
                 accessibilityLabel: "One-Time Password",
+              }}
+              theme={{
+                containerStyle: {},
+                inputsContainerStyle: {
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: "10px",
+                },
+                pinCodeContainerStyle: {
+                  aspectRatio: 1 / 1,
+                  width: 60,
+                  marginHorizontal: 10,
+                  backgroundColor: "white",
+                },
+                filledPinCodeContainerStyle: {},
+                pinCodeTextStyle: {
+                  fontSize: 40,
+                  textAlignVertical: "center",
+                },
               }}
             />
           )}
