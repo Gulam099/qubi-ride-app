@@ -35,7 +35,9 @@ export default function ChatLayout() {
         name="(scale_Test_Page)/generalized-anxiety-disorder-scale"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Generalized Anxiety Disorder scale</Text>
+            <Text className="font-semibold text-lg">
+              Generalized Anxiety Disorder scale
+            </Text>
           ),
         }}
       />
@@ -56,10 +58,13 @@ export default function ChatLayout() {
         }}
       />
       <Stack.Screen
-        name="record/index"
+        name="record"
         options={{
+          headerLeft: () => (
+            <BackButton className="" customBackLink="/p/account/scale" />
+          ),
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Scale for Depressive Disorder</Text>
+            <Text className="font-semibold text-lg ">Scales Record</Text>
           ),
         }}
       />

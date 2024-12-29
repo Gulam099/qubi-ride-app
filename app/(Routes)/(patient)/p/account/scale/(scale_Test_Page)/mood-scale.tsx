@@ -20,7 +20,7 @@ import Health from "@/assets/icon/Health.svg";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
-import { set } from "date-fns";
+import { format, set } from "date-fns";
 
 const moodOptions = [
   { label: "Excellent", Icon: ExcellentFeeling },
@@ -49,6 +49,9 @@ export default function MoodScale() {
   const [selectedReason, setSelectedReason] = useState("");
   const [description, setDescription] = useState("");
   const [checked, setChecked] = useState(false);
+  const [dateTimeOnSelectMood, setDateTimeOnSelectMood] = useState(
+    new Date().toISOString()
+  );
 
   const handleSubmit = () => {
     console.log({
@@ -56,12 +59,14 @@ export default function MoodScale() {
       reason: selectedReason,
       description,
       share_record: checked,
+      dateTimeOnSelectMood,
     });
     setIsDrawerVisible(false);
     setSelectedMood("");
     setSelectedReason("");
     setDescription("");
     setChecked(false);
+
   };
 
   return (
@@ -101,7 +106,7 @@ export default function MoodScale() {
             What are the reasons for the current feeling
           </Text>
           <Text className="text-neutral-600 text-sm text-center">
-            {new Date().toDateString()}
+            {format(dateTimeOnSelectMood, "EEEE , dd MMM yyyy , hh:mm a")}
           </Text>
 
           <View className="flex-row flex-wrap gap-8">
