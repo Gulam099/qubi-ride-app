@@ -2,46 +2,12 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import { Button } from "@/components/ui/Button";
 import Drawer from "@/components/ui/Drawer";
-import ExcellentFeeling from "@/assets/icon/ExcellentFeeling.svg";
-import GoodFeeling from "@/assets/icon/GoodFeeling.svg";
-import AverageFeeling from "@/assets/icon/AverageFeeling.svg";
-import WeakFeeling from "@/assets/icon/WeakFeeling.svg";
-import BadFeeling from "@/assets/icon/BadFeeling.svg";
-import Relaxation from "@/assets/icon/Relaxation.svg";
-import Relationships from "@/assets/icon/Relationships.svg";
-import Work from "@/assets/icon/Work.svg";
-import Study from "@/assets/icon/Study.svg";
-import Family from "@/assets/icon/Family.svg";
-import Sport from "@/assets/icon/Sport.svg";
-import Travel from "@/assets/icon/Travel.svg";
-import Weather from "@/assets/icon/Weather.svg";
-import Friends from "@/assets/icon/Friends.svg";
-import Health from "@/assets/icon/Health.svg";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
 import { format, set } from "date-fns";
+import { moodOptions, reasonOptions } from "@/features/scale/constScale";
 
-const moodOptions = [
-  { label: "Excellent", Icon: ExcellentFeeling },
-  { label: "Good", Icon: GoodFeeling },
-  { label: "Average", Icon: AverageFeeling },
-  { label: "Weak", Icon: WeakFeeling },
-  { label: "Bad", Icon: BadFeeling },
-];
-
-const reasonOptions = [
-  { label: "Relaxation", Icon: Relaxation },
-  { label: "Relationships", Icon: Relationships },
-  { label: "Work", Icon: Work },
-  { label: "Study", Icon: Study },
-  { label: "Family", Icon: Family },
-  { label: "Sport", Icon: Sport },
-  { label: "Travel", Icon: Travel },
-  { label: "Weather", Icon: Weather },
-  { label: "Friends", Icon: Friends },
-  { label: "Health", Icon: Health },
-];
 
 export default function MoodScale() {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);

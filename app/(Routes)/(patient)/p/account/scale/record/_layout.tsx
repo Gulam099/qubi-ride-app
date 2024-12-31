@@ -3,12 +3,13 @@ import { Text } from "@/components/ui/Text";
 import { H3 } from "@/components/ui/Typography";
 import { cn } from "@/lib/utils";
 import colors from "@/utils/colors";
-import { RelativePathString, Slot, Stack, useRouter } from "expo-router";
+import { RelativePathString, Slot, Stack, useRootNavigationState, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
 export default function HomeLayout() {
   const router = useRouter();
+  
   const tab = [
     { title: "All", link: "/p/account/scale/record" },
     {
@@ -26,12 +27,14 @@ export default function HomeLayout() {
     },
   ];
   const [activeTab, setActiveTab] = useState(tab[0]);
+  
 
   return (
     <>
       <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
         <View className="flex flex-col gap-4">
           <H3 className="text-xl">Record - {activeTab.title}</H3>
+          
 
           <ScrollView
             horizontal={true}
@@ -71,6 +74,7 @@ export default function HomeLayout() {
           screenOptions={{
             headerShown: false,
           }}
+        
         />
       </View>
     </>
