@@ -111,9 +111,9 @@ export default function QualityOfLifeScaleRecord() {
         data={data2}
         horizontal
         contentContainerClassName="gap-2"
-        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         renderItem={({ item, index }) => (
-          <View className="overflow-hidden rounded-xl bg-background p-4 w-[80%]">
+          <View className="overflow-hidden rounded-xl bg-background p-4 ">
             <Text className="text-lg font-semibold">Chart</Text>
             <LineChart
               data={item}
