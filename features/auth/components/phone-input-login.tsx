@@ -4,12 +4,12 @@ import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { ICountry } from "react-native-international-phone-number";
 import { ArrowDown2 } from "iconsax-react-native";
 import { Label } from "@/components/ui/Label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
-import { AlertTriangle } from "lucide-react-native";
 import { Switch } from "@/components/ui/Switch";
 import { LogDataType } from "../types/auth.types";
 import WarningToast from "@/features/Home/Components/warning";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 
 type FormData = {
   phoneNumber: string;
@@ -20,6 +20,8 @@ export default function PhoneInputLoginForm(props: {
   LogData: LogDataType;
   setLogData: React.Dispatch<React.SetStateAction<LogDataType>>;
 }) {
+  const { t } = useTranslation();
+  const language = useSelector((state: any) => state.appState.language);
   const { LogData, setLogData } = props;
   const [selectedCountry, setSelectedCountry] = useState<null | ICountry>(null);
 
@@ -38,20 +40,41 @@ export default function PhoneInputLoginForm(props: {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    data.phoneNumber = `${data.phoneNumber}`;
-    const finalData: LogDataType = {
-      ...data,
-      isSubmittedSuccess: true,
-      countryCode: `${selectedCountry?.callingCode} `,
-      country: `${selectedCountry?.cca2} `,
+    const payload = {
+      phoneNumber: `${selectedCountry?.callingCode}${data.phoneNumber}`,
     };
-    console.log("Form Data Submitted:", finalData);
 
-    // Simulate an API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch(
+        "https://monkfish-app-6ahnd.ondigitalocean.app/api/auth/send-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status code ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log("OTP sent successfully:", responseData);
+
+      const finalData: LogDataType = {
+        ...data,
+        isSubmittedSuccess: true,
+        countryCode: `${selectedCountry?.callingCode}`,
+        country: `${selectedCountry?.cca2}`,
+      };
       setLogData(finalData);
-    }, 2000);
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,7 +99,7 @@ export default function PhoneInputLoginForm(props: {
               selectedCountry={selectedCountry}
               onChangeSelectedCountry={setSelectedCountry}
               customCaret={<ArrowDown2 variant="Bold" size="18" color="#000" />}
-              language="en"
+              language={language}
               defaultCountry="SA"
             />
           )}
@@ -106,18 +129,21 @@ export default function PhoneInputLoginForm(props: {
         />
       </View>
 
-      <WarningToast heading={"If you wish to apply for tax exemption,"} description={"register your ID number."}/>
+      <WarningToast
+        heading={"If you wish to apply for tax exemption,"}
+        description={"register your ID number."}
+      />
 
       {/* Submit Button */}
       <Button
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
-        className={`mt-6 w-full  py-3 rounded-md ${
+        className={`mt-6 w-full py-3 rounded-md ${
           loading ? "bg-gray-400" : "bg-primary-600"
         } `}
       >
         <Text className="text-white font-semibold">
-          {loading ? <ActivityIndicator color="#fff" /> : "Sign in / Log in"}
+          {loading ? <ActivityIndicator color="#fff" /> : t("Sign in / Log in")}
         </Text>
       </Button>
     </View>

@@ -1,3 +1,4 @@
+export const apiBaseUrl = "https://monkfish-app-6ahnd.ondigitalocean.app";
 export const welcomeData = [
   {
     title: "Insights",

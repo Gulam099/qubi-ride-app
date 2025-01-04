@@ -4,13 +4,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 // Define the type for app state
 type AppStateType = {
   theme: "light" | "dark" | "device";
-  language: "english" | "arabic"; // Add more languages as needed
+  language: "en" | "ar"; // Add more languages as needed
 };
 
 // Define the initial state
 const initialState: AppStateType = {
   theme: "light", // Default theme
-  language: "english", // Default language
+  language: "en", // Default language
 };
 
 const appStateSlice = createSlice({

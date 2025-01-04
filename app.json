@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.baserti" 
+      "package": "com.baserti"
     },
     "web": {
       "bundler": "metro",
@@ -53,6 +53,7 @@
           "iCloudContainerEnvironment": "Production"
         }
       ],
+
       "expo-localization",
       "expo-font"
     ],
@@ -61,7 +62,9 @@
     },
     "extra": {
       "router": {
-        "origin": false
+        "origin": false,
+        "supportsRTL": true,
+        "forcesRTL": true
       },
       "eas": {
         "projectId": "ac15d305-e884-4429-96d6-19f501c12713"

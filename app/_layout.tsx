@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
@@ -20,12 +20,14 @@ import {
   NotoKufiArabic_900Black,
 } from "@expo-google-fonts/noto-kufi-arabic";
 
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "@/store";
 import colors from "@/utils/colors";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import i18n from "@/lib/i18n";
+import { I18nextProvider } from "react-i18next";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -56,20 +58,33 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider>
-          <GestureHandlerRootView>
-            {/* <UserProvider> */}
-            <Stack>
-              <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <Toaster />
-            <StatusBar style="light" backgroundColor={colors.primary[900]} />
-            <PortalHost />
-            {/* </UserProvider> */}
-          </GestureHandlerRootView>
-        </ThemeProvider>
+        <I18nextProvider i18n={i18n}>
+          <MainApp />
+        </I18nextProvider>
       </PersistGate>
     </Provider>
   );
 }
+
+// Main App Component
+const MainApp = () => {
+  const language = useSelector((state: any) => state.appState.language);
+  useEffect(() => {
+    i18n.changeLanguage(language); // Sync language with Redux
+  }, [language]);
+  return (
+    <ThemeProvider>
+      <GestureHandlerRootView>
+        {/* <UserProvider> */}
+        <Stack>
+          <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <Toaster />
+        <StatusBar style="light" backgroundColor={colors.primary[900]} />
+        <PortalHost />
+        {/* </UserProvider> */}
+      </GestureHandlerRootView>
+    </ThemeProvider>
+  );
+};

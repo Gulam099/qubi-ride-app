@@ -13,13 +13,14 @@ import Travel from "@/assets/icon/Travel.svg";
 import Weather from "@/assets/icon/Weather.svg";
 import Friends from "@/assets/icon/Friends.svg";
 import Health from "@/assets/icon/Health.svg";
+import colors from "@/utils/colors";
 
 export const moodOptions = [
-  { label: "Excellent", Icon: ExcellentFeeling },
-  { label: "Good", Icon: GoodFeeling },
-  { label: "Average", Icon: AverageFeeling },
-  { label: "Weak", Icon: WeakFeeling },
-  { label: "Bad", Icon: BadFeeling },
+  { label: "excellent", Icon: ExcellentFeeling, color: colors.green[500] },
+  { label: "good", Icon: GoodFeeling, color: colors.yellow[500] },
+  { label: "average", Icon: AverageFeeling, color: colors.orange[500] },
+  { label: "weak", Icon: WeakFeeling, color: colors.tomato[500] },
+  { label: "bad", Icon: BadFeeling, color: colors.red[500] },
 ];
 
 export const reasonOptions = [
