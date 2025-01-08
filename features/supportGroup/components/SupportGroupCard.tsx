@@ -50,7 +50,7 @@ export default function SupportGroupCard({
       <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
         <CardHeader className="flex flex-row">
           <View className="w-2/3">
-            <CardTitle>{title}</CardTitle>
+            <CardTitle className="text-xl">{title}</CardTitle>
             <CardDescription>{category}</CardDescription>
           </View>
 

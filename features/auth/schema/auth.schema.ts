@@ -15,6 +15,7 @@ export const VerificationDataSchema = z.object({
   otp: z.string(),
   otpLength: z.number(),
   otpResendTime: z.number(),
+  otpExpiryTime:z.number()
 });
 
 export const NationalIdVerificationDataSchema = z.object({

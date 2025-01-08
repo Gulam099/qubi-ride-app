@@ -55,39 +55,39 @@
   }
 
   /* Custom font classes */
-  .font-noto-thin {
+  .font-thin {
     font-family: "NotoKufiArabic_100Thin", sans-serif;
   }
 
-  .font-noto-extralight {
+  .font-extralight {
     font-family: "NotoKufiArabic_200ExtraLight", sans-serif;
   }
 
-  .font-noto-light {
+  .font-light {
     font-family: "NotoKufiArabic_300Light", sans-serif;
   }
 
-  .font-noto-regular {
+  .font-regular {
     font-family: "NotoKufiArabic_400Regular", sans-serif;
   }
 
-  .font-noto-medium {
+  .font-medium {
     font-family: "NotoKufiArabic_500Medium", sans-serif;
   }
 
-  .font-noto-semibold {
+  .font-semibold {
     font-family: "NotoKufiArabic_600SemiBold", sans-serif;
   }
 
-  .font-noto-bold {
+  .font-bold {
     font-family: "NotoKufiArabic_700Bold", sans-serif;
   }
 
-  .font-noto-extrabold {
+  .font-extrabold {
     font-family: "NotoKufiArabic_800ExtraBold", sans-serif;
   }
 
-  .font-noto-black {
+  .font-black {
     font-family: "NotoKufiArabic_900Black", sans-serif;
   }
 }

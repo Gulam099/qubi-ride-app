@@ -62,7 +62,7 @@ export default function AccountLayout() {
           title: "Profile",
         }}
       />
-      
+
       <Stack.Screen
         name="payment/index"
         options={{
@@ -75,6 +75,12 @@ export default function AccountLayout() {
         name="report/index"
         options={{
           title: "Profile Verification Code",
+        }}
+      />
+      <Stack.Screen
+        name="setting/index"
+        options={{
+          title: "Settings",
         }}
       />
       <Stack.Screen

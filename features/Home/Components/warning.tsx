@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Warning2, CloseSquare, Add } from "iconsax-react-native";
 import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
 
 export default function WarningToast({
   heading,
@@ -31,8 +32,8 @@ export default function WarningToast({
 
       {/* Text Content */}
       <View style={styles.textContainer}>
-        <Text style={styles.heading}>{heading}</Text>
-        <Text style={styles.description}>{description}</Text>
+        <Text >{heading}</Text>
+        <Text className="text-sm ">{description}</Text>
       </View>
 
       {/* Close Button */}

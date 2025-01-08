@@ -28,6 +28,7 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import i18n from "@/lib/i18n";
 import { I18nextProvider } from "react-i18next";
+import { I18nManager } from "react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -69,8 +70,13 @@ export default function RootLayout() {
 // Main App Component
 const MainApp = () => {
   const language = useSelector((state: any) => state.appState.language);
+  const isRTL = language === "ar";
+  console.log(isRTL);
+
   useEffect(() => {
     i18n.changeLanguage(language); // Sync language with Redux
+    I18nManager.forceRTL(isRTL);
+    I18nManager.allowRTL(isRTL);
   }, [language]);
   return (
     <ThemeProvider>
@@ -80,7 +86,7 @@ const MainApp = () => {
           <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <Toaster />
+        <Toaster position="top-center" />
         <StatusBar style="light" backgroundColor={colors.primary[900]} />
         <PortalHost />
         {/* </UserProvider> */}

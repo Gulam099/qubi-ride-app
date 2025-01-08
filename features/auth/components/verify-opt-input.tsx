@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { LogDataType, VerificationDataType } from "../types/auth.types";
 import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { toast } from "sonner-native";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "@/store/user/user";
 
 type FormData = {
   otp: string;
@@ -17,28 +21,62 @@ export default function VerifyOtpInputLoginForm(props: {
   >;
   LogData: LogDataType;
   setLogData: React.Dispatch<React.SetStateAction<LogDataType>>;
+  onSuccess: () => void;
 }) {
-  const { VerificationData, setVerificationData, LogData, setLogData } = props;
+  const {
+    VerificationData,
+    setVerificationData,
+    LogData,
+    setLogData,
+    onSuccess,
+  } = props;
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState<number>(VerificationData.otpResendTime);
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
+
+  const dispatch = useDispatch();
+  const user = useSelector((state: any) => state.user);
 
   useEffect(() => {
     if (timer > 0) {
       const countdown = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
-      return () => clearInterval(countdown); // Cleanup on unmount
+      return () => clearInterval(countdown);
     } else {
-      setIsDisabled(false); // Enable the button when the timer reaches 0
+      setIsDisabled(false);
     }
   }, [timer]);
 
-  const handleResendOtp = () => {
-    setTimer(VerificationData.otpResendTime); // Reset timer to 30 seconds
-    setIsDisabled(true); // Disable button again
-    // Call your OTP resend function here
-    console.log("OTP resend called");
+  const handleResendOtp = async () => {
+    setTimer(VerificationData.otpResendTime);
+    setIsDisabled(true);
+
+    const payload = {
+      phoneNumber: `${LogData.countryCode}${LogData.phoneNumber}`,
+    };
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || "Failed to resend OTP");
+      }
+
+      toast.success("OTP resent successfully");
+      console.log("OTP resend successful:", responseData);
+    } catch (error) {
+      toast.error("Error resending OTP");
+      console.error("Error resending OTP:", error);
+    }
   };
 
   const {
@@ -53,67 +91,106 @@ export default function VerifyOtpInputLoginForm(props: {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    console.log("Form Data Submitted:", data);
+    const payload = {
+      phoneNumber: `${LogData.countryCode}${LogData.phoneNumber}`,
+      otp: data.otp,
+      role: "user",
+    };
+    console.log(payload);
 
-    // Simulate an API call
-    setTimeout(() => {
-      setLoading(false);
-      setVerificationData({
-        ...data,
-        isVerified: true,
-        otpLength: VerificationData.otpLength,
-        otpResendTime: VerificationData.otpResendTime,
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
-    }, 2000);
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        toast.error(responseData.error);
+        console.log(responseData.error);
+      }
+      if (response.ok) {
+        toast.success("OTP verification successful:", responseData);
+        console.log("OTP verification successful:", responseData);
+        if (responseData.user.name === null) {
+          const response2 = await fetch(
+            `${apiBaseUrl}/api/profile/update-profile`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                phoneNumber: responseData.user.phoneNumber,
+                name: `User-${responseData.user.phoneNumber.slice(
+                  responseData.user.phoneNumber.length,
+                  responseData.user.phoneNumber.length - 4
+                )}`,
+              }),
+            }
+          );
+
+          const responseData2 = await response2.json();
+
+          if (!response2.ok) {
+            toast.error(responseData2.message);
+          }
+
+          if (responseData2.user.id) {
+            dispatch(
+              login({
+                ...responseData2.user,
+                role: "patient",
+              })
+            );
+          }
+        }
+        dispatch(
+          login({
+            ...responseData.user,
+            role: "patient",
+          })
+        );
+        setVerificationData({
+          ...VerificationData,
+          isVerified: true,
+        });
+        onSuccess();
+      }
+    } catch (error) {
+      toast.error("Error verifying OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View className="flex gap-4 justify-start items-start px-6 ">
-      {/* Phone Number Input */}
       <View className="flex gap-2 w-full">
         <Text className="w-full text-left text-lg font-semibold">
           Enter Verification Code
         </Text>
-        <View className="flex flex-row gap-6  w-full ">
-          <Text className="text-wrap flex-1">
-            Enter the verification code sent to the number {LogData.countryCode}{" "}
-            {LogData.phoneNumber}
-          </Text>
-          <Button
-            onPress={() => {
-              setLogData({
-                phoneNumber: "",
-                isSubmittedSuccess: false,
-                rememberMyDetails: LogData.rememberMyDetails,
-                country: "",
-                countryCode: "",
-              });
-              console.log("Resend OTP");
-            }}
-            variant={"link"}
-          >
-            <Text>Edit</Text>
-          </Button>
-        </View>
+        <Text className="text-wrap flex-1">
+          Enter the verification code sent to the number {LogData.countryCode}{" "}
+          {LogData.phoneNumber}
+        </Text>
         <Controller
           name="otp"
           control={control}
           rules={{
-            required: "Otp is required",
+            required: "OTP is required",
             validate: (value) =>
               value.length >= VerificationData.otpLength ||
-              `Otp must be at least ${VerificationData.otpLength} digits`,
+              `OTP must be at least ${VerificationData.otpLength} digits`,
           }}
           render={({ field: { onChange, value } }) => (
             <OtpInput
               numberOfDigits={VerificationData.otpLength}
               focusColor={colors.primary[500]}
-              focusStickBlinkingDuration={500}
               onTextChange={onChange}
-              onFilled={() => handleSubmit(onSubmit)}
-              textInputProps={{
-                accessibilityLabel: "One-Time Password",
-              }}
               theme={{
                 containerStyle: {},
                 inputsContainerStyle: {
@@ -128,10 +205,8 @@ export default function VerifyOtpInputLoginForm(props: {
                   marginHorizontal: 10,
                   backgroundColor: "white",
                 },
-                filledPinCodeContainerStyle: {},
                 pinCodeTextStyle: {
                   fontSize: 40,
-                  textAlignVertical: "center",
                 },
               }}
             />
@@ -144,11 +219,7 @@ export default function VerifyOtpInputLoginForm(props: {
         )}
       </View>
 
-      <Button
-        variant={"outline"}
-        disabled={isDisabled}
-        onPress={handleResendOtp}
-      >
+      <Button variant="outline" disabled={isDisabled} onPress={handleResendOtp}>
         {isDisabled ? (
           <Text>{`Resend in ${timer}s`}</Text>
         ) : (
@@ -156,7 +227,6 @@ export default function VerifyOtpInputLoginForm(props: {
         )}
       </Button>
 
-      {/* Submit Button */}
       <Button
         onPress={handleSubmit(onSubmit)}
         disabled={loading}

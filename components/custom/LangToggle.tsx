@@ -15,6 +15,8 @@ export default function LangToggleButton(props: { className?: string }) {
 
   const toggleLanguage = () => {
     const newLanguage = language === "en" ? "ar" : "en";
+    console.log("Toggling language to:", newLanguage);
+
     dispatch(updateAppState({ language: newLanguage }));
     i18n.changeLanguage(newLanguage);
     setLayoutDirection(newLanguage);

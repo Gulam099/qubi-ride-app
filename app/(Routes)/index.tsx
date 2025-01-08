@@ -38,22 +38,6 @@ export default function HomeScreen() {
     if (userRole === "specialist") {
       return <Redirect href="/s" />;
     }
-    if (userRole === "admin") {
-      return (
-        <View className="flex-1 justify-center items-center gap-5">
-          <ThemeToggleButton />
-          <UserComponent />
-          <Button>
-            <Link href={"/welcome"}>
-              <Text className="flex gap-2 justify-center items-center">
-                If you See this Page it means you are Admin
-                <EmojiHappy variant="Bulk" color={"yellow"} size={20} />
-              </Text>
-            </Link>
-          </Button>
-        </View>
-      );
-    }
   }
 
   return <Redirect href="/welcome" />;

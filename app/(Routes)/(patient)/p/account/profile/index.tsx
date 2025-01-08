@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { Input } from "@/components/ui/Input";
@@ -14,19 +14,17 @@ import PhoneInput, {
 import { ArrowDown2 } from "iconsax-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { toast } from "sonner-native";
+import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { Text } from "@/components/ui/Text";
+import { H2, H3 } from "@/components/ui/Typography";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user);
-  const {
-    email,
-    firstName,
-    lastName,
-    phoneNumber,
-    dateOfBirth,
-    gender,
-    country,
-  } = user;
+  const { t } = useTranslation();
+  const language = useSelector((state: any) => state.appState.language);
+  const { email, name, phoneNumber, dob, gender, country } = user;
 
   const countryData = () => getCountryByCca2(country);
 
@@ -34,7 +32,7 @@ export default function ProfilePage() {
     countryData
   );
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(dateOfBirth);
+  const [selectedDate, setSelectedDate] = useState(dob);
 
   const {
     control,
@@ -42,11 +40,10 @@ export default function ProfilePage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      firstName,
-      lastName,
+      name,
       phoneNumber,
       email,
-      dateOfBirth,
+      dob,
       gender,
     },
   });
@@ -79,7 +76,7 @@ export default function ProfilePage() {
           onPress={() => onChange(value)}
         />
         <Label nativeID={`label-for-${value}`} onPress={() => onChange(value)}>
-          {label}
+          {t(label)}
         </Label>
       </View>
     );
@@ -95,35 +92,35 @@ export default function ProfilePage() {
 
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
-      <Text className="font-bold text-xl mb-4">My Profile</Text>
+      <H3 className=" text-xl mb-4">{t("MyProfile")}</H3>
 
       <View>
-        <Text className="mb-2">Name</Text>
+        <Text className="mb-2">{t("Name")}</Text>
         <Controller
-          name="firstName"
+          name="name"
           control={control}
-          rules={{ required: "First name is required" }}
+          rules={{ required: t("Name") }}
           render={({ field: { onChange, value } }) => (
             <Input
-              placeholder="First Name"
+              placeholder={t("Name")}
               value={value}
               onChangeText={onChange}
             />
           )}
         />
-        {errors.firstName && (
-          <Text className="text-red-500">
-            {errors.firstName.message?.toString()}
+        {errors.name && (
+          <Text className="text-red-500 text-sm py-1">
+            {errors.name.message?.toString()}
           </Text>
         )}
       </View>
 
       <View>
-        <Text className="mb-2">Phone Number</Text>
+        <Text className="mb-2">{t("PhoneNumber")}</Text>
         <Controller
           name="phoneNumber"
           control={control}
-          rules={{ required: "Phone number is required" }}
+          rules={{ required: t("PhoneNumberRequired") }}
           render={({ field: { onChange, value } }) => (
             <PhoneInput
               value={value}
@@ -133,28 +130,28 @@ export default function ProfilePage() {
               selectedCountry={selectedCountry}
               onChangeSelectedCountry={setSelectedCountry}
               customCaret={<ArrowDown2 variant="Bold" size="18" color="#000" />}
-              language="en"
+              language={language}
               defaultCountry="SA"
             />
           )}
         />
 
         {errors.phoneNumber && (
-          <Text className="text-red-500">
+          <Text className="text-red-500 text-sm py-1">
             {errors.phoneNumber.message?.toString()}
           </Text>
         )}
       </View>
 
       <View>
-        <Text className="mb-2">Email</Text>
+        <Text className="mb-2">{t("Email")}</Text>
         <Controller
           name="email"
           control={control}
-          rules={{ required: "Email is required", pattern: /\S+@\S+\.\S+/ }}
+          rules={{ pattern: /\S+@\S+\.\S+/ }}
           render={({ field: { onChange, value } }) => (
             <Input
-              placeholder="Email"
+              placeholder={t("Email")}
               value={value}
               onChangeText={onChange}
               keyboardType="email-address"
@@ -162,28 +159,35 @@ export default function ProfilePage() {
           )}
         />
         {errors.email && (
-          <Text className="text-red-500">
+          <Text className="text-red-500 text-sm py-1">
             {errors.email.message?.toString()}
           </Text>
         )}
       </View>
 
       <View>
-        <Text className="mb-2">Date of Birth</Text>
+        <Text className="mb-2">{t("DateOfBirth")}</Text>
         <Controller
-          name="dateOfBirth"
+          name="dob"
           control={control}
-          rules={{ required: "Date of birth is required" }}
           render={({ field: { onChange } }) => (
             <View>
-              <Button onPress={showDatePicker} className="bg-primary-50 p-2">
-                <Text>
-                  {selectedDate ? selectedDate.toString() : "Select Date"}
+              <Button onPress={showDatePicker} className="bg-background p-2">
+                <Text className="text-neutral-700">
+                  {selectedDate === "Not selected"
+                    ? format(selectedDate, "dd / mm / yyyy")
+                    : t("SelectDate")}
                 </Text>
               </Button>
               {datePickerVisible && (
                 <DateTimePicker
-                  value={new Date(selectedDate) || new Date()}
+                  value={
+                    new Date(
+                      selectedDate === "Not selected"
+                        ? new Date()
+                        : selectedDate
+                    ) || new Date()
+                  }
                   mode="date"
                   display="default"
                   onChange={(event, date) => {
@@ -195,15 +199,13 @@ export default function ProfilePage() {
             </View>
           )}
         />
-        {errors.dateOfBirth && (
-          <Text className="text-red-500">
-            {errors.dateOfBirth.message?.toString()}
-          </Text>
+        {errors.dob && (
+          <Text className="text-red-500">{errors.dob.message?.toString()}</Text>
         )}
       </View>
 
       <View>
-        <Text className="mb-2">Gender</Text>
+        <Text className="mb-2">{t("Gender")}</Text>
         <Controller
           name="gender"
           control={control}
@@ -228,10 +230,15 @@ export default function ProfilePage() {
             </RadioGroup>
           )}
         />
+        {errors.gender && (
+          <Text className="text-red-500">
+            {errors.gender.message?.toString()}
+          </Text>
+        )}
       </View>
 
       <Button className="bg-purple-500 mt-4" onPress={handleSubmit(onSubmit)}>
-        <Text className="text-white font-semibold">Update</Text>
+        <Text className="text-white font-semibold">{t("Update")}</Text>
       </Button>
     </View>
   );

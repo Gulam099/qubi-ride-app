@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import Depressive from "@/features/scale/assets/images/Depressive.svg";
-import Caution from "@/assets/icon/caution.svg";
+import Caution from "@/assets/icon/Caution.svg";
 import { H3 } from "@/components/ui/Typography";
 import Drawer from "@/components/ui/Drawer";
 import { Progress } from "@/components/ui/Progress";

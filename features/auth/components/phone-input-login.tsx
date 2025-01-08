@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { ICountry } from "react-native-international-phone-number";
@@ -10,6 +10,9 @@ import { LogDataType } from "../types/auth.types";
 import WarningToast from "@/features/Home/Components/warning";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { Text } from "@/components/ui/Text";
+import { toast } from "sonner-native";
 
 type FormData = {
   phoneNumber: string;
@@ -19,10 +22,11 @@ type FormData = {
 export default function PhoneInputLoginForm(props: {
   LogData: LogDataType;
   setLogData: React.Dispatch<React.SetStateAction<LogDataType>>;
+  onSuccess: () => void;
 }) {
   const { t } = useTranslation();
   const language = useSelector((state: any) => state.appState.language);
-  const { LogData, setLogData } = props;
+  const { LogData, setLogData, onSuccess } = props;
   const [selectedCountry, setSelectedCountry] = useState<null | ICountry>(null);
 
   const [loading, setLoading] = useState(false);
@@ -45,31 +49,30 @@ export default function PhoneInputLoginForm(props: {
     };
 
     try {
-      const response = await fetch(
-        "https://monkfish-app-6ahnd.ondigitalocean.app/api/auth/send-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status code ${response.status}`);
-      }
+      const response = await fetch(`${apiBaseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       const responseData = await response.json();
-      console.log("OTP sent successfully:", responseData);
-
-      const finalData: LogDataType = {
-        ...data,
-        isSubmittedSuccess: true,
-        countryCode: `${selectedCountry?.callingCode}`,
-        country: `${selectedCountry?.cca2}`,
-      };
-      setLogData(finalData);
+      if (!response.ok) {
+        toast.error(responseData.error);
+      }
+      if (responseData.status === "pending") {
+        toast.success(responseData.message);
+        console.log("OTP sent successfully:", responseData);
+        const finalData: LogDataType = {
+          ...data,
+          isSubmittedSuccess: true,
+          countryCode: `${selectedCountry?.callingCode}`,
+          country: `${selectedCountry?.cca2}`,
+        };
+        setLogData(finalData);
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error sending OTP:", error);
     } finally {
@@ -82,15 +85,14 @@ export default function PhoneInputLoginForm(props: {
       {/* Phone Number Input */}
       <View className="flex gap-2 w-full">
         <Text className="w-full text-left text-base font-semibold">
-          Phone Number
+          {t("PhoneNumber")}
         </Text>
         <Controller
           name="phoneNumber"
           control={control}
           rules={{
-            required: "Phone number is required",
-            validate: (value) =>
-              value.length > 8 || "Phone number must be at least 8 digits",
+            required: t("PhoneNumberRequired"),
+            validate: (value) => value.length > 8 || t("PhoneNumberMinLength"),
           }}
           render={({ field: { onChange, value } }) => (
             <PhoneInput
@@ -118,7 +120,9 @@ export default function PhoneInputLoginForm(props: {
           control={control}
           render={({ field: { value, onChange } }) => (
             <>
-              <Label nativeID="rememberMyDetails">Remember My Details</Label>
+              <Label nativeID="rememberMyDetails">
+                {t("RememberMyDetails")}
+              </Label>
               <Switch
                 checked={value}
                 onCheckedChange={onChange}
@@ -130,20 +134,20 @@ export default function PhoneInputLoginForm(props: {
       </View>
 
       <WarningToast
-        heading={"If you wish to apply for tax exemption,"}
-        description={"register your ID number."}
+        heading={t("TaxExemptionNote")}
+        description={t("RegisterIDNumber")}
       />
 
       {/* Submit Button */}
       <Button
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
-        className={`mt-6 w-full py-3 rounded-md ${
+        className={`mt-6 w-full py-3  ${
           loading ? "bg-gray-400" : "bg-primary-600"
         } `}
       >
         <Text className="text-white font-semibold">
-          {loading ? <ActivityIndicator color="#fff" /> : t("Sign in / Log in")}
+          {loading ? <ActivityIndicator color="#fff" /> : t("SignInOrLogIn")}
         </Text>
       </Button>
     </View>

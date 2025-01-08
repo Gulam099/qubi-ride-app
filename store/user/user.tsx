@@ -5,13 +5,19 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const initialState: UserType = {
   role: "patient",
   phoneNumber: "",
-  email: "",
-  dateOfBirth: "",
+  email: null,
+  dob: "",
   country: "",
   nationalId: "",
-  firstName: "",
-  lastName: "",
+  name: null,
   isAuthenticated: false,
+  _id: "",
+  gender: "",
+  passcode: null,
+  createdAt: "",
+  updatedAt: "",
+  lastOtpSentTime: 0,
+  otpExpirationTime: 0,
 };
 
 const userSlice = createSlice({

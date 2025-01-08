@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import Anxity from "@/features/scale/assets/images/anxiety.svg";
 import { Progress } from "@/components/ui/Progress";
 import Drawer from "@/components/ui/Drawer";
-import Caution from "@/assets/icon/caution.svg";
+import Caution from "@/assets/icon/Caution.svg";
 import { H3 } from "@/components/ui/Typography";
 
 // Demo questions

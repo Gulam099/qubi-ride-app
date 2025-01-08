@@ -71,7 +71,7 @@ export default function PatientLayout() {
           headerTitle: () => (
             <Link href={"/p/account"} className="ml-2">
               <Text className="font-semibold text-lg text-white">
-                Hello , {user.firstName}
+                Hello , {user.name === null ? "User" : user.name}
               </Text>
             </Link>
           ),

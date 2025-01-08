@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout, updateUser } from "@/store/user/user";
@@ -34,6 +34,7 @@ import { PatientDeleteAccountOptions } from "@/features/account/constAccount";
 import BellAlert from "@/assets/icon/BellAlert.svg";
 import TextureCircle from "@/features/account/assets/images/TextureCircle.svg";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
+import AccountCard2 from "@/features/account/components/AccountCard2";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
@@ -41,6 +42,8 @@ export default function AccountPage() {
   const router = useRouter();
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isContactUsDrawerVisible, setIsContactUsDrawerVisible] =
+    useState(false);
 
   // const navigation = useNavigation();
 
@@ -91,11 +94,18 @@ export default function AccountPage() {
         { link: "/p/account/chat", label: "My conversations", icon: Message },
         { link: "/p/account/invoice", label: "My bills", icon: Receipt },
         { link: "/p/account/family", label: "My family", icon: Profile2User },
-        { link: "/p/setting", label: "My settings", icon: Setting2 },
-        { link: "/p/contact", label: "Contact us", icon: Messages },
+        { link: "/p/account/setting", label: "My settings", icon: Setting2 },
       ],
     },
   ]);
+
+  const ContactUsCard = {
+    shadowColor: colors.blue[100],
+    className: "",
+    backgroundColor: "white",
+    iconColor: colors.gray[700],
+    item: { link: "/p/contact", label: "Contact us", icon: Messages },
+  };
 
   const handleAccountCardPress = (link: string) => {
     console.log(`Card pressed: ${link}`);
@@ -130,23 +140,21 @@ export default function AccountPage() {
               />
               <AvatarFallback className="bg-primary-500">
                 <Text className="text-3xl text-center font-semibold text-white">
-                  {user.firstName.slice(0, 1)}
-                  {user.lastName.slice(0, 1)}
+                  {user.name.slice(0, 1)}
                 </Text>
               </AvatarFallback>
             </Avatar>
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
-                {user.firstName} {user.lastName}
+                {user.name === null ? "User" : user.name}
               </Text>
               <CopyToClipboard
-                data={user.role}
+                data={user._id}
                 variant={"ghost"}
-                className="flex justify-start items-start p-0"
+                className="flex-row gap-2 justify-start items-start p-0"
               >
-                <Text className="text-base  text-gray-200 ">
-                  {user.role} <Copy size="16" color={colors.gray[200]} />
-                </Text>
+                <Text className="text-base  text-gray-200 ">{user._id}</Text>
+                <Copy size="16" color={colors.gray[200]} />
               </CopyToClipboard>
               <Link href="/p/account/profile">
                 <Text className="text-blue-100 text-sm underline">
@@ -198,7 +206,7 @@ export default function AccountPage() {
                 link={"/"}
               />
             </View>
-            <View className="flex  w-full">
+            <View className="flex  w-full pb-4">
               {sections.map((section) => (
                 <View key={section.title} className="flex flex-col gap-4 py-4">
                   <H4 className=" font-semibold text-gray-800 ">
@@ -221,6 +229,21 @@ export default function AccountPage() {
                   </View>
                 </View>
               ))}
+
+              <TouchableOpacity
+                onPress={() => setIsContactUsDrawerVisible(true)}
+              >
+                <AccountCard2
+                  className={"basis-[30%]"}
+                  iconColor={ContactUsCard.iconColor}
+                  iconSize={28}
+                  shadowColor={ContactUsCard.shadowColor}
+                  backgroundColor={ContactUsCard.backgroundColor}
+                  icon={ContactUsCard.item.icon}
+                  label={ContactUsCard.item.label}
+                  link={ContactUsCard.item.link}
+                />
+              </TouchableOpacity>
             </View>
 
             <Button
@@ -271,6 +294,47 @@ export default function AccountPage() {
                 </View>
               </Drawer>
             </View>
+            <Drawer
+              visible={isContactUsDrawerVisible}
+              onClose={() => setIsContactUsDrawerVisible(false)}
+              title="My Drawer"
+              className="max-h-[40%]"
+              height="50%"
+            >
+              <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
+                <H3 className="border-none text-lg text-neutral-700 text-center">
+                  Welcome! Baserah team is here to serve you
+                </H3>
+                <Text className="text-base text-neutral-500">
+                  The usual response time for us is a few minutes
+                </Text>
+
+                <Button
+                  onPress={() => {
+                    setIsContactUsDrawerVisible(false);
+                    router.push("/help/ticket");
+                  }}
+                  className="w-full"
+                >
+                  <Text className="text-white font-semibold">
+                    Add a ticket directly
+                  </Text>
+                </Button>
+                <Text className="text-base text-neutral-500">or</Text>
+                <Button
+                  onPress={() => {
+                    setIsContactUsDrawerVisible(false);
+                    router.push("/p/account/chat/support");
+                  }}
+                  className="w-full"
+                  variant={"secondary"}
+                >
+                  <Text className="text-neutral-500 font-semibold">
+                    Contact Technical Support
+                  </Text>
+                </Button>
+              </View>
+            </Drawer>
           </View>
         </ScrollView>
       </View>
