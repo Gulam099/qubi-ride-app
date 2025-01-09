@@ -1,4 +1,3 @@
-// store/user/userSlice.ts
 import { UserType } from "@/features/user/types/user.type";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
@@ -28,8 +27,42 @@ const userSlice = createSlice({
       return { ...state, ...action.payload, isAuthenticated: true };
     },
     logout: () => initialState,
+
     updateUser: (state, action: PayloadAction<Partial<UserType>>) => {
-      return { ...state, ...action.payload };
+      const userData = action.payload;
+
+      // Include phoneNumber from the current state
+      const finalData = {
+        ...userData,
+        phoneNumber: state.phoneNumber,
+      };
+
+      // Make the PUT API call
+      fetch(
+        "https://monkfish-app-6ahnd.ondigitalocean.app/api/profile/update-profile",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(finalData),
+        }
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to update user");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("User updated successfully:", data);
+        })
+        .catch((error) => {
+          console.error("Error updating user:", error);
+        });
+
+      // Update the state with the new data
+      return { ...state, ...userData };
     },
   },
 });

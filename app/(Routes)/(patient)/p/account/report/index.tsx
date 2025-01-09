@@ -9,7 +9,7 @@ import ReportCard from "@/features/account/components/ReportCard";
 import { H2, H3 } from "@/components/ui/Typography";
 
 export default function AccountReportPage() {
-  const [ReportVerificationCode, setReportVerificationCode] = useState("6789");
+  const [ReportVerificationCode, setReportVerificationCode] = useState("1234");
   const [ShowReports, setShowReports] = useState(false);
 
   const [ActiveTab, setActiveTab] = useState({

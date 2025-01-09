@@ -61,7 +61,7 @@ export default function PhoneInputLoginForm(props: {
       if (!response.ok) {
         toast.error(responseData.error);
       }
-      if (responseData.status === "pending") {
+      if (response.ok) {
         toast.success(responseData.message);
         console.log("OTP sent successfully:", responseData);
         const finalData: LogDataType = {

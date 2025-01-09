@@ -10,6 +10,12 @@ import { setLayoutDirection } from "@/lib/layoutDirection";
 import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
+import Drawer from "@/components/ui/Drawer";
+import { H3 } from "@/components/ui/Typography";
+import { OtpInput } from "react-native-otp-entry";
+import colors from "@/utils/colors";
+import { UserType } from "@/features/user/types/user.type";
+import { updateUser } from "@/store/user/user";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -17,17 +23,21 @@ export default function SettingsPage() {
   const dispatch = useDispatch();
 
   const appState = useSelector((state: any) => state.appState);
+  const user: UserType = useSelector((state: any) => state.user);
 
   const [language, setLanguage] = useState(appState.language);
   const [accessibility, setAccessibility] = useState(appState.accessibility);
   const [activateCamera, setActivateCamera] = useState(appState.activateCamera);
   const [accessStudio, setAccessStudio] = useState(appState.accessStudio);
   const [notifications, setNotifications] = useState(appState.notifications);
-  const [profilePasscode, setProfilePasscode] = useState(
-    appState.profilePasscode
+  const [profilePasscode, setProfilePasscode] = useState<string | null>(
+    user.passcode
   );
 
-  const updateState = (key: any, value: any) => {
+  const [isPassCodeDrawer, setIsPassCodeDrawer] = useState(false);
+  const [tempPasscode, setTempPasscode] = useState("");
+
+  const updateState = (key: string, value: string | null) => {
     dispatch(updateAppState({ [key]: value }));
   };
 
@@ -40,6 +50,31 @@ export default function SettingsPage() {
       i18n.changeLanguage(label);
       setLayoutDirection(label);
     };
+  }
+
+  function PassCodeToggle(value: boolean) {
+    if (value) {
+      if (!profilePasscode) {
+        setIsPassCodeDrawer(true);
+      } else {
+        setProfilePasscode(profilePasscode);
+        dispatch(updateUser({ passcode: profilePasscode }));
+      }
+    } else {
+      setProfilePasscode(null);
+      dispatch(updateUser({ passcode: null }));
+    }
+  }
+
+  function handlePasscodeSubmit() {
+    if (tempPasscode.trim().length === 4) {
+      setProfilePasscode(tempPasscode);
+      dispatch(updateUser({ passcode: tempPasscode }));
+      setIsPassCodeDrawer(false);
+      setTempPasscode("");
+    } else {
+      alert("Passcode must be 4 digits.");
+    }
   }
 
   return (
@@ -113,7 +148,7 @@ export default function SettingsPage() {
           <SwitchWithLabel
             label="Activate Camera"
             value={activateCamera}
-            onValueChange={(value) => {
+            onValueChange={(value: string | null) => {
               setActivateCamera(value);
               updateState("activateCamera", value);
             }}
@@ -121,7 +156,7 @@ export default function SettingsPage() {
           <SwitchWithLabel
             label="Access the Studio"
             value={accessStudio}
-            onValueChange={(value) => {
+            onValueChange={(value: string | null) => {
               setAccessStudio(value);
               updateState("accessStudio", value);
             }}
@@ -134,7 +169,7 @@ export default function SettingsPage() {
           <SwitchWithLabel
             label="Enable Notifications"
             value={notifications}
-            onValueChange={(value) => {
+            onValueChange={(value: string | null) => {
               setNotifications(value);
               updateState("notifications", value);
             }}
@@ -146,11 +181,8 @@ export default function SettingsPage() {
           <Text className="text-lg font-semibold mb-3">Profile Passcode</Text>
           <SwitchWithLabel
             label="Enable Passcode"
-            value={profilePasscode}
-            onValueChange={(value) => {
-              setProfilePasscode(value);
-              updateState("profilePasscode", value);
-            }}
+            value={!!profilePasscode}
+            onValueChange={(value: boolean) => PassCodeToggle(value)}
           />
         </View>
 
@@ -170,36 +202,70 @@ export default function SettingsPage() {
           <Text className="text-neutral-700  font-semibold ">Help Center</Text>
         </Button>
       </View>
+      <View className="flex-1 justify-center items-center">
+        <Drawer
+          visible={isPassCodeDrawer}
+          onClose={() => setIsPassCodeDrawer(false)}
+          title="Set Passcode"
+          className="max-h-[50%]"
+          height="70%"
+        >
+          <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
+            <H3 className="border-none ">Enter your Passcode</H3>
+            <OtpInput
+              numberOfDigits={4}
+              focusColor={colors.primary[500]}
+              // secureTextEntry={true}
+              onTextChange={setTempPasscode}
+              theme={{
+                containerStyle: {},
+                inputsContainerStyle: {
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: "10px",
+                },
+                pinCodeContainerStyle: {
+                  aspectRatio: 1 / 1,
+                  width: 60,
+                  marginHorizontal: 10,
+                  backgroundColor: "white",
+                },
+                pinCodeTextStyle: {
+                  fontSize: 40,
+                  textAlignVertical: "center",
+                },
+              }}
+            />
+            <Button onPress={handlePasscodeSubmit} className="w-full">
+              <Text className="text-white font-semibold">Save Passcode</Text>
+            </Button>
+            <Button
+              onPress={() => setIsPassCodeDrawer(false)}
+              variant={"ghost"}
+              className="w-full"
+            >
+              <Text className="text-neutral-500 font-semibold">Cancel</Text>
+            </Button>
+          </View>
+        </Drawer>
+      </View>
     </ScrollView>
   );
 }
 
-function RadioGroupItemWithLabel({
-  value,
-  onLabelPress,
-}: Readonly<{
-  value: string;
-  onLabelPress: () => void;
-}>) {
+function RadioGroupItemWithLabel({ value, onLabelPress }: any) {
   return (
-    <View className={"flex-row gap-2 items-center"}>
-      <RadioGroupItem aria-labelledby={"label-for-" + value} value={value} />
-      <Label nativeID={"label-for-" + value} onPress={onLabelPress}>
+    <View className="flex-row gap-2 items-center">
+      <RadioGroupItem aria-labelledby={`label-for-${value}`} value={value} />
+      <Label nativeID={`label-for-${value}`} onPress={onLabelPress}>
         {value}
       </Label>
     </View>
   );
 }
 
-function SwitchWithLabel({
-  label,
-  value,
-  onValueChange,
-}: {
-  label: string;
-  value: boolean;
-  onValueChange: (val: boolean) => void;
-}) {
+function SwitchWithLabel({ label, value, onValueChange }: any) {
   return (
     <View className="flex-row justify-between items-center mb-3">
       <Text className="text-neutral-800 font-medium">{label}</Text>
