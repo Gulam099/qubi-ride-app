@@ -135,12 +135,14 @@ export default function AccountPage() {
             >
               <AvatarImage
                 source={{
-                  uri: "https://avatars.githubusercontent.com/u/72434947",
+                  uri:
+                    user.imageUrl ??
+                    "https://eu.ui-avatars.com/api/?name=U&size=250",
                 }}
               />
               <AvatarFallback className="bg-primary-500">
                 <Text className="text-3xl text-center font-semibold text-white">
-                  {user.name.slice(0, 1)}
+                  {user.name === null ? "U" : user.name.slice(0, 1)}
                 </Text>
               </AvatarFallback>
             </Avatar>
