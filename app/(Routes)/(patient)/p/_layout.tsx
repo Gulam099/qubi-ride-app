@@ -23,9 +23,13 @@ import { cn } from "@/lib/utils";
 import { View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import BackButton from "@/features/Home/Components/BackButton";
+import { useEffect } from "react";
 
 export default function PatientLayout() {
   const user = useSelector((state: any) => state.user);
+
+  
+  
 
   if (!user.isAuthenticated) {
     return <Redirect href="/" />;

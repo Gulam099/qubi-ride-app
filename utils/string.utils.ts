@@ -58,3 +58,7 @@ export const toTitleCase = (str: string): string => {
     .map((word) => toCapitalizeFirstLetter(word))
     .join(" ");
 };
+
+export function removeSpaces(input: string): string {
+  return input.replace(/\s+/g, "");
+}

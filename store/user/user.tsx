@@ -1,5 +1,6 @@
 import { UserType } from "@/features/user/types/user.type";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { updateUser } from "@/features/user/utils/userUtils";
 
 const initialState: UserType = {
   role: "patient",
@@ -28,44 +29,30 @@ const userSlice = createSlice({
     },
     logout: () => initialState,
 
-    updateUser: (state, action: PayloadAction<Partial<UserType>>) => {
+    updateUserState: (state, action: PayloadAction<Partial<UserType>>) => {
       const userData = action.payload;
-
-      // Include phoneNumber from the current state
-      const finalData = {
-        ...userData,
-        phoneNumber: state.phoneNumber,
-      };
-
-      // Make the PUT API call
-      fetch(
-        "https://monkfish-app-6ahnd.ondigitalocean.app/api/profile/update-profile",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(finalData),
-        }
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to update user");
+    
+      updateUser({ phoneNumber: state.phoneNumber, data: userData })
+        .then((result) => {
+          if (result.success && result.data?.user) {
+            console.log("User updated successfully:", result.data.user);
+    
+            // Merge the updated fields into Redux state
+            return { ...state, ...result.data.user };
+          } else {
+            console.error("Failed to update user:", result.message);
+            throw new Error(result.message || "Update failed");
           }
-          return response.json();
-        })
-        .then((data) => {
-          console.log("User updated successfully:", data);
         })
         .catch((error) => {
           console.error("Error updating user:", error);
         });
-
-      // Update the state with the new data
+    
+      // Return the updated state locally for optimistic updates
       return { ...state, ...userData };
     },
   },
 });
 
-export const { login, logout, updateUser } = userSlice.actions;
+export const { login, logout, updateUserState } = userSlice.actions;
 export default userSlice.reducer;

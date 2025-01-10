@@ -10,9 +10,10 @@ import { LogDataType } from "../types/auth.types";
 import WarningToast from "@/features/Home/Components/warning";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { apiBaseUrl } from "@/features/Home/constHome";
 import { Text } from "@/components/ui/Text";
 import { toast } from "sonner-native";
+import { sendOtp } from "../utils/otpUtils";
+import { removeSpaces } from "@/utils/string.utils";
 
 type FormData = {
   phoneNumber: string;
@@ -44,26 +45,16 @@ export default function PhoneInputLoginForm(props: {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    const payload = {
-      phoneNumber: `${selectedCountry?.callingCode}${data.phoneNumber}`,
-    };
+    const phoneNumber = removeSpaces(
+      `${selectedCountry?.callingCode}${data.phoneNumber}`
+    );
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/send-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const result = await sendOtp(phoneNumber);
 
-      const responseData = await response.json();
-      if (!response.ok) {
-        toast.error(responseData.error);
-      }
-      if (response.ok) {
-        toast.success(responseData.message);
-        console.log("OTP sent successfully:", responseData);
+      if (result.success) {
+        console.log("OTP sent successfully:", result);
+
         const finalData: LogDataType = {
           ...data,
           isSubmittedSuccess: true,
@@ -72,9 +63,12 @@ export default function PhoneInputLoginForm(props: {
         };
         setLogData(finalData);
         onSuccess();
+      } else {
+        toast.error(result.message || "Failed to send OTP");
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
+      toast.error("An error occurred while sending OTP");
     } finally {
       setLoading(false);
     }

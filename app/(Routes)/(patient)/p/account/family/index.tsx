@@ -1,100 +1,87 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, FlatList } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { cn } from "@/lib/utils";
 import FamilyMemberCard from "@/features/family/components/FamilyMemberCard";
+import { z } from "zod";
+import { toast } from "sonner-native";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { useSelector } from "react-redux";
+import { FamilyFormType, FamilyType } from "@/features/family/types/FamilyType";
 
 function FamilyPage() {
-  const [familyMembers, setFamilyMembers] = useState<
-    {
-      id: string;
-      name: string;
-      age: string;
-      fileNumber: string;
-      relationship: string;
-    }[]
-  >([]);
-
+  const [familyMembers, setFamilyMembers] = useState<FamilyType[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentMember, setCurrentMember] = useState<
-    | {
-        id: string;
-        name: string;
-        age: string;
-        fileNumber: string;
-        relationship: string;
-      }
-    | undefined
-  >(undefined);
+  const [currentMember, setCurrentMember] = useState<FamilyType | null>(null);
 
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm();
+  } = useForm<FamilyType>();
+
+  const userPhoneNumber = useSelector((state: any) => state.user.phoneNumber);
 
   useEffect(() => {
-    // Fetch family members from API (demo data for now)
-    const fetchMembers = async () => {
-      const demoMembers = [
-        {
-          id: "1",
-          name: "Rima Majid Majid",
-          age: "15 years",
-          fileNumber: "32675356",
-          relationship: "Mother",
-        },
-        {
-          id: "2",
-          name: "Ali Ahmed",
-          age: "40 years",
-          fileNumber: "12345678",
-          relationship: "Father",
-        },
-      ];
-      setFamilyMembers(demoMembers);
-    };
-
-    fetchMembers();
+    fetchFamilyMembers();
   }, []);
 
-  const onSubmit = (data: any) => {
-    if (isEditing) {
-      // Update existing member
-      setFamilyMembers((prev) =>
-        prev.map((member) =>
-          member.id === currentMember?.id
-            ? { ...currentMember, ...data }
-            : member
-        )
+  const fetchFamilyMembers = async () => {
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/api/user/${userPhoneNumber}/family`
       );
-    } else {
-      // Add new member
-      setFamilyMembers((prev) => [
-        ...prev,
-        { id: Date.now().toString(), ...data },
-      ]);
+      const result = await response.json();
+      if (response.ok) {
+        setFamilyMembers(result.family || []);
+      } else {
+        toast.error(result.message || "Failed to fetch family members");
+      }
+    } catch (error) {
+      console.error("Error fetching family members:", error);
+      toast.error("Error fetching family members");
     }
-
-    reset();
-    setIsFormVisible(false);
-    setIsEditing(false);
-    setCurrentMember(undefined);
   };
 
-  const handleEdit = (member: any) => {
+  const onSubmit = async (data: FamilyFormType) => {
+    try {
+      const payload = {
+        ...data,
+        phoneNumber: userPhoneNumber,
+      };
+      const response = await fetch(`${apiBaseUrl}/api/add-family-member`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Family member added successfully");
+        fetchFamilyMembers();
+        setIsFormVisible(false);
+        setIsEditing(false);
+        setCurrentMember(null);
+        reset();
+      } else {
+        toast.error(result.message || "Failed to add family member");
+      }
+    } catch (error) {
+      console.error("Error adding family member:", error);
+      toast.error("Error adding family member");
+    }
+  };
+
+  const handleEdit = (member: FamilyType) => {
     setCurrentMember(member);
     setIsEditing(true);
     setIsFormVisible(true);
     reset(member);
-  };
-
-  const handleDelete = (id: any) => {
-    setFamilyMembers((prev) => prev.filter((member) => member.id !== id));
   };
 
   return (
@@ -103,13 +90,13 @@ function FamilyPage() {
         <>
           <FlatList
             data={familyMembers}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             contentContainerClassName="gap-4"
             renderItem={({ item }) => (
               <FamilyMemberCard
                 item={item}
                 handleEdit={() => handleEdit(item)}
-                handleDelete={() => handleDelete(item.id)}
+                handleDelete={() => console.warn("Delete not implemented")}
               />
             )}
           />
@@ -136,9 +123,7 @@ function FamilyPage() {
             )}
           />
           {errors.name && (
-            <Text className="text-red-500">
-              {errors.name.message?.toString()}
-            </Text>
+            <Text className="text-red-500">{errors.name.message}</Text>
           )}
 
           <Controller
@@ -148,20 +133,19 @@ function FamilyPage() {
             render={({ field: { onChange, value } }) => (
               <Input
                 placeholder="Age"
-                value={value}
-                onChangeText={onChange}
+                value={value?.toString()}
+                onChangeText={(text) => onChange(Number(text))}
                 className="mb-3"
+                keyboardType="numeric"
               />
             )}
           />
           {errors.age && (
-            <Text className="text-red-500">
-              {errors.age.message?.toString()}
-            </Text>
+            <Text className="text-red-500">{errors.age.message}</Text>
           )}
 
           <Controller
-            name="fileNumber"
+            name="fileNo"
             control={control}
             rules={{ required: "File Number is required" }}
             render={({ field: { onChange, value } }) => (
@@ -173,10 +157,8 @@ function FamilyPage() {
               />
             )}
           />
-          {errors.fileNumber && (
-            <Text className="text-red-500">
-              {errors.fileNumber.message?.toString()}
-            </Text>
+          {errors.fileNo && (
+            <Text className="text-red-500">{errors.fileNo.message}</Text>
           )}
 
           <Controller
@@ -193,9 +175,7 @@ function FamilyPage() {
             )}
           />
           {errors.relationship && (
-            <Text className="text-red-500">
-              {errors.relationship.message?.toString()}
-            </Text>
+            <Text className="text-red-500">{errors.relationship.message}</Text>
           )}
 
           <Button className=" mt-4" onPress={handleSubmit(onSubmit)}>
@@ -210,7 +190,7 @@ function FamilyPage() {
               setIsFormVisible(false);
               reset();
               setIsEditing(false);
-              setCurrentMember(undefined);
+              setCurrentMember(null);
             }}
           >
             <Text className=" font-medium">Cancel</Text>

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
-import { updateUser } from "@/store/user/user";
+import { updateUserState } from "@/store/user/user";
 import PhoneInput, {
   ICountry,
   getCountryByCca2,
@@ -49,7 +49,7 @@ export default function ProfilePage() {
   });
 
   const onSubmit = (data: any) => {
-    dispatch(updateUser({ country: selectedCountry?.cca2, ...data }));
+    dispatch(updateUserState({ country: selectedCountry?.cca2, ...data }));
     toast.success("Operation successful!", {
       className: "bg-green-500",
       style: { backgroundColor: "blue" },

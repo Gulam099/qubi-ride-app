@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/Button";
 import { LogDataType, VerificationDataType } from "../types/auth.types";
 import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
-import { apiBaseUrl } from "@/features/Home/constHome";
 import { toast } from "sonner-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { login } from "@/store/user/user";
+import { sendOtp, verifyOtp } from "../utils/otpUtils";
+import { updateUser } from "@/features/user/utils/userUtils";
+
 
 type FormData = {
   otp: string;
@@ -35,7 +37,6 @@ export default function VerifyOtpInputLoginForm(props: {
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
 
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user);
 
   useEffect(() => {
     if (timer > 0) {
@@ -52,30 +53,15 @@ export default function VerifyOtpInputLoginForm(props: {
     setTimer(VerificationData.otpResendTime);
     setIsDisabled(true);
 
-    const payload = {
-      phoneNumber: `${LogData.countryCode}${LogData.phoneNumber}`,
-    };
-
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/send-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.error || "Failed to resend OTP");
+      const result = await sendOtp(`${LogData.countryCode}${LogData.phoneNumber}`);
+      if (result.success) {
+        toast.success("OTP resent successfully");
+      } else {
+        toast.error(result.message || "Failed to resend OTP");
       }
-
-      toast.success("OTP resent successfully");
-      console.log("OTP resend successful:", responseData);
     } catch (error) {
       toast.error("Error resending OTP");
-      console.error("Error resending OTP:", error);
     }
   };
 
@@ -91,74 +77,58 @@ export default function VerifyOtpInputLoginForm(props: {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    const payload = {
-      phoneNumber: `${LogData.countryCode}${LogData.phoneNumber}`,
-      otp: data.otp,
-      role: "user",
-    };
-    console.log(payload);
-
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/verify-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const result = await verifyOtp({
+        phoneNumber: `${LogData.countryCode}${LogData.phoneNumber}`,
+        otp: data.otp,
+        role: "user",
       });
 
-      const responseData = await response.json();
-      if (!response.ok) {
-        toast.error(responseData.error);
-        console.log(responseData.error);
-      }
-      if (response.ok) {
-        toast.success("OTP verification successful:", responseData);
-        console.log("OTP verification successful:", responseData);
-        if (responseData.user.name === null) {
-          const response2 = await fetch(
-            `${apiBaseUrl}/api/profile/update-profile`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                phoneNumber: responseData.user.phoneNumber,
-                name: `User-${responseData.user.phoneNumber.slice(
-                  responseData.user.phoneNumber.length,
-                  responseData.user.phoneNumber.length - 4
-                )}`,
-              }),
-            }
-          );
+      if (result.success) {
+        const userData = result.data;
 
-          const responseData2 = await response2.json();
+        // Update user data if necessary
+        if (!userData.name || userData.email === null) {
+          const updatedFields: Partial<typeof userData> = {};
 
-          if (!response2.ok) {
-            toast.error(responseData2.message);
+          if (!userData.name) {
+            updatedFields.name = `User-${userData.phoneNumber.slice(
+              userData.phoneNumber.length - 4
+            )}`;
           }
 
-          if (responseData2.user.id) {
-            dispatch(
-              login({
-                ...responseData2.user,
-                role: "patient",
-              })
-            );
+          if (userData.email === null) {
+            updatedFields.email = "";
+          }
+
+          const updateResult = await updateUser({
+            phoneNumber: userData.phoneNumber,
+            data: updatedFields,
+          });
+
+          if (updateResult.success) {
+            Object.assign(userData, updateResult.data);
+          } else {
+            toast.error(updateResult.message || "Failed to update user profile");
           }
         }
+
+        // Log the user in
         dispatch(
           login({
-            ...responseData.user,
+            ...userData,
             role: "patient",
           })
         );
+
         setVerificationData({
           ...VerificationData,
           isVerified: true,
         });
+
         onSuccess();
+      } else {
+        toast.error(result.message || "OTP verification failed");
       }
     } catch (error) {
       toast.error("Error verifying OTP");
@@ -174,8 +144,7 @@ export default function VerifyOtpInputLoginForm(props: {
           Enter Verification Code
         </Text>
         <Text className="text-wrap flex-1">
-          Enter the verification code sent to the number {LogData.countryCode}{" "}
-          {LogData.phoneNumber}
+          Enter the verification code sent to the number {LogData.countryCode} {LogData.phoneNumber}
         </Text>
         <Controller
           name="otp"
