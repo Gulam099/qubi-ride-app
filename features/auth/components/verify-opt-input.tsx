@@ -11,7 +11,6 @@ import { login } from "@/store/user/user";
 import { sendOtp, verifyOtp } from "../utils/otpUtils";
 import { updateUser } from "@/features/user/utils/userUtils";
 
-
 type FormData = {
   otp: string;
 };
@@ -54,7 +53,7 @@ export default function VerifyOtpInputLoginForm(props: {
     setIsDisabled(true);
 
     try {
-      const result = await sendOtp(`${LogData.countryCode}${LogData.phoneNumber}`);
+      const result = await sendOtp(`${LogData.phoneNumber}`);
       if (result.success) {
         toast.success("OTP resent successfully");
       } else {
@@ -79,7 +78,7 @@ export default function VerifyOtpInputLoginForm(props: {
     setLoading(true);
     try {
       const result = await verifyOtp({
-        phoneNumber: `${LogData.countryCode}${LogData.phoneNumber}`,
+        phoneNumber: `${LogData.phoneNumber}`,
         otp: data.otp,
         role: "user",
       });
@@ -87,39 +86,8 @@ export default function VerifyOtpInputLoginForm(props: {
       if (result.success) {
         const userData = result.data;
 
-        // Update user data if necessary
-        if (!userData.name || userData.email === null) {
-          const updatedFields: Partial<typeof userData> = {};
-
-          if (!userData.name) {
-            updatedFields.name = `User-${userData.phoneNumber.slice(
-              userData.phoneNumber.length - 4
-            )}`;
-          }
-
-          if (userData.email === null) {
-            updatedFields.email = "";
-          }
-
-          const updateResult = await updateUser({
-            phoneNumber: userData.phoneNumber,
-            data: updatedFields,
-          });
-
-          if (updateResult.success) {
-            Object.assign(userData, updateResult.data);
-          } else {
-            toast.error(updateResult.message || "Failed to update user profile");
-          }
-        }
-
         // Log the user in
-        dispatch(
-          login({
-            ...userData,
-            role: "patient",
-          })
-        );
+        dispatch(login(userData));
 
         setVerificationData({
           ...VerificationData,
@@ -144,7 +112,7 @@ export default function VerifyOtpInputLoginForm(props: {
           Enter Verification Code
         </Text>
         <Text className="text-wrap flex-1">
-          Enter the verification code sent to the number {LogData.countryCode} {LogData.phoneNumber}
+          Enter the verification code sent to the number {LogData.phoneNumber}
         </Text>
         <Controller
           name="otp"

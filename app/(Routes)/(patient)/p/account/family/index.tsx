@@ -9,6 +9,7 @@ import { toast } from "sonner-native";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { useSelector } from "react-redux";
 import { FamilyFormType, FamilyType } from "@/features/family/types/FamilyType";
+import { Label } from "@/components/ui/Label";
 
 function FamilyPage() {
   const [familyMembers, setFamilyMembers] = useState<FamilyType[]>([]);
@@ -52,6 +53,8 @@ function FamilyPage() {
         ...data,
         phoneNumber: userPhoneNumber,
       };
+      console.log(payload);
+
       const response = await fetch(`${apiBaseUrl}/api/add-family-member`, {
         method: "POST",
         headers: {
@@ -109,6 +112,7 @@ function FamilyPage() {
         </>
       ) : (
         <View className="p-4 bg-white rounded-2xl shadow-md h-full">
+          <Label>Name</Label>
           <Controller
             name="name"
             control={control}
@@ -125,6 +129,24 @@ function FamilyPage() {
           {errors.name && (
             <Text className="text-red-500">{errors.name.message}</Text>
           )}
+          <Label>Id Number</Label>
+          <Controller
+            name="idNumber"
+            control={control}
+            rules={{ required: "Id Number is required" }}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="54674832465854"
+                value={value}
+                onChangeText={onChange}
+                className="mb-3"
+              />
+            )}
+          />
+          {errors.idNumber && (
+            <Text className="text-red-500">{errors.idNumber.message}</Text>
+          )}
+          <Label>Age</Label>
 
           <Controller
             name="age"
@@ -132,7 +154,7 @@ function FamilyPage() {
             rules={{ required: "Age is required" }}
             render={({ field: { onChange, value } }) => (
               <Input
-                placeholder="Age"
+                placeholder="Example : 12 years old"
                 value={value?.toString()}
                 onChangeText={(text) => onChange(Number(text))}
                 className="mb-3"
@@ -143,14 +165,14 @@ function FamilyPage() {
           {errors.age && (
             <Text className="text-red-500">{errors.age.message}</Text>
           )}
-
+          <Label>File Number</Label>
           <Controller
             name="fileNo"
             control={control}
             rules={{ required: "File Number is required" }}
             render={({ field: { onChange, value } }) => (
               <Input
-                placeholder="File Number"
+                placeholder="Example : 13234345"
                 value={value}
                 onChangeText={onChange}
                 className="mb-3"
@@ -160,14 +182,14 @@ function FamilyPage() {
           {errors.fileNo && (
             <Text className="text-red-500">{errors.fileNo.message}</Text>
           )}
-
+          <Label>Relative Relation</Label>
           <Controller
             name="relationship"
             control={control}
             rules={{ required: "Relationship is required" }}
             render={({ field: { onChange, value } }) => (
               <Input
-                placeholder="Relationship"
+                placeholder="Example of a Mother"
                 value={value}
                 onChangeText={onChange}
                 className="mb-3"

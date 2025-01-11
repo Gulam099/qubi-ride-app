@@ -56,7 +56,8 @@ export default function PhoneInputLoginForm(props: {
         console.log("OTP sent successfully:", result);
 
         const finalData: LogDataType = {
-          ...data,
+          phoneNumber,
+          rememberMyDetails: data.rememberMyDetails,
           isSubmittedSuccess: true,
           countryCode: `${selectedCountry?.callingCode}`,
           country: `${selectedCountry?.cca2}`,

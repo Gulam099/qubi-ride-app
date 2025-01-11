@@ -30,18 +30,18 @@ export async function updateUser(payload: {
     const responseData = await response.json();
 
     if (!response.ok) {
-      toast.error(responseData.message || "Failed to update user profile.");
+      toast.error(responseData.message);
       return {
         success: false,
-        message: responseData.message || "Failed to update user profile.",
+        message: responseData.message,
       };
     }
 
-    toast.success(responseData.message || "Profile updated successfully.");
+    toast.success(responseData.message);
     return {
       success: true,
-      message: responseData.message || "Profile updated successfully.",
-      data: responseData.data,
+      message: responseData.message,
+      data: responseData.user,
     };
   } catch (error) {
     console.error("Error updating user profile:", error);
@@ -49,6 +49,48 @@ export async function updateUser(payload: {
     return {
       success: false,
       message: "An error occurred while updating the profile.",
+    };
+  }
+}
+
+type GetUserResponse = {
+  success: boolean;
+  message?: string;
+  data?: any;
+};
+
+export async function getUser({
+  phoneNumber,
+}: {
+  phoneNumber: string;
+}): Promise<GetUserResponse> {
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/users/getUser`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phoneNumber }),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: responseData.message || "Failed to fetch user",
+      };
+    }
+
+    return {
+      success: true,
+      data: responseData,
+    };
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return {
+      success: false,
+      message: "An error occurred while fetching the user",
     };
   }
 }

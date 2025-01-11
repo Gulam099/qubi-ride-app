@@ -1,18 +1,39 @@
-import { Image, StyleSheet, Platform, View } from "react-native";
-// Import the global.css file in the index.js file:
-import { Button } from "@/components/ui/Button";
+import React, { useEffect } from "react";
 import { Text } from "@/components/ui/Text";
-import ThemeToggleButton from "@/components/custom/ThemeToggle";
-import { EmojiHappy } from "iconsax-react-native";
-import { Link, Redirect } from "expo-router";
-import UserComponent from "@/components/UserComponent";
+import { UserType } from "@/features/user/types/user.type";
+import { Redirect } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { RoleType } from "@/features/auth/types/auth.types";
-import { login, logout, updateUser } from "@/store/user/user";
+import { getUser } from "@/features/user/utils/userUtils";
+import { logout, updateUserState } from "@/store/user/user";
 
 export default function HomeScreen() {
+  const user: UserType = useSelector((state: any) => state.user);
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user.isAuthenticated && user.phoneNumber) {
+        const result = await getUser({ phoneNumber: user.phoneNumber });
+
+        if (result.success) {
+          const fetchedUser = result.data;
+
+          // Check if `isAuthenticated` is true in fetched user data
+          if (fetchedUser.isAuthenticated) {
+            dispatch(updateUserState(fetchedUser));
+          } else {
+            dispatch(logout());
+          }
+        } else {
+          // Handle fetch failure
+          console.error(result.message || "Failed to fetch user data");
+          dispatch(logout());
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user.isAuthenticated, user.phoneNumber, dispatch]);
 
   if (!user) {
     return <Text>Loading....</Text>;
@@ -23,21 +44,7 @@ export default function HomeScreen() {
   }
 
   if (user.isAuthenticated) {
-    const userRole: RoleType = user.role;
-    if (userRole === "default") {
-      dispatch(
-        login({
-          isAuthenticated: false,
-        })
-      );
-      return <Redirect href="/welcome" />;
-    }
-    if (userRole === "patient") {
-      return <Redirect href="/p" />;
-    }
-    if (userRole === "specialist") {
-      return <Redirect href="/s" />;
-    }
+    return <Redirect href="/p" />;
   }
 
   return <Redirect href="/welcome" />;
