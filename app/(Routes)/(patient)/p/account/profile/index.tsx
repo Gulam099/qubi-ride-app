@@ -7,30 +7,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { updateUserState } from "@/store/user/user";
-import PhoneInput, {
-  ICountry,
-  getCountryByCca2,
-} from "react-native-international-phone-number";
-import { ArrowDown2 } from "iconsax-react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { toast } from "sonner-native";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/Text";
-import { H2, H3 } from "@/components/ui/Typography";
+import { H3 } from "@/components/ui/Typography";
+import { UserType } from "@/features/user/types/user.type";
+import ProfileImage from "@/features/account/components/ProfileImage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import * as ImagePicker from "expo-image-picker";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user);
+  const user: UserType = useSelector((state: any) => state.user);
   const { t } = useTranslation();
-  const language = useSelector((state: any) => state.appState.language);
-  const { email, name, phoneNumber, dob, gender, country } = user;
+  const { email, name, phoneNumber, dob, gender, imageUrl } = user;
 
-  const countryData = () => getCountryByCca2(country);
-
-  const [selectedCountry, setSelectedCountry] = useState<ICountry | undefined>(
-    countryData
-  );
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(dob);
 
@@ -48,39 +40,45 @@ export default function ProfilePage() {
     },
   });
 
-  const onSubmit = (data: any) => {
-    dispatch(updateUserState({ country: selectedCountry?.cca2, ...data }));
-    toast.success("Operation successful!", {
-      className: "bg-green-500",
-      style: { backgroundColor: "blue" },
-      description: "Everything worked as expected.",
-      duration: 5000, // Adjust duration here
-    });
+  const onSubmit = (data: Partial<UserType>) => {
+    dispatch(updateUserState(data));
+    toast.success("Profile updated successfully!");
   };
 
-  function RadioGroupItemWithLabel({
-    value,
-    label,
-    onChange,
-  }: {
-    value: any;
-    label: any;
-    selectedValue: any;
-    onChange: any;
-  }) {
-    return (
-      <View className="flex-row items-center gap-2">
-        <RadioGroupItem
-          aria-labelledby={`label-for-${value}`}
-          value={value}
-          onPress={() => onChange(value)}
-        />
-        <Label nativeID={`label-for-${value}`} onPress={() => onChange(value)}>
-          {t(label)}
-        </Label>
-      </View>
-    );
-  }
+  const handleRemoveImage = () => {
+    if (imageUrl === "") {
+      return;
+    }
+    dispatch(updateUserState({ phoneNumber, imageUrl: "" }));
+    toast.success("Image removed successfully!");
+  };
+
+  const handleSelectImage = async () => {
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        toast.error("Permission to access media library is required.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        const selectedImage = result.assets[0].uri;
+        dispatch(updateUserState({ phoneNumber, imageUrl: selectedImage }));
+        toast.success("Image updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error selecting image:", error);
+      toast.error("Error selecting image.");
+    }
+  };
 
   const showDatePicker = () => setDatePickerVisible(true);
   const handleDateChange = (event: any, selectedDateValue: any) => {
@@ -93,6 +91,24 @@ export default function ProfilePage() {
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
       <H3 className=" text-xl mb-4">{t("MyProfile")}</H3>
+
+      {/* Profile Image */}
+      <View className="flex gap-4 items-center ">
+        <ProfileImage imageUrl={imageUrl} name={name} />
+        <View className="flex-row gap-2 mt-2">
+          <Button
+            onPress={handleRemoveImage}
+            className="bg-red-500"
+            disabled={imageUrl === ""}
+            size="sm"
+          >
+            <Text className="text-white">{t("Remove Image")}</Text>
+          </Button>
+          <Button onPress={handleSelectImage} className="bg-blue-500" size="sm">
+            <Text className="text-white">{t("Select Image")}</Text>
+          </Button>
+        </View>
+      </View>
 
       <View>
         <Text className="mb-2">{t("Name")}</Text>
@@ -122,20 +138,14 @@ export default function ProfilePage() {
           control={control}
           rules={{ required: t("PhoneNumberRequired") }}
           render={({ field: { onChange, value } }) => (
-            <PhoneInput
+            <Input
+              editable={false}
+              placeholder={t("Phone Number")}
               value={value}
-              onChangePhoneNumber={(number) => {
-                onChange(number);
-              }}
-              selectedCountry={selectedCountry}
-              onChangeSelectedCountry={setSelectedCountry}
-              customCaret={<ArrowDown2 variant="Bold" size="18" color="#000" />}
-              language={language}
-              defaultCountry="SA"
+              onChangeText={onChange}
             />
           )}
         />
-
         {errors.phoneNumber && (
           <Text className="text-red-500 text-sm py-1">
             {errors.phoneNumber.message?.toString()}
@@ -175,8 +185,8 @@ export default function ProfilePage() {
               <Button onPress={showDatePicker} className="bg-background p-2">
                 <Text className="text-neutral-700">
                   {selectedDate === "Not selected"
-                    ? format(selectedDate, "dd / mm / yyyy")
-                    : t("SelectDate")}
+                    ? t("SelectDate")
+                    : format(selectedDate, "dd  MMM  yyyy")}
                 </Text>
               </Button>
               {datePickerVisible && (
@@ -215,18 +225,18 @@ export default function ProfilePage() {
               onValueChange={onChange}
               className="gap-3 flex-row"
             >
-              <RadioGroupItemWithLabel
+              <RadioGroupItem
                 value="Male"
-                label="Male"
-                selectedValue={value}
-                onChange={onChange}
+                aria-labelledby="male-label"
+                onPress={() => onChange("Male")}
               />
-              <RadioGroupItemWithLabel
+              <Label nativeID="male-label">{t("Male")}</Label>
+              <RadioGroupItem
                 value="Female"
-                label="Female"
-                selectedValue={value}
-                onChange={onChange}
+                aria-labelledby="female-label"
+                onPress={() => onChange("Female")}
               />
+              <Label nativeID="female-label">{t("Female")}</Label>
             </RadioGroup>
           )}
         />

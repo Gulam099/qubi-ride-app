@@ -6,11 +6,11 @@ import Drawer from "@/components/ui/Drawer";
 import { H3 } from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
-import Thumb from "@/assets/icon/thumb.svg";
 import { CalendarEdit, MessageText, Trash } from "iconsax-react-native";
 import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
 import { format } from "date-fns";
 import { RelativePathString, useRouter } from "expo-router";
+import { CustomIcons } from "@/const";
 
 type Props = AppointmentCardType;
 
@@ -121,7 +121,7 @@ export default function AppointmentCard({
             <View className="flex flex-col justify-center items-center">
               <View className="aspect-square flex justify-center items-center relative overflow-visible p-2">
                 <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute"></View>
-                <Thumb height={80} width={80} />
+                <CustomIcons.Thumb.Icon height={80} width={80} />
               </View>
               <H3 className="border-none text-center">
                 Session has been successfully canceled
@@ -171,7 +171,7 @@ export default function AppointmentCard({
             <View className="flex flex-col justify-center items-center">
               <View className="aspect-square flex justify-center items-center relative overflow-visible p-2">
                 <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute"></View>
-                <Thumb height={80} width={80} />
+                <CustomIcons.Thumb.Icon height={80} width={80} />
               </View>
               <H3 className="border-none text-center">
                 Session has been successfully rescheduled

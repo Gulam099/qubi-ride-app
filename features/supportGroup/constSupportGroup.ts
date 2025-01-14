@@ -1,5 +1,5 @@
 // demoData.ts
-export const SupportGroupArray = ["All", "Social", "Family", "Poll", "Home"];
+export const SupportGroupArray = ["All", "Social", "Family"];
 const supportGroupImage1 = require("./assets/images/supportGroupImage-1.png");
 const supportGroupImage2 = require("./assets/images/supportGroupImage-2.png");
 export const supportGroups = [

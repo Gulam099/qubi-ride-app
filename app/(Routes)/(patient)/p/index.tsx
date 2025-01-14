@@ -36,7 +36,6 @@ export default function PatientPage() {
           {
             title: "Instant",
             desc: "Immediate sessions with a specialist",
-
             image: PatientPageInstantMenuImage,
           },
           {

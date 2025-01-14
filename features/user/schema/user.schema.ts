@@ -19,6 +19,7 @@ export const userSchema = z.object({
   dob: z.string().default("Not selected"),
   phoneNumber: z.string().min(1, "Phone number is required"),
   passcode: z.string().nullable(),
+  imageUrl: z.string().nullable(),
   cards: z.array(z.string()),
   family: z.array(FamilySchema),
   notifications: z.array(z.string()),

@@ -7,22 +7,54 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import ReportCard from "@/features/account/components/ReportCard";
 import { H2, H3 } from "@/components/ui/Typography";
+import { useSelector } from "react-redux";
+import { AppStateType } from "@/features/setting/types/setting.type";
+import { UserType } from "@/features/user/types/user.type";
+import { toast } from "sonner-native";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function AccountReportPage() {
-  const [ReportVerificationCode, setReportVerificationCode] = useState("1234");
-  const [ShowReports, setShowReports] = useState(false);
+  const appState: AppStateType = useSelector((state: any) => state.appState);
+  const user: UserType = useSelector((state: any) => state.user);
+  // const [ReportVerificationCode, setReportVerificationCode] = useState("1234");
+  const [ShowReports, setShowReports] = useState(
+    user.passcode === null ? true : false
+  );
 
   const [ActiveTab, setActiveTab] = useState({
     report: "My Prescriptions",
     reportType: "Current",
   });
 
-  function handleSubmit(text: string): void {
-    if (text === ReportVerificationCode) {
-      setShowReports(true);
-      console.log("Verification Done " + text);
+  async function handleSubmit(text: string): Promise<void> {
+    const payload = {
+      phoneNumber: user.phoneNumber,
+      passcode: text,
+    };
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/verify-passcode`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Passcode verified successfully!");
+        setShowReports(true); // Show reports or proceed with the next step
+      } else {
+        toast.error(result.message || "Invalid passcode. Please try again.");
+        setShowReports(false);
+      }
+    } catch (error) {
+      console.error("Error verifying passcode:", error);
+      toast.error("Error verifying passcode. Please try again later.");
+      setShowReports(false);
     }
-    console.log(text);
   }
 
   const reportData = [

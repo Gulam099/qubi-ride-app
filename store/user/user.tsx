@@ -30,6 +30,7 @@ const initialState: UserType = {
   cards: [],
   family: [],
   notifications: [],
+  imageUrl: null
 };
 
 const userSlice = createSlice({
@@ -62,9 +63,7 @@ const userSlice = createSlice({
           if (updateResult.success) {
             Object.assign(userData, updateResult.data);
           } else {
-            toast.error(
-              updateResult.message
-            );
+            toast.error(updateResult.message);
           }
         }
       })();
@@ -91,24 +90,25 @@ const userSlice = createSlice({
       return initialState;
     },
 
-    updateUserState: (state, action: PayloadAction<Partial<UserType>>) => {
+    updateUserState: (state, action: PayloadAction<Partial<UserType>  | {}>) => {
       const userData = action.payload;
+      (async () => {
+        await updateUser({ phoneNumber: state.phoneNumber, data: userData })
+          .then((result) => {
+            if (result.success && result.data) {
+              console.log("User updated successfully:", result.data);
 
-      updateUser({ phoneNumber: state.phoneNumber, data: userData })
-        .then((result) => {
-          if (result.success && result.data?.user) {
-            console.log("User updated successfully:", result.data.user);
-
-            // Merge the updated fields into Redux state
-            return { ...state, ...result.data.user };
-          } else {
-            console.error("Failed to update user:", result.message);
-            throw new Error(result.message || "Update failed");
-          }
-        })
-        .catch((error) => {
-          console.error("Error updating user:", error);
-        });
+              // Merge the updated fields into Redux state
+              return { ...state, ...result.data };
+            } else {
+              console.error("Failed to update user:", result.message);
+              throw new Error(result.message || "Update failed");
+            }
+          })
+          .catch((error) => {
+            console.log("Error updating user:", error);
+          });
+      })();
 
       // Return the updated state locally for optimistic updates
       return { ...state, ...userData };

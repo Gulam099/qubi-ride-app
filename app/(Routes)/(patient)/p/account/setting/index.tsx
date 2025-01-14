@@ -15,14 +15,18 @@ import { H3 } from "@/components/ui/Typography";
 import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
 import { UserType } from "@/features/user/types/user.type";
-import { updateUser } from "@/store/user/user";
+import { updateUserState } from "@/store/user/user";
+import { AppStateType } from "@/features/setting/types/setting.type";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { toast } from "sonner-native";
+import { SetPasscode } from "@/features/account/utils/passCode";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
 
-  const appState = useSelector((state: any) => state.appState);
+  const appState: AppStateType = useSelector((state: any) => state.appState);
   const user: UserType = useSelector((state: any) => state.user);
 
   const [language, setLanguage] = useState(appState.language);
@@ -30,25 +34,37 @@ export default function SettingsPage() {
   const [activateCamera, setActivateCamera] = useState(appState.activateCamera);
   const [accessStudio, setAccessStudio] = useState(appState.accessStudio);
   const [notifications, setNotifications] = useState(appState.notifications);
-  const [profilePasscode, setProfilePasscode] = useState<string | null>(
-    user.passcode
-  );
+  const [profilePasscode, setProfilePasscode] = useState(user.passcode);
 
   const [isPassCodeDrawer, setIsPassCodeDrawer] = useState(false);
   const [tempPasscode, setTempPasscode] = useState("");
 
-  const updateState = (key: string, value: string | null) => {
+  const updateState = (key: string, value: string | null | boolean) => {
     dispatch(updateAppState({ [key]: value }));
   };
 
   function onLabelPress(label: "en" | "ar") {
     return () => {
       if (language === label) {
+        toast(
+          label === "ar"
+            ? "Language already is Arabic"
+            : "Language already is English"
+        );
         return;
       }
-      dispatch(updateAppState({ language: label }));
-      i18n.changeLanguage(label);
-      setLayoutDirection(label);
+      try {
+        dispatch(updateAppState({ language: label }));
+        i18n.changeLanguage(label);
+        setLayoutDirection(label);
+        toast.success(
+          label === "ar"
+            ? "Language Changed Successful to Arabic"
+            : "Language Changed Successful to English"
+        );
+      } catch (error) {
+        toast.error("Error Changing in Language");
+      }
     };
   }
 
@@ -57,23 +73,38 @@ export default function SettingsPage() {
       if (!profilePasscode) {
         setIsPassCodeDrawer(true);
       } else {
-        setProfilePasscode(profilePasscode);
-        dispatch(updateUser({ passcode: profilePasscode }));
+        handleSetPasscode(null); // Call API to set passcode
       }
     } else {
-      setProfilePasscode(null);
-      dispatch(updateUser({ passcode: null }));
+      handleSetPasscode(null); // Call API to clear passcode
     }
   }
 
   function handlePasscodeSubmit() {
     if (tempPasscode.trim().length === 4) {
-      setProfilePasscode(tempPasscode);
-      dispatch(updateUser({ passcode: tempPasscode }));
+      handleSetPasscode(tempPasscode); // Call API to set passcode
       setIsPassCodeDrawer(false);
       setTempPasscode("");
     } else {
       alert("Passcode must be 4 digits.");
+    }
+  }
+
+  // Helper function to set or clear passcode using API
+  async function handleSetPasscode(passcode: string | null) {
+    try {
+      const result = await SetPasscode(user.phoneNumber, passcode);
+
+      if (result.success) {
+        toast.success("Passcode updated successfully");
+        dispatch(updateUserState({})); // Update Redux state
+        setProfilePasscode(passcode);
+      } else {
+        toast.error("Failed to update passcode");
+      }
+    } catch (error) {
+      console.error("Error setting passcode:", error);
+      toast.error("Error setting passcode");
     }
   }
 
@@ -82,11 +113,11 @@ export default function SettingsPage() {
       <View className="bg-blue-50/20 h-full p-4 flex-col gap-4">
         <Text className="font-semibold text-xl">My settings</Text>
         <View className="bg-background rounded-2xl p-4 flex-col gap-3">
-          <Text className="text-lg font-semibold">Language </Text>
+          <Text className="text-lg font-semibold">Language</Text>
 
           <RadioGroup
             value={language === "ar" ? "Arabic" : "English"}
-            onValueChange={setLanguage}
+            onValueChange={() => setLanguage}
             className="gap-2"
           >
             <RadioGroupItemWithLabel
@@ -106,7 +137,13 @@ export default function SettingsPage() {
           <RadioGroup
             value={accessibility}
             onValueChange={(value) => {
-              setAccessibility(value);
+              setAccessibility(
+                value as
+                  | "Stop"
+                  | "Dim Light"
+                  | "Invert Colors"
+                  | "White & Black"
+              );
               updateState("accessibility", value);
             }}
             className="gap-2"
@@ -148,7 +185,7 @@ export default function SettingsPage() {
           <SwitchWithLabel
             label="Activate Camera"
             value={activateCamera}
-            onValueChange={(value: string | null) => {
+            onValueChange={(value: boolean) => {
               setActivateCamera(value);
               updateState("activateCamera", value);
             }}
@@ -156,7 +193,7 @@ export default function SettingsPage() {
           <SwitchWithLabel
             label="Access the Studio"
             value={accessStudio}
-            onValueChange={(value: string | null) => {
+            onValueChange={(value: boolean) => {
               setAccessStudio(value);
               updateState("accessStudio", value);
             }}
@@ -169,7 +206,7 @@ export default function SettingsPage() {
           <SwitchWithLabel
             label="Enable Notifications"
             value={notifications}
-            onValueChange={(value: string | null) => {
+            onValueChange={(value: boolean) => {
               setNotifications(value);
               updateState("notifications", value);
             }}
@@ -215,7 +252,6 @@ export default function SettingsPage() {
             <OtpInput
               numberOfDigits={4}
               focusColor={colors.primary[500]}
-              // secureTextEntry={true}
               onTextChange={setTempPasscode}
               theme={{
                 containerStyle: {},

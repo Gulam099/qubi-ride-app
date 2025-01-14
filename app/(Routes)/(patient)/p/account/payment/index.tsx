@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/Switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { H3 } from "@/components/ui/Typography";
 import Drawer from "@/components/ui/Drawer";
-import Thumb from "@/assets/icon/thumb.svg";
+import { CustomIcons } from "@/const";
 
 interface Specialist {
   id: string;
@@ -268,7 +268,7 @@ export default function AccountPaymentPage() {
           <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
             <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
               <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
-              <Thumb height={80} width={80} />
+              <CustomIcons.Thumb.Icon height={80} width={80} />
             </View>
 
             <H3 className="border-none ">Payment Successful</H3>

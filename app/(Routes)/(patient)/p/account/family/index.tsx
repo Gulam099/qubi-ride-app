@@ -22,7 +22,7 @@ function FamilyPage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FamilyType>();
+  } = useForm<FamilyFormType>();
 
   const userPhoneNumber = useSelector((state: any) => state.user.phoneNumber);
 
@@ -30,6 +30,7 @@ function FamilyPage() {
     fetchFamilyMembers();
   }, []);
 
+  // Fetch family members
   const fetchFamilyMembers = async () => {
     try {
       const response = await fetch(
@@ -47,36 +48,78 @@ function FamilyPage() {
     }
   };
 
+  // Add or edit a family member
   const onSubmit = async (data: FamilyFormType) => {
     try {
       const payload = {
         ...data,
         phoneNumber: userPhoneNumber,
+        familyMemberId: currentMember?._id || undefined,
       };
-      console.log(payload);
 
-      const response = await fetch(`${apiBaseUrl}/api/add-family-member`, {
-        method: "POST",
+      const url = isEditing
+        ? `${apiBaseUrl}/api/edit-family-member`
+        : `${apiBaseUrl}/api/add-family-member`;
+
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
+
       const result = await response.json();
 
       if (response.ok) {
-        toast.success("Family member added successfully");
+        toast.success(
+          isEditing
+            ? "Family member updated successfully"
+            : "Family member added successfully"
+        );
         fetchFamilyMembers();
         setIsFormVisible(false);
         setIsEditing(false);
         setCurrentMember(null);
         reset();
       } else {
-        toast.error(result.message || "Failed to add family member");
+        toast.error(result.message || "Failed to save family member");
       }
     } catch (error) {
-      console.error("Error adding family member:", error);
-      toast.error("Error adding family member");
+      console.error("Error saving family member:", error);
+      toast.error("Error saving family member");
+    }
+  };
+
+  // Delete a family member
+  const handleDelete = async (id: string) => {
+    try {
+      const payload = {
+        phoneNumber: userPhoneNumber,
+        familyMemberId: id,
+      };
+
+      const response = await fetch(`${apiBaseUrl}/api/delete-family-member`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Family member deleted successfully");
+        fetchFamilyMembers();
+      } else {
+        toast.error(result.message || "Failed to delete family member");
+      }
+    } catch (error) {
+      console.error("Error deleting family member:", error);
+      toast.error("Error deleting family member");
     }
   };
 
@@ -90,26 +133,30 @@ function FamilyPage() {
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
       {!isFormVisible ? (
-        <>
-          <FlatList
-            data={familyMembers}
-            keyExtractor={(item) => item._id}
-            contentContainerClassName="gap-4"
-            renderItem={({ item }) => (
-              <FamilyMemberCard
-                item={item}
-                handleEdit={() => handleEdit(item)}
-                handleDelete={() => console.warn("Delete not implemented")}
-              />
-            )}
-          />
+        <View className="flex justify-center items-center h-full">
+          {familyMembers.length === 0 ? (
+            <Text className="font-semibold">No Family Member Added</Text>
+          ) : (
+            <FlatList
+              data={familyMembers}
+              keyExtractor={(item) => item._id}
+              contentContainerClassName="gap-4"
+              renderItem={({ item }) => (
+                <FamilyMemberCard
+                  item={item}
+                  handleEdit={() => handleEdit(item)}
+                  handleDelete={() => handleDelete(item._id)}
+                />
+              )}
+            />
+          )}
           <Button
-            className="bg-purple-500 mt-4"
+            className="bg-purple-500 mt-4 w-full"
             onPress={() => setIsFormVisible(true)}
           >
             <Text className="text-white font-medium">Add a new member</Text>
           </Button>
-        </>
+        </View>
       ) : (
         <View className="p-4 bg-white rounded-2xl shadow-md h-full">
           <Label>Name</Label>
@@ -129,6 +176,7 @@ function FamilyPage() {
           {errors.name && (
             <Text className="text-red-500">{errors.name.message}</Text>
           )}
+
           <Label>Id Number</Label>
           <Controller
             name="idNumber"
@@ -146,15 +194,15 @@ function FamilyPage() {
           {errors.idNumber && (
             <Text className="text-red-500">{errors.idNumber.message}</Text>
           )}
-          <Label>Age</Label>
 
+          <Label>Age</Label>
           <Controller
             name="age"
             control={control}
             rules={{ required: "Age is required" }}
             render={({ field: { onChange, value } }) => (
               <Input
-                placeholder="Example : 12 years old"
+                placeholder="Example: 12 years old"
                 value={value?.toString()}
                 onChangeText={(text) => onChange(Number(text))}
                 className="mb-3"
@@ -165,6 +213,7 @@ function FamilyPage() {
           {errors.age && (
             <Text className="text-red-500">{errors.age.message}</Text>
           )}
+
           <Label>File Number</Label>
           <Controller
             name="fileNo"
@@ -172,7 +221,7 @@ function FamilyPage() {
             rules={{ required: "File Number is required" }}
             render={({ field: { onChange, value } }) => (
               <Input
-                placeholder="Example : 13234345"
+                placeholder="Example: 13234345"
                 value={value}
                 onChangeText={onChange}
                 className="mb-3"
@@ -182,6 +231,7 @@ function FamilyPage() {
           {errors.fileNo && (
             <Text className="text-red-500">{errors.fileNo.message}</Text>
           )}
+
           <Label>Relative Relation</Label>
           <Controller
             name="relationship"
@@ -189,7 +239,7 @@ function FamilyPage() {
             rules={{ required: "Relationship is required" }}
             render={({ field: { onChange, value } }) => (
               <Input
-                placeholder="Example of a Mother"
+                placeholder="Example: Mother"
                 value={value}
                 onChangeText={onChange}
                 className="mb-3"

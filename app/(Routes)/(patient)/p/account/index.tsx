@@ -1,12 +1,12 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login, logout, updateUser } from "@/store/user/user";
+import { logout } from "@/store/user/user";
 import { Button } from "@/components/ui/Button";
-import { Link, RelativePathString, useNavigation } from "expo-router";
+import { Link, RelativePathString } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { H2, H3, H4 } from "@/components/ui/Typography";
+import { H3, H4 } from "@/components/ui/Typography";
 import {
   Add,
   Book,
@@ -27,29 +27,23 @@ import colors from "@/utils/colors";
 import AccountCard from "@/features/account/components/AccountCard";
 import { useRouter } from "expo-router";
 import Drawer from "@/components/ui/Drawer";
-import { Image } from "react-native";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Label } from "@/components/ui/Label";
 import { PatientDeleteAccountOptions } from "@/features/account/constAccount";
-import BellAlert from "@/assets/icon/BellAlert.svg";
+
 import TextureCircle from "@/features/account/assets/images/TextureCircle.svg";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 import AccountCard2 from "@/features/account/components/AccountCard2";
+import AccountDeleteButton from "@/features/account/components/AccountDeleteButton";
+import ProfileImage from "@/features/account/components/ProfileImage";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user);
   const router = useRouter();
 
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [isContactUsDrawerVisible, setIsContactUsDrawerVisible] =
     useState(false);
-
-  // const navigation = useNavigation();
-
-  // useEffect(() => {
-  //   navigation.setOptions({ headerShown: false });
-  // }, [navigation]);
 
   const [Interests, setInterests] = useState([
     {
@@ -113,7 +107,7 @@ export default function AccountPage() {
     // Perform state updates or navigation if needed
   };
 
-  const [value, setValue] = React.useState("Comfortable");
+  const [value, setValue] = React.useState("");
 
   function onLabelPress(label: string) {
     return () => {
@@ -129,23 +123,7 @@ export default function AccountPage() {
           contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
         >
           <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16 relative">
-            <Avatar
-              alt="avatar-with-image"
-              className="size-24 border-2 border-neutral-500"
-            >
-              <AvatarImage
-                source={{
-                  uri:
-                    user.imageUrl ??
-                    "https://eu.ui-avatars.com/api/?name=U&size=250",
-                }}
-              />
-              <AvatarFallback className="bg-primary-500">
-                <Text className="text-3xl text-center font-semibold text-white">
-                  {user.name === null ? "U" : user.name.slice(0, 1)}
-                </Text>
-              </AvatarFallback>
-            </Avatar>
+            <ProfileImage imageUrl={user.imageUrl} name={user.name} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
                 {user.name === null ? "User" : user.name}
@@ -256,46 +234,8 @@ export default function AccountPage() {
               <Text className="text-white">Logout</Text>
             </Button>
 
-            <View className="flex-1 justify-center items-center">
-              <Button onPress={() => setIsDrawerVisible(true)} variant={"link"}>
-                <Text className="">Delete Account</Text>
-              </Button>
+            <AccountDeleteButton />
 
-              <Drawer
-                visible={isDrawerVisible}
-                onClose={() => setIsDrawerVisible(false)}
-                title="My Drawer"
-                height="70%"
-              >
-                <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-                  <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
-                    <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
-                    <BellAlert height={80} width={80} />
-                  </View>
-                  <H3 className="border-none ">Are sure you want to delete </H3>
-                  <Text className="text-lg">Could you tell us why ?</Text>
-                  <RadioGroup
-                    value={value}
-                    onValueChange={setValue}
-                    className="gap-6"
-                  >
-                    {PatientDeleteAccountOptions.map((option) => (
-                      <RadioGroupItemWithLabel
-                        key={option}
-                        value={option}
-                        onLabelPress={onLabelPress(option)}
-                      />
-                    ))}
-                  </RadioGroup>
-                  <Button
-                    onPress={() => setIsDrawerVisible(false)}
-                    className="w-full"
-                  >
-                    <Text className="text-white font-semibold">Submit</Text>
-                  </Button>
-                </View>
-              </Drawer>
-            </View>
             <Drawer
               visible={isContactUsDrawerVisible}
               onClose={() => setIsContactUsDrawerVisible(false)}
@@ -341,26 +281,5 @@ export default function AccountPage() {
         </ScrollView>
       </View>
     </SafeAreaView>
-  );
-}
-
-function RadioGroupItemWithLabel({
-  value,
-  onLabelPress,
-}: Readonly<{
-  value: string;
-  onLabelPress: () => void;
-}>) {
-  return (
-    <View className={"flex-row gap-3 items-center "}>
-      <RadioGroupItem aria-labelledby={"label-for-" + value} value={value} />
-      <Label
-        nativeID={"label-for-" + value}
-        onPress={onLabelPress}
-        className="text-lg"
-      >
-        {value}
-      </Label>
-    </View>
   );
 }
