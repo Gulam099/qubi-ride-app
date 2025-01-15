@@ -133,9 +133,11 @@ function FamilyPage() {
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
       {!isFormVisible ? (
-        <View className="flex justify-center items-center h-full">
+        <>
           {familyMembers.length === 0 ? (
-            <Text className="font-semibold">No Family Member Added</Text>
+            <Text className="font-semibold text-center mt-[80%]">
+              No Family Member Added
+            </Text>
           ) : (
             <FlatList
               data={familyMembers}
@@ -156,7 +158,7 @@ function FamilyPage() {
           >
             <Text className="text-white font-medium">Add a new member</Text>
           </Button>
-        </View>
+        </>
       ) : (
         <View className="p-4 bg-white rounded-2xl shadow-md h-full">
           <Label>Name</Label>

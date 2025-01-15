@@ -24,12 +24,10 @@ import { View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import BackButton from "@/features/Home/Components/BackButton";
 import { useEffect } from "react";
+import ProfileImage from "@/features/account/components/ProfileImage";
 
 export default function PatientLayout() {
   const user = useSelector((state: any) => state.user);
-
-  
-  
 
   if (!user.isAuthenticated) {
     return <Redirect href="/" />;
@@ -69,7 +67,14 @@ export default function PatientLayout() {
 
           headerLeft: () => (
             <View className="pl-4">
-              <ProfileCircle size={32} color={"white"} className="ml-4" />
+              <Link href={"/p/account"}>
+                <ProfileImage
+                  className="size-12 border border-primary-600"
+                  TextClassName="text-sm font-bold"
+                  imageUrl={user.imageUrl}
+                  name={user.name}
+                />
+              </Link>
             </View>
           ),
           headerTitle: () => (

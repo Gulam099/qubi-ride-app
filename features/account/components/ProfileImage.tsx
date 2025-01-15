@@ -1,15 +1,16 @@
 import { View } from "react-native";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { Text } from "@/components/ui/Text";
+import { Text, TextClassContext } from "@/components/ui/Text";
 import { cn } from "@/lib/utils";
 
 export default function ProfileImage(props: {
   imageUrl: string | null;
   name: string | null;
   className?: string;
+  TextClassName?: string;
 }) {
-  const { imageUrl, name, className } = props;
+  const { imageUrl, name, className, TextClassName } = props;
   return (
     <Avatar
       alt="avatar-with-image"
@@ -23,7 +24,12 @@ export default function ProfileImage(props: {
         />
       )}
       <AvatarFallback className="bg-primary-600">
-        <Text className="text-3xl text-center font-semibold text-white font-sans">
+        <Text
+          className={cn(
+            "text-3xl text-center font-semibold text-white font-sans",
+            TextClassName
+          )}
+        >
           {name === null ? "U" : name.slice(0, 1)}
         </Text>
       </AvatarFallback>

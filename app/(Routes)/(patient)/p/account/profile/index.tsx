@@ -16,7 +16,8 @@ import { UserType } from "@/features/user/types/user.type";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-
+import { apiBaseUrl } from "@/features/Home/constHome";
+import axios from "axios";
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const user: UserType = useSelector((state: any) => state.user);
@@ -66,13 +67,51 @@ export default function ProfilePage() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
+        aspect: [1, 1],
         quality: 1,
       });
 
       if (!result.canceled) {
-        const selectedImage = result.assets[0].uri;
-        dispatch(updateUserState({ phoneNumber, imageUrl: selectedImage }));
-        toast.success("Image updated successfully!");
+        const selectedImage = result.assets[0];
+
+        // Create a FormData object and append the required data
+        const formData = new FormData();
+        formData.append("phoneNumber", user.phoneNumber); // Add phoneNumber
+        formData.append("image", {
+          uri: selectedImage.uri,
+          type: "image/png",
+          name: `profile-image.jpg`, // Use fileName or fallback
+        } as any); // Explicitly cast to match FormData type expectations
+
+        const config = {
+          headers: {
+            "Content-Type": "multipart/form-data", // Header for file uploads
+          },
+          transformRequest: () => {
+            return formData;
+          },
+        };
+
+        // Make the API call to upload the image
+        try {
+          const response = await axios.put(
+            `${apiBaseUrl}/api/profile/update-profile`,
+            formData,
+            config
+          );
+
+          const result = await response.data;
+
+          if (response.status === 200) {
+            toast.success("Image updated successfully!");
+            dispatch(updateUserState({}));
+          } else {
+            toast.error(result.message || "Failed to update image.");
+          }
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          toast.error("Error uploading image.");
+        }
       }
     } catch (error) {
       console.error("Error selecting image:", error);

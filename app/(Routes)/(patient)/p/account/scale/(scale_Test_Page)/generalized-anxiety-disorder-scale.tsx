@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Button } from "@/components/ui/Button";
-import Anxity from "@/features/scale/assets/images/anxiety.svg";
+
 import { Progress } from "@/components/ui/Progress";
 import Drawer from "@/components/ui/Drawer";
-import Caution from "@/assets/icon/Caution.svg";
+
 import { H3 } from "@/components/ui/Typography";
+import { CustomIcons } from "@/const";
 
 // Demo questions
 const defaultQuestions = [
@@ -136,7 +137,7 @@ export default function GeneralizedAnxietyDisorderScale() {
     <View className="p-4 h-full flex flex-col justify-between bg-blue-50/10">
       {/* Header Section */}
       <View className="flex gap-4 items-center bg-white rounded-2xl px-4 py-8">
-        <Anxity className="w-24 h-24 mb-4" resizeMode="contain" />
+        <CustomIcons.Anxiety.Icon className="w-24 h-24 mb-4" resizeMode="contain" />
         <Text className="text-lg font-bold text-center mb-2">
           Generalized Anxiety Disorder Scale
         </Text>
@@ -251,7 +252,7 @@ export default function GeneralizedAnxietyDisorderScale() {
           <View className="flex flex-col flex-1 justify-center items-center w-full gap-6 px-6">
             <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
               <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
-              <Caution height={80} width={80} />
+              <CustomIcons.Caution.Icon height={80} width={80} />
             </View>
 
             <H3 className="border-none ">You must make a choice</H3>
