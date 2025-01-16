@@ -2,10 +2,10 @@ import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import Depressive from "@/features/scale/assets/images/Depressive.svg";
-import Caution from "@/assets/icon/Caution.svg";
 import { H3 } from "@/components/ui/Typography";
 import Drawer from "@/components/ui/Drawer";
 import { Progress } from "@/components/ui/Progress";
+import { CustomIcons } from "@/const";
 
 // Demo questions
 const defaultQuestions = [
@@ -252,7 +252,7 @@ export default function DepressionScale() {
           <View className="flex flex-col flex-1 justify-center items-center w-full gap-6 px-6">
             <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
               <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
-              <Caution height={80} width={80} />
+              <CustomIcons.Caution.Icon height={80} width={80} />
             </View>
 
             <H3 className="border-none ">You must make a choice</H3>

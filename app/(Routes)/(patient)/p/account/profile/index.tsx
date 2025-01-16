@@ -158,7 +158,7 @@ export default function ProfilePage() {
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder={t("Name")}
-              value={value}
+              value={value ? (value as string) : undefined}
               onChangeText={onChange}
             />
           )}
@@ -201,7 +201,7 @@ export default function ProfilePage() {
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder={t("Email")}
-              value={value}
+              value={value ? (value as string) : undefined}
               onChangeText={onChange}
               keyboardType="email-address"
             />

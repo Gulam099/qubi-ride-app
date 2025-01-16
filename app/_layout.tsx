@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as MediaLibrary from "expo-media-library";
+import * as Camera from "expo-camera";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
-// Import your global CSS file
-import "../global.css";
+import "../global.css"; // Global CSS file
 import { ThemeProvider } from "@/Provider/ThemeProvider";
 import { PortalHost } from "@rn-primitives/portal";
 import {
@@ -28,12 +29,16 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import i18n from "@/lib/i18n";
 import { I18nextProvider } from "react-i18next";
-import { I18nManager } from "react-native";
+import { I18nManager, Alert, View } from "react-native";
+import { useCameraPermissions } from "expo-camera";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+
   let [loaded, error] = useFonts({
     NotoKufiArabic_100Thin,
     NotoKufiArabic_200ExtraLight,
@@ -46,13 +51,59 @@ export default function RootLayout() {
     NotoKufiArabic_900Black,
   });
 
+  const requestPermissions = async () => {
+    try {
+      if (!permission) {
+        // Camera permissions are still loading.
+        return <View />;
+      }
+      // Request Camera Permissions
+
+      if (!permission.granted) {
+        Alert.alert(
+          "Permission Required",
+          "Camera permission is required for this app."
+        );
+        return false;
+      }
+
+      // Request Media Library Permissions
+      const { status: mediaStatus } =
+        await MediaLibrary.requestPermissionsAsync();
+      if (mediaStatus !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Media library permission is required to access your photos and videos."
+        );
+        return false;
+      }
+
+      setPermissionsGranted(true);
+      return true;
+    } catch (error) {
+      console.error("Error requesting permissions:", error);
+      Alert.alert(
+        "Permission Error",
+        "An error occurred while requesting permissions."
+      );
+      return false;
+    }
+  };
+
   useEffect(() => {
+    const initializeApp = async () => {
+      const permissionsSuccess = await requestPermissions();
+      if (permissionsSuccess) {
+        SplashScreen.hideAsync(); // Hide the splash screen only if permissions are granted
+      }
+    };
+
     if (loaded || error) {
-      SplashScreen.hideAsync();
+      initializeApp();
     }
   }, [loaded, error]);
 
-  if (!loaded && !error) {
+  if (!loaded && !error && !permissionsGranted) {
     return null;
   }
 
@@ -71,17 +122,16 @@ export default function RootLayout() {
 const MainApp = () => {
   const language = useSelector((state: any) => state.appState.language);
   const isRTL = language === "ar";
-  console.log(isRTL);
 
   useEffect(() => {
     i18n.changeLanguage(language); // Sync language with Redux
     I18nManager.forceRTL(isRTL);
     I18nManager.allowRTL(isRTL);
   }, [language]);
+
   return (
     <ThemeProvider>
       <GestureHandlerRootView>
-        {/* <UserProvider> */}
         <Stack>
           <Stack.Screen name="(Routes)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
@@ -89,7 +139,6 @@ const MainApp = () => {
         <Toaster position="top-center" />
         <StatusBar style="light" backgroundColor={colors.primary[900]} />
         <PortalHost />
-        {/* </UserProvider> */}
       </GestureHandlerRootView>
     </ThemeProvider>
   );

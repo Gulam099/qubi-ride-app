@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
 import { format, set } from "date-fns";
 import { moodOptions, reasonOptions } from "@/features/scale/constScale";
+import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 
 
 export default function MoodScale() {
@@ -54,7 +55,7 @@ export default function MoodScale() {
           >
             <Icon height={60} width={60} />
             <Text className="font-semibold text-sm text-neutral-600">
-              {label}
+              {toCapitalizeFirstLetter(label)}
             </Text>
           </TouchableOpacity>
         ))}
