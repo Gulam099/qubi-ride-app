@@ -9,7 +9,6 @@ import { format, set } from "date-fns";
 import { moodOptions, reasonOptions } from "@/features/scale/constScale";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 
-
 export default function MoodScale() {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [selectedMood, setSelectedMood] = useState("");
@@ -33,7 +32,6 @@ export default function MoodScale() {
     setSelectedReason("");
     setDescription("");
     setChecked(false);
-
   };
 
   return (

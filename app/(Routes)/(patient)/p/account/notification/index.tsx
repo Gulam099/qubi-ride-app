@@ -2,9 +2,10 @@ import { View, Text, FlatList } from "react-native";
 import React, { useState, useEffect } from "react";
 import NotificationCard from "@/features/account/components/NotificationCard";
 import { useSelector } from "react-redux";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function AccountNotificationPage() {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -19,7 +20,7 @@ export default function AccountNotificationPage() {
 
       try {
         const response = await fetch(
-          `https://monkfish-app-6ahnd.ondigitalocean.app/api/notifications/${phoneNumber}`
+          `${apiBaseUrl}/api/notifications/${phoneNumber}`
         );
 
         if (!response.ok) {
