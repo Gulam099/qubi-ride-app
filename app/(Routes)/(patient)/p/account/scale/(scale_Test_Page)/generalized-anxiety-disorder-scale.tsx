@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Button } from "@/components/ui/Button";
-
 import { Progress } from "@/components/ui/Progress";
 import Drawer from "@/components/ui/Drawer";
-
 import { H3 } from "@/components/ui/Typography";
 import { CustomIcons } from "@/const";
+import { useRouter } from "expo-router";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 // Demo questions
 const defaultQuestions = [
@@ -17,7 +19,7 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
   {
@@ -27,7 +29,7 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
   {
@@ -37,7 +39,7 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
   {
@@ -47,7 +49,7 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
   {
@@ -57,7 +59,7 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
   {
@@ -67,7 +69,7 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
   {
@@ -77,29 +79,10 @@ const defaultQuestions = [
       { title: "Never", points: 0 },
       { title: "Somedays", points: 1 },
       { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
+      { title: "Nearly everyday", points: 3 },
     ],
   },
-  {
-    id: 8,
-    question: "Muscle tension or muscle aches",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
-    ],
-  },
-  {
-    id: 9,
-    question: "Feeling afraid as if something awful might happen",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly every day", points: 3 },
-    ],
-  },
+
   // Add more questions as needed
 ];
 
@@ -107,8 +90,10 @@ export default function GeneralizedAnxietyDisorderScale() {
   const [currentStep, setCurrentStep] = useState("start"); // "start", "quiz", "result"
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [score, setScore] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<any[]>([]);
+  const router = useRouter();
+  const user: UserType = useSelector((state: any) => state.user);
 
   const handleStartQuiz = () => {
     setCurrentStep("quiz");
@@ -117,27 +102,71 @@ export default function GeneralizedAnxietyDisorderScale() {
   const handleNextQuestion = () => {
     if (selectedOption === null) {
       setIsDrawerVisible(true);
+      return;
     }
-    if (selectedOption !== null) {
-      setScore(
-        score +
-          defaultQuestions[currentQuestionIndex].options[selectedOption].points
-      );
-      setSelectedOption(null);
 
-      if (currentQuestionIndex < defaultQuestions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
+    const currentQuestion = defaultQuestions[currentQuestionIndex];
+    const newAnswer = {
+      question: currentQuestion.question,
+      response: currentQuestion.options[selectedOption].title,
+    };
+
+    if (currentQuestionIndex < defaultQuestions.length - 1) {
+      setAnswers((prev) => [...prev, newAnswer]);
+      setSelectedOption(null);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      // Include the last question's answer before submitting
+      setAnswers((prev) => [...prev, newAnswer]);
+      handleSubmit([...answers, newAnswer]);
+    }
+  };
+
+  const handleSubmit = async (finalAnswers: any[]) => {
+    try {
+      const payload = {
+        userId: user._id, // Replace with dynamic user ID if available
+        answers: finalAnswers,
+      };
+      console.log(payload);
+
+      const response = await fetch(`${apiBaseUrl}/api/gad-scale/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      console.log(result);
+
+      if (response.ok) {
+        if (result.response) {
+          router.push(
+            "/p/account/scale/record/generalized-anxiety-disorder-scale-record"
+          );
+        } else {
+          console.log("Submission successful, but no response data.");
+        }
       } else {
-        setCurrentStep("result");
+        console.error(
+          "Failed to submit data:",
+          result.message || "Unknown error"
+        );
       }
+    } catch (error) {
+      console.error("Error submitting data:", error);
     }
   };
 
   const renderStartScreen = () => (
-    <View className="p-4 h-full flex flex-col justify-between bg-blue-50/10">
-      {/* Header Section */}
-      <View className="flex gap-4 items-center bg-white rounded-2xl px-4 py-8">
-        <CustomIcons.Anxiety.Icon className="w-24 h-24 mb-4" resizeMode="contain" />
+    <View className="p-4 h-full flex flex-col justify-between gap-4 bg-blue-50/10">
+      <View className="flex-1 gap-4 items-center justify-center bg-white rounded-2xl px-4 py-8">
+        <CustomIcons.Anxiety.Icon
+          className="w-24 h-24 mb-4"
+          resizeMode="contain"
+        />
         <Text className="text-lg font-bold text-center mb-2">
           Generalized Anxiety Disorder Scale
         </Text>
@@ -149,7 +178,6 @@ export default function GeneralizedAnxietyDisorderScale() {
         </Text>
       </View>
 
-      {/* Reference Section */}
       <View className="bg-blue-50/50 p-4 rounded-md mt-6">
         <Text className="text-xs text-gray-800 text-center">
           Reference: Prepared by doctors Robert L. Spitzer, Janet B.W. Williams,
@@ -158,8 +186,7 @@ export default function GeneralizedAnxietyDisorderScale() {
         </Text>
       </View>
 
-      {/* Action Button */}
-      <Button  onPress={handleStartQuiz}>
+      <Button onPress={handleStartQuiz}>
         <Text className="text-white font-semibold">Start Now</Text>
       </Button>
     </View>
@@ -169,6 +196,7 @@ export default function GeneralizedAnxietyDisorderScale() {
     const question = defaultQuestions[currentQuestionIndex];
     const progressValue =
       ((currentQuestionIndex + 1) / defaultQuestions.length) * 100;
+
     return (
       <View className="p-4 h-full flex flex-col justify-between bg-blue-50/10">
         <View>
@@ -178,7 +206,7 @@ export default function GeneralizedAnxietyDisorderScale() {
           <Progress value={progressValue} />
           <Text className="text-gray-500  text-sm font-medium py-6">
             During the past two weeks, how much have the following problems
-            bothered you :
+            bothered you:
           </Text>
           <Text className="text-gray-900 font-bold  text-xl mb-6">
             {question.question}
@@ -206,41 +234,20 @@ export default function GeneralizedAnxietyDisorderScale() {
           </View>
         </View>
 
-        <Button
-          
-          onPress={handleNextQuestion}
-          // disabled={selectedOption === null}
-        >
+        <Button onPress={handleNextQuestion}>
           <Text className="text-white font-semibold">Next</Text>
         </Button>
       </View>
     );
   };
 
-  const renderResultScreen = () => (
-    <View className="p-4 h-full flex flex-col justify-center items-center bg-blue-50/10">
-      <Text className="text-2xl font-bold text-center mb-4">Your Score</Text>
-      <Text className="text-gray-800 text-center text-4xl mb-6">{score}</Text>
-      <Text className="text-gray-600 text-center mb-6">
-        Thank you for completing the test. This score will help you understand
-        your anxiety level better.
-      </Text>
-      <Button
-        
-        onPress={() => setCurrentStep("start")}
-      >
-        <Text className="text-white font-semibold">Retake Test</Text>
-      </Button>
-    </View>
-  );
-
   return (
     <>
       <View className="flex-1 h-full justify-center items-center">
         {currentStep === "start" && renderStartScreen()}
         {currentStep === "quiz" && renderQuizScreen()}
-        {currentStep === "result" && renderResultScreen()}
       </View>
+
       <View className=" justify-center items-center  mt-10 mb-20 absolute">
         <Drawer
           visible={isDrawerVisible}
@@ -256,7 +263,10 @@ export default function GeneralizedAnxietyDisorderScale() {
             </View>
 
             <H3 className="border-none ">You must make a choice</H3>
-            <Button onPress={()=>setIsDrawerVisible(false)} className="w-full ">
+            <Button
+              onPress={() => setIsDrawerVisible(false)}
+              className="w-full "
+            >
               <Text className="text-white font-medium">Ok</Text>
             </Button>
           </View>

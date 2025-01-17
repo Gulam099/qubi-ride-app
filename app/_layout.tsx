@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import * as MediaLibrary from "expo-media-library";
+// import * as MediaLibrary from "expo-media-library";
 import * as Camera from "expo-camera";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -36,8 +36,7 @@ import { useCameraPermissions } from "expo-camera";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [permissionsGranted, setPermissionsGranted] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
+  
 
   let [loaded, error] = useFonts({
     NotoKufiArabic_100Thin,
@@ -51,61 +50,7 @@ export default function RootLayout() {
     NotoKufiArabic_900Black,
   });
 
-  const requestPermissions = async () => {
-    try {
-      if (!permission) {
-        // Camera permissions are still loading.
-        return <View />;
-      }
-      // Request Camera Permissions
-
-      if (!permission.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Camera permission is required for this app."
-        );
-        return false;
-      }
-
-      // Request Media Library Permissions
-      const { status: mediaStatus } =
-        await MediaLibrary.requestPermissionsAsync();
-      if (mediaStatus !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "Media library permission is required to access your photos and videos."
-        );
-        return false;
-      }
-
-      setPermissionsGranted(true);
-      return true;
-    } catch (error) {
-      console.error("Error requesting permissions:", error);
-      Alert.alert(
-        "Permission Error",
-        "An error occurred while requesting permissions."
-      );
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      const permissionsSuccess = await requestPermissions();
-      if (permissionsSuccess) {
-        SplashScreen.hideAsync(); // Hide the splash screen only if permissions are granted
-      }
-    };
-
-    if (loaded || error) {
-      initializeApp();
-    }
-  }, [loaded, error]);
-
-  if (!loaded && !error && !permissionsGranted) {
-    return null;
-  }
+  
 
   return (
     <Provider store={store}>
@@ -120,6 +65,8 @@ export default function RootLayout() {
 
 // Main App Component
 const MainApp = () => {
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
   const language = useSelector((state: any) => state.appState.language);
   const isRTL = language === "ar";
 
@@ -128,6 +75,62 @@ const MainApp = () => {
     I18nManager.forceRTL(isRTL);
     I18nManager.allowRTL(isRTL);
   }, [language]);
+
+  // const requestPermissions = async () => {
+  //   try {
+  //     if (!permission) {
+  //       // Camera permissions are still loading.
+  //       return <View />;
+  //     }
+  //     // Request Camera Permissions
+
+  //     if (!permission.granted) {
+  //       Alert.alert(
+  //         "Permission Required",
+  //         "Camera permission is required for this app."
+  //       );
+  //       return false;
+  //     }
+
+  //     // Request Media Library Permissions
+  //     const { status: mediaStatus } =
+  //       await MediaLibrary.requestPermissionsAsync();
+  //     if (mediaStatus !== "granted") {
+  //       Alert.alert(
+  //         "Permission Required",
+  //         "Media library permission is required to access your photos and videos."
+  //       );
+  //       return false;
+  //     }
+
+  //     setPermissionsGranted(true);
+  //     return true;
+  //   } catch (error) {
+  //     console.error("Error requesting permissions:", error);
+  //     Alert.alert(
+  //       "Permission Error",
+  //       "An error occurred while requesting permissions."
+  //     );
+  //     return false;
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   const initializeApp = async () => {
+  //     const permissionsSuccess = await requestPermissions();
+  //     if (permissionsSuccess) {
+  //       SplashScreen.hideAsync(); // Hide the splash screen only if permissions are granted
+  //     }
+  //   };
+
+  //   if (loaded || error) {
+  //     initializeApp();
+  //   }
+  // }, [loaded, error]);
+
+  // if (!loaded && !error && !permissionsGranted) {
+  //   return null;
+  // }
 
   return (
     <ThemeProvider>
