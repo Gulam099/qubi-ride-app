@@ -5,33 +5,67 @@ import Drawer from "@/components/ui/Drawer";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import { moodOptions, reasonOptions } from "@/features/scale/constScale";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
+import { useRouter } from "expo-router";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function MoodScale() {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [selectedMood, setSelectedMood] = useState("");
-  const [selectedReason, setSelectedReason] = useState("");
+  const [selectedReason, setSelectedReason] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [checked, setChecked] = useState(false);
   const [dateTimeOnSelectMood, setDateTimeOnSelectMood] = useState(
     new Date().toISOString()
   );
 
-  const handleSubmit = () => {
-    console.log({
-      mood: selectedMood,
-      reason: selectedReason,
+  const router = useRouter();
+  const user: UserType = useSelector((state: any) => state.user);
+
+  const handleReasonSelect = (label: string) => {
+    setSelectedReason((prev) =>
+      prev.includes(label)
+        ? prev.filter((reason) => reason !== label)
+        : [...prev, label]
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedMood || selectedReason.length === 0 || !description) {
+      console.error("All fields are required.");
+      return;
+    }
+
+    const payload = {
+      userId: user._id,
+      mood: toCapitalizeFirstLetter(selectedMood),
+      reasons: selectedReason,
       description,
-      share_record: checked,
-      dateTimeOnSelectMood,
-    });
-    setIsDrawerVisible(false);
-    setSelectedMood("");
-    setSelectedReason("");
-    setDescription("");
-    setChecked(false);
+      shareWithSpecialist: checked,
+    };
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/mood-scale`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        router.push("/p/account/scale/record/mood-scale-record");
+      } else {
+        console.error("Error submitting mood scale:", result.message || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Error submitting mood scale:", error);
+    }
   };
 
   return (
@@ -71,16 +105,16 @@ export default function MoodScale() {
             What are the reasons for the current feeling
           </Text>
           <Text className="text-neutral-600 text-sm text-center">
-            {format(dateTimeOnSelectMood, "EEEE , dd MMM yyyy , hh:mm a")}
+            {format(new Date(dateTimeOnSelectMood), "EEEE , dd MMM yyyy , hh:mm a")}
           </Text>
 
           <View className="flex-row flex-wrap gap-8">
             {reasonOptions.map(({ label, Icon }) => {
-              const isSelected = selectedReason === label;
+              const isSelected = selectedReason.includes(label);
               return (
                 <TouchableOpacity
                   key={label}
-                  onPress={() => setSelectedReason(label)}
+                  onPress={() => handleReasonSelect(label)}
                   className={cn("flex-col items-center gap-3 rounded-xl pb-3")}
                 >
                   <Icon height={60} width={60} />
@@ -107,10 +141,8 @@ export default function MoodScale() {
           <View className="flex-row items-center justify-between gap-2 w-full">
             <View className="flex-1 py-3">
               <Label
-                nativeID="airplane-mode"
-                onPress={() => {
-                  setChecked((prev) => !prev);
-                }}
+                nativeID="share-record"
+                onPress={() => setChecked((prev) => !prev)}
               >
                 Share the record with my specialist
               </Label>
@@ -122,7 +154,7 @@ export default function MoodScale() {
             <Switch
               checked={checked}
               onCheckedChange={setChecked}
-              nativeID="airplane-mode"
+              nativeID="share-record"
             />
           </View>
 

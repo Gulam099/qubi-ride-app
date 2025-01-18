@@ -18,6 +18,7 @@ export default function TabLayout() {
     >
       <Stack.Screen name="(patient)/p" options={{ headerShown: false }} />
       <Stack.Screen name="(patient)/help" options={{ headerShown: false }} />
+      <Stack.Screen name="(patient)/(nt)" options={{ headerShown: false }} />
     </Stack>
   );
 }

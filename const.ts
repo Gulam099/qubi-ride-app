@@ -10,6 +10,7 @@ import Caution from "@/assets/icon/Caution.svg";
 import Cinema from "@/assets/icon/Cinema.svg";
 import Cleaning from "@/assets/icon/Cleaning.svg";
 import Cooking from "@/assets/icon/Cooking.svg";
+import Depressive from "@/assets/icon/Depressive.svg";
 import Donation from "@/assets/icon/Donation.svg";
 import DrinkingWater from "@/assets/icon/DrinkingWater.svg";
 import EarlySleep from "@/assets/icon/EarlySleep.svg";
@@ -77,6 +78,7 @@ export const CustomIcons = {
     Cinema: { label: "Cinema", Icon: Cinema },
     Cleaning: { label: "Cleaning", Icon: Cleaning },
     Cooking: { label: "Cooking", Icon: Cooking },
+    Depressive: { label: "Depressive", Icon: Depressive },
     Donation: { label: "Donation", Icon: Donation },
     DrinkingWater: { label: "Drinking Water", Icon: DrinkingWater },
     EarlySleep: { label: "Early Sleep", Icon: EarlySleep },

@@ -5,55 +5,82 @@ import {
   TouchableOpacity,
   Dimensions,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
-import { RecordListData } from "@/features/scale/constScale";
-import { Button } from "@/components/ui/Button";
+import React, { useEffect, useState } from "react";
 import Drawer from "@/components/ui/Drawer";
 import { H3 } from "@/components/ui/Typography";
 import { format } from "date-fns";
 import { ProgressChart } from "react-native-chart-kit";
 import colors from "@/utils/colors";
 import { ArrowRight } from "iconsax-react-native";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
+import { apiBaseUrl } from "@/features/Home/constHome";
+
+type RecordType = {
+  _id: string;
+  score: number;
+  createdAt: string;
+};
 
 export default function DepressionScaleRecord() {
-  const [RecordList, setRecordList] = useState(RecordListData);
+  const [RecordList, setRecordList] = useState<RecordType[]>([]);
   const [isListActive, setIsListActive] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const [RecordActive, setRecordActive] = useState<any>(RecordListData[0]);
+  const [RecordActive, setRecordActive] = useState<RecordType | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const user: UserType = useSelector((state: any) => state.user);
 
-  function handleRecordActive(record_Id: string) {
-    setRecordActive(
-      RecordListData.find((item) => item.record_Id === record_Id)
-    );
-    setIsDrawerVisible(true);
-  }
+  useEffect(() => {
+    fetchRecords(currentPage);
+  }, [currentPage]);
 
-  if (RecordActive === null) {
-    return <Text>Record Active is null</Text>;
-  }
+  const fetchRecords = async (page: number) => {
+    if (!hasMore || isLoading) return;
 
-  // each value represents a goal ring in Progress chart
-  const data = {
-    labels: ["Swim"], // optional
-    data: [0.15],
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/api/depression-scale/user/${user._id}?page=${page}`
+      );
+      const result = await response.json();
+
+      if (response.ok && result.responses) {
+        setRecordList((prev) => [...prev, ...result.responses]);
+        setHasMore(page < result.totalPages);
+      } else {
+        console.error(
+          "Failed to fetch records:",
+          result.message || "Unknown error"
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching records:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // const chartConfig = {
-  //   backgroundColor: "#fff",
-  //   backgroundGradientFrom: "#fff",
-  //   backgroundGradientTo: "#fff",
-  //   decimalPlaces: 2, // optional, defaults to 2dp
-  //   color: (opacity = 1) => "#fff",
-  //   labelColor: (opacity = 1) => "#000",
-  //   style: {
-  //     borderRadius: 20,
-  //   },
-  //   propsForDots: {
-  //     r: "3",
-  //     strokeWidth: "1",
-  //   },
-  // };
+  const loadMoreRecords = () => {
+    if (hasMore) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handleRecordActive = (recordId: string) => {
+    const record = RecordList.find((item) => item._id === recordId);
+    setRecordActive(record);
+    setIsDrawerVisible(true);
+  };
+
+  const data = {
+    labels: ["Anxiety"], // optional
+    data: [RecordList[0]?.score / 100 || 0],
+  };
+
   const chartConfig = {
     backgroundColor: "#fff",
     backgroundGradientFrom: "#fff",
@@ -61,9 +88,9 @@ export default function DepressionScaleRecord() {
     backgroundGradientTo: "#fff",
     backgroundGradientToOpacity: 0,
     color: (opacity = 1) => `rgba(1, 40, 150, ${opacity})`,
-    strokeWidth: 2, // optional, default 3
+    strokeWidth: 2,
     barPercentage: 0.5,
-    useShadowColorFromDataset: false, // optional
+    useShadowColorFromDataset: false,
   };
 
   return (
@@ -77,28 +104,29 @@ export default function DepressionScaleRecord() {
           <View className="bg-white p-4 rounded-2xl relative h-[400]">
             <H3 className="text-xl">Last Result</H3>
             <View className="absolute top-[140] left-[155] z-10">
-              <Text className=" text-blue-600 font-semibold  w-20 text-center">
-                Severe Depression
+              <Text className=" text-blue-600 font-semibold  w-20 text-center leading-5">
+                {RecordList.length > 0 ? "Moderate Anxiety" : "No Data"}
               </Text>
-              <Text className="text-3xl font-semibold text-blue-600 text-center">
-                {data.data[0] * 100}
+              <Text className="text-3xl font-semibold text-blue-600 text-center leading-10">
+                {RecordList.length > 0 ? `${RecordList[0]?.score}` : "N/A"}
               </Text>
             </View>
-            <ProgressChart
-              data={data}
-              width={Dimensions.get("window").width - 60}
-              height={250}
-              strokeWidth={18}
-              radius={60}
-              chartConfig={chartConfig}
-              hideLegend={true}
-            />
+            <View className=" rotate-[180deg] ">
+              <ProgressChart
+                data={data}
+                width={Dimensions.get("window").width - 60}
+                height={250}
+                strokeWidth={18}
+                radius={60}
+                chartConfig={chartConfig}
+                hideLegend={true}
+              />
+            </View>
             <Text className="text-sm text-neutral-500">
               We encourage you to take care of your mental health and seek a
               session as soon as possible for meditation to help alleviate
-              depression and achieve mental relaxation. Remember that you are
-              not alone on this journey, and we are here at Baserah to assist
-              you.
+              anxiety and achieve mental relaxation. Remember that you are not
+              alone on this journey, and we are here at Baserah to assist you.
             </Text>
           </View>
 
@@ -118,36 +146,41 @@ export default function DepressionScaleRecord() {
               </View>
             </View>
             <View className="flex-col h-full gap-2">
-              {RecordList.slice(0, 4).map((record, index) => {
-                return (
-                  <View key={index} className="flex-row gap-2 py-2">
-                    <View className="flex-1 gap-1">
-                      <Text className="text-base font-semibold">
-                        {record.title}
-                      </Text>
-                      <Text className="text-xs">{record.desc}</Text>
-                    </View>
-                    <View className=" w-1/4">
-                      <Text className="text-xs">
-                        {format(new Date(record.date), "dd-MM-yyyy")}
-                      </Text>
-                    </View>
+              {RecordList.slice(0, 4).map((record, index) => (
+                <View key={record._id} className="flex-row gap-2 py-2">
+                  <View className="flex-1 gap-1">
+                    <Text className="text-base font-semibold leading-8">
+                      Anxiety Score: {record.score}
+                    </Text>
+                    <Text className="text-xs">Moderate Anxiety</Text>
                   </View>
-                );
-              })}
+                  <View className=" w-1/4">
+                    <Text className="text-xs">
+                      {format(new Date(record.createdAt), "dd-MM-yyyy , p")}
+                    </Text>
+                  </View>
+                </View>
+              ))}
             </View>
           </View>
         </ScrollView>
       ) : (
-        <View className="bg-blue-50/10 flex flex-col gap-4 ">
+        <View className="bg-blue-50/10 flex flex-col gap-4 h-full">
           <FlatList
-            data={RecordListData}
+            data={RecordList}
             contentContainerClassName="gap-2"
             showsVerticalScrollIndicator={false}
+            onEndReached={loadMoreRecords}
+            onEndReachedThreshold={0.1}
+            ListFooterComponent={
+              isLoading ? (
+                <ActivityIndicator size="small" color={colors.primary[500]} />
+              ) : null
+            }
             renderItem={({ item, index }) => (
               <TouchableOpacity
-                key={item.record_Id}
-                onPress={() => handleRecordActive(item.record_Id)}
+                key={item._id}
+                onPress={() => handleRecordActive(item._id)}
                 className="flex flex-row justify-between items-center  bg-white border rounded-2xl border-blue-600 gap-2 overflow-hidden h-20"
               >
                 <View className="bg-blue-600  w-6 h-20 flex-col justify-center items-center ">
@@ -156,14 +189,14 @@ export default function DepressionScaleRecord() {
                   </Text>
                 </View>
                 <View className="flex-1 p-2">
-                  <Text className="text-lg font-medium leading-5">
-                    {item.title}
+                  <Text className="text-lg font-medium leading-6">
+                    Anxiety Score: {item.score}
                   </Text>
-                  <Text className="text-xs">{item.desc}</Text>
+                  <Text className="text-xs">Moderate Anxiety</Text>
                 </View>
                 <View className=" px-4">
                   <Text className="text-sm">
-                    {format(item.date, "dd-MM-yyyy")}
+                    {format(new Date(item.createdAt), "dd-MM-yyyy")}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -173,7 +206,7 @@ export default function DepressionScaleRecord() {
             <Drawer
               visible={isDrawerVisible}
               onClose={() => setIsDrawerVisible(false)}
-              title="My Drawer"
+              title="Record Details"
               height="40%"
               className="max-h-[40%]"
             >
@@ -187,16 +220,12 @@ export default function DepressionScaleRecord() {
                     Client's answers show
                   </Text>
                   <Text className="text-white text-4xl text-center">
-                    {RecordActive.score}
+                    {RecordActive?.score}
                   </Text>
                 </View>
-                <Text className="text-xs">
-                  {format(RecordActive.date, "dd-MM-yyyy")}
-                </Text>
-
-                <Text className="text-xl font-semibold text-neutral-600 text-center">
-                  {RecordActive.desc}
-                </Text>
+                {/* <Text className="text-xs">
+                  {format(new Date(RecordActive?.createdAt as string), "dd-MM-yyyy")}
+                </Text> */}
               </View>
             </Drawer>
           </View>

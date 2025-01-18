@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { Calendar } from "@/components/ui/Calendar";
+import { Link } from "expo-router";
 
 export default function MoodScaleRecord() {
   const [LastMoodOption, setLastMoodOption] = useState(moodOptions[1]);
   const [ActiveRecordType, setActiveRecordType] = useState<
     "weekly" | "monthly"
   >("weekly");
-  
+
   const chartConfig = {
     backgroundColor: "#fff",
     backgroundGradientFrom: "#fff",
@@ -133,12 +134,14 @@ export default function MoodScaleRecord() {
           <Text className="text-lg font-semibold text-neutral-600">
             Last mood recording
           </Text>
-          <Button className="flex-row gap-1" variant={"ghost"}>
-            <AddCircle size="16" color={colors.gray[500]} />
-            <Text className="text-sm font-medium text-neutral-600">
-              Add a feeling
-            </Text>
-          </Button>
+          <Link href="/p/account/scale/mood-scale">
+            <View className="flex-row gap-2 justify-center items-center">
+              <AddCircle size="16" color={colors.gray[500]} />
+              <Text className="text-sm font-medium text-neutral-600 leading-7 text-center">
+                Add a feeling
+              </Text>
+            </View>
+          </Link>
         </View>
         <Text className="text-xs w-full text-blue-500">
           {format(new Date(), " EE , dd MMM yyyy , hh:mm a")}
@@ -217,11 +220,11 @@ export default function MoodScaleRecord() {
         </View>
 
         {ActiveRecordType === "weekly" ? (
-          <View className="grid grid-cols-7 gap-2">
+          <View className="flex-row gap-2">
             {weeklyData.labels.map((day, index) => (
               <View
                 key={index}
-                className="flex items-center p-2 rounded-lg bg-blue-50/30 border-blue-600"
+                className="flex items-center p-2 flex-1 rounded-lg bg-blue-50/30 border-blue-600"
               >
                 <Text className="text-sm text-neutral-600">{day}</Text>
                 <Text className="text-xs text-neutral-400">Mood Data</Text>

@@ -71,6 +71,14 @@ export default function PatientPage() {
             Help me find the right consultant{" "}
           </Text>
         </Button>
+        <Button
+          className="bg-blue-50/30 backdrop-blur-md "
+          onPress={() => router.push("/(Routes)/(patient)/(nt)/text")}
+        >
+          <Text className="font-medium text-left w-full ">
+            test
+          </Text>
+        </Button>
         {/* <Button
           className="bg-blue-50/30 backdrop-blur-md "
           onPress={() => router.push("/faqs/index")}

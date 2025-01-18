@@ -78,7 +78,7 @@ export default function GeneralizedAnxietyDisorderScale() {
 
   const data = {
     labels: ["Anxiety"], // optional
-    data: [RecordActive?.score / 100 || 0],
+    data: [RecordList[0]?.score / 100 || 0],
   };
 
   const chartConfig = {
@@ -104,22 +104,24 @@ export default function GeneralizedAnxietyDisorderScale() {
           <View className="bg-white p-4 rounded-2xl relative h-[400]">
             <H3 className="text-xl">Last Result</H3>
             <View className="absolute top-[140] left-[155] z-10">
-              <Text className=" text-blue-600 font-semibold  w-20 text-center">
+              <Text className=" text-blue-600 font-semibold  w-20 text-center leading-5">
                 {RecordList.length > 0 ? "Moderate Anxiety" : "No Data"}
               </Text>
-              <Text className="text-3xl font-semibold text-blue-600 text-center">
+              <Text className="text-3xl font-semibold text-blue-600 text-center leading-10">
                 {RecordList.length > 0 ? `${RecordList[0]?.score}` : "N/A"}
               </Text>
             </View>
-            <ProgressChart
-              data={data}
-              width={Dimensions.get("window").width - 60}
-              height={250}
-              strokeWidth={18}
-              radius={60}
-              chartConfig={chartConfig}
-              hideLegend={true}
-            />
+            <View className=" rotate-[180deg] ">
+              <ProgressChart
+                data={data}
+                width={Dimensions.get("window").width - 60}
+                height={250}
+                strokeWidth={18}
+                radius={60}
+                chartConfig={chartConfig}
+                hideLegend={true}
+              />
+            </View>
             <Text className="text-sm text-neutral-500">
               We encourage you to take care of your mental health and seek a
               session as soon as possible for meditation to help alleviate
@@ -147,7 +149,7 @@ export default function GeneralizedAnxietyDisorderScale() {
               {RecordList.slice(0, 4).map((record, index) => (
                 <View key={record._id} className="flex-row gap-2 py-2">
                   <View className="flex-1 gap-1">
-                    <Text className="text-base font-semibold">
+                    <Text className="text-base font-semibold leading-8">
                       Anxiety Score: {record.score}
                     </Text>
                     <Text className="text-xs">Moderate Anxiety</Text>
@@ -187,7 +189,7 @@ export default function GeneralizedAnxietyDisorderScale() {
                   </Text>
                 </View>
                 <View className="flex-1 p-2">
-                  <Text className="text-lg font-medium leading-5">
+                  <Text className="text-lg font-medium leading-6">
                     Anxiety Score: {item.score}
                   </Text>
                   <Text className="text-xs">Moderate Anxiety</Text>
