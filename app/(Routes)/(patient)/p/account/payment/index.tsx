@@ -1,297 +1,260 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
+  FlatList,
   ScrollView,
-  Image,
+  StyleSheet,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { format } from "date-fns";
-import {
-  Calendar,
-  DiscountShape,
-  EmptyWalletTime,
-  Moneys,
-  Warning2,
-} from "iconsax-react-native";
-import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
-import { Label } from "@/components/ui/Label";
-import { Switch } from "@/components/ui/Switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
-import { H3 } from "@/components/ui/Typography";
 import Drawer from "@/components/ui/Drawer";
+import { CardAdd, Wallet, AddCircle } from "iconsax-react-native";
+import { useSelector } from "react-redux";
+import {
+  CreditCardView,
+  CreditCardInput,
+  CreditCardFormData,
+} from "react-native-credit-card-input";
+import { Controller, useForm } from "react-hook-form";
+import { Input } from "@/components/ui/Input";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+import { UserType } from "@/features/user/types/user.type";
 import { CustomIcons } from "@/const";
+import { H3 } from "@/components/ui/Typography";
 
-interface Specialist {
-  id: string;
-  name: string;
-  specialization: string;
-  image: string;
-}
+const styles = StyleSheet.create({
+  cardView: {
+    alignSelf: "center",
+    marginTop: 15,
+  },
+});
 
-export default function AccountPaymentPage() {
+type CardType = {
+  abbreviatedName: string;
+  cardNumber: string;
+  nameOnCard: string;
+  expiryDate: string;
+  cvvCode: string;
+  _id: string;
+};
+
+export default function AccountPage() {
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [cards, setCards] = useState<CardType[]>([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const { appointmentDuration, specialistsId, schedule, amount } =
-    useLocalSearchParams<{
-      appointmentDuration: string;
-      specialistsId: string;
-      schedule: string;
-      amount: string;
-    }>();
+  const [currentStep, setCurrentStep] = useState("main"); // "main" or "addCard"
+  const [formData, setFormData] = useState<CreditCardFormData | null>(null);
 
-  const [specialistData, setSpecialistData] = useState<Specialist | null>(null);
-  const [isWalletEnabled, setIsWalletEnabled] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
-  const [PayLaterCheck, setPayLaterCheck] = useState(false);
+  const user: UserType = useSelector((state: any) => state.user);
+  const phoneNumber = user.phoneNumber; // Mock user phone number
 
-  // Simulated API Call
-  const fetchSpecialistData = async (id: string) => {
-    // Fake API response
-    const fakeApiResponse: Specialist[] = [
-      {
-        id: "1",
-        name: "Dr. Deem Abdullah",
-        specialization: "Psychologist",
-        image: "https://via.placeholder.com/50", // Placeholder image
-      },
-      {
-        id: "3",
-        name: "Dr. John Smith",
-        specialization: "Psychiatrist",
-        image: "https://via.placeholder.com/50",
-      },
-    ];
+  const { control, handleSubmit, setValue } = useForm({
+    defaultValues: {
+      abbreviatedName: "",
+      nameOnCard: "",
+      cardNumber: "",
+      expiryDate: "",
+      cvvCode: "",
+    },
+  });
 
-    // Filter the specialist based on ID
-    const data = fakeApiResponse.find((item) => item.id === id);
-    setSpecialistData(data || null);
+  // Fetch wallet balance and user cards
+  useState(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/api/user/${phoneNumber}/cards`
+        );
+        const result = await response.json();
+        if (response.ok) {
+          setWalletBalance(result.walletBalance || 0);
+          setCards(result.cards || []);
+        } else {
+          console.error(
+            "Error fetching cards:",
+            result.message || "Unknown error"
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+  }, [phoneNumber]);
+
+  const handleAddCard = async (data: any) => {
+    const payload = {
+      phoneNumber,
+      abbreviatedName: data.abbreviatedName,
+      cardNumber: formData?.values.number,
+      nameOnCard: data.nameOnCard,
+      expiryDate: formData?.values.expiry,
+      cvvCode: formData?.values.cvc,
+    };
+    console.log(payload);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/add-card`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        // Add the new card locally and reset the form
+        setCards((prev) => [...prev, payload]);
+        setCurrentStep("main"); // Navigate back to main view
+        setIsDrawerVisible(true); // Show success drawer
+      } else {
+        console.error("Error adding card:", result.message || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Error adding card:", error);
+    }
   };
 
-  const [value, setValue] = React.useState("");
-
-  function onLabelPress(label: string) {
-    return () => {
-      setValue(label);
-    };
-  }
-
-  useEffect(() => {
-    fetchSpecialistData(specialistsId);
-  }, [specialistsId]);
-
-  const paymentOptions = [
-    {
-      id: "applePay",
-      name: "Apple Pay",
-      logoImage: "https://via.placeholder.com/40",
-    },
-    {
-      id: "madaCredit",
-      name: "MADA / Credit Card",
-      logoImage: "https://via.placeholder.com/40",
-    },
-    {
-      id: "installments6",
-      name: "Divide it into up to 6 installments",
-      logoImage: "https://via.placeholder.com/40",
-    },
-    {
-      id: "installments4",
-      name: "Divide it into up to 4 installments",
-      logoImage: "https://via.placeholder.com/40",
-    },
-  ];
-
-  return (
-    <ScrollView className="bg-blue-50/10 h-full w-full p-4">
-      {/* Header Section */}
-      {specialistData && (
-        <View className="bg-white p-4 rounded-2xl mb-4 flex-row gap-4">
-          <Avatar alt="avatar-with-image" className="w-20 h-20">
-            <AvatarImage
-              source={{
-                uri: "https://avatars.githubusercontent.com/u/66306912?v=4",
-              }}
-            />
-            <AvatarFallback>
-              <Text>UN</Text>
-            </AvatarFallback>
-          </Avatar>
-          <View className="flex-col gap-2">
-            <Text className="font-bold text-lg">{specialistData.name}</Text>
-            <Text className="text-gray-600">
-              {specialistData.specialization}
-            </Text>
-            <Text className="text-gray-600  ">
-              Date: {format(new Date(schedule), "EEEE , d MMMM yyyy")}
-            </Text>
-            <Text className="text-gray-600  ">
-              Time: {format(new Date(schedule), "h:mm a")}
-            </Text>
-            <Text className="text-gray-600  ">
-              Duration: {appointmentDuration}
-            </Text>
+  const renderMainScreen = () => (
+    <View>
+      <View className="bg-white p-4 rounded-2xl mb-4 flex-row gap-2">
+        <View>
+          <View className="bg-blue-50/30 rounded-full w-12 aspect-square justify-center items-center">
+            <Wallet size="24" color="#000" />
           </View>
         </View>
-      )}
-
-      {/* Promo Code */}
-      <View className="bg-white p-4 rounded-2xl mb-4 flex-col gap-4">
-        <View className=" flex-row justify-start items-center gap-2">
-          <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-10 flex justify-center items-center">
-            <DiscountShape size="20" color={colors.primary[900]} />
-          </View>
-          <Text className="font-semibold mb-2">Promo Code</Text>
-        </View>
-
-        <View className="flex-row items-center">
-          <TextInput
-            placeholder="Enter the Promo Code"
-            className="border flex-1 p-2 mr-2 rounded"
-            value={promoCode}
-            onChangeText={setPromoCode}
-          />
-          <Button>
-            <Text className="text-white">Activate</Text>
-          </Button>
+        <View className="flex-col gap-1">
+          <Text className="text-lg font-bold text-neutral-700">Wallet</Text>
+          <Text className="text-sm text-neutral-500">
+            The balance is {currencyFormatter(walletBalance)}
+          </Text>
         </View>
       </View>
 
-      {/* Wallet */}
-      <View className="bg-white p-4 rounded-2xl mb-4">
-        <View className="flex-row justify-between items-center">
-          <View className=" flex-row justify-start items-center gap-2">
-            <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-10 flex justify-center items-center">
-              <EmptyWalletTime size="20" color={colors.primary[900]} />
-            </View>
-            <Text className="font-semibold mb-2">Wallet (30.1 SAR)</Text>
-          </View>
-
-          <Switch
-            checked={isWalletEnabled}
-            onCheckedChange={() => setIsWalletEnabled((prev) => !prev)}
-            nativeID="rememberMyDetails"
-          />
-        </View>
-      </View>
-      <View className="bg-yellow-50 border-yellow-500 rounded-2xl mb-4 py-2 px-4 flex flex-row gap-2">
-        <View className="p-1 bg-yellow-400 aspect-square rounded-full w-10 flex justify-center items-center">
-          <Warning2 size="20" color={"white"} />
-        </View>
-        <Text className="text-yellow-500  text-sm">
-          You can use the wallet for partial payment and settle the remaining
-          amount using Apple Pay or a credit card.
+      <View>
+        <Text className="text-lg font-bold text-neutral-700 mb-2">
+          My Cards
         </Text>
-      </View>
-
-      {/* Payment Details */}
-      <View className="bg-white p-4 rounded-2xl mb-4 flex-col gap-2">
-        <Text className="font-medium mb-2 text-lg">Payment Details</Text>
-        <View className="flex-row justify-between">
-          <Text>Session Price</Text>
-          <Text>{amount} SAR</Text>
-        </View>
-        <View className="flex-row justify-between">
-          <Text>Value Added Tax (VAT) 15%</Text>
-          <Text>{(parseFloat(amount) * 0.15).toFixed(2)} SAR</Text>
-        </View>
-        <View className="flex-row justify-between mt-2 border-t pt-2 border-neutral-400">
-          <Text className="font-semibold">Total Cost</Text>
-          <Text className="font-semibold">
-            {(parseFloat(amount) * 1.15).toFixed(2)} SAR
-          </Text>
-        </View>
-      </View>
-
-      {/* Payment Methods */}
-      <View className="bg-white p-4 rounded-2xl mb-4">
-        <Text className="font-medium mb-2 text-lg">Pay Via</Text>
-        <View className="flex-1 justify-center items-center p-2">
-          <RadioGroup value={value} onValueChange={setValue} className="gap-3">
-            {paymentOptions.map((option) => (
-              <View key={option.id} className="flex-row w-full justify-between">
-                <RadioGroupItemWithLabel
-                  value={option.name}
-                  onLabelPress={onLabelPress(option.name)}
-                />
-                {option.logoImage && (
-                  <Image
-                    source={{ uri: option.logoImage }}
-                    className="w-10 h-10 "
-                  />
-                )}
+        <FlatList
+          data={cards}
+          contentContainerClassName="gap-2"
+          renderItem={({ item }) => (
+            <View className="bg-white p-4 flex-row items-center justify-between rounded-2xl">
+              <Text className="text-lg font-medium leading-9">
+                {item.abbreviatedName}
+              </Text>
+              <Text className="text-sm text-neutral-500 ">
+                **** **** **** {item.cardNumber.slice(-4)}
+              </Text>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+          ListFooterComponent={
+            <TouchableOpacity
+              onPress={() => setCurrentStep("addCard")}
+              className="flex-row items-center mt-4 bg-white rounded-2xl p-4"
+            >
+              <View className="bg-blue-50/30 rounded-full w-10 aspect-square justify-center items-center">
+                <CardAdd size={20} color="#000" />
               </View>
-            ))}
-          </RadioGroup>
-        </View>
-      </View>
 
-      <View className="flex-row items-center gap-2 w-full justify-between p-4 mb-4 bg-background rounded-xl">
-        <View className="flex-row justify-center items-center gap-2">
-          <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8  flex justify-center items-center">
-            <Moneys size="18" color={colors.primary[900]} />
-          </View>
-          <Text className="text-sm font-medium">
-            Pay later and remind me later
-          </Text>
-        </View>
-        <Switch
-          checked={PayLaterCheck}
-          onCheckedChange={setPayLaterCheck}
-          nativeID="ClosestAppointmentCheck"
+              <Text className="ml-2 text-blue-600 font-medium flex-1">
+                Add new card
+              </Text>
+              <AddCircle size={20} color="#000" className="ml-auto" />
+            </TouchableOpacity>
+          }
+        />
+      </View>
+    </View>
+  );
+
+  const renderAddCardScreen = () => (
+    <ScrollView>
+      <CreditCardView
+        style={styles.cardView}
+        type={formData?.values.type}
+        number={formData?.values.number}
+        expiry={formData?.values.expiry}
+        cvc={formData?.values.cvc}
+      />
+
+      <View className="mt-4">
+        <Text className="text-gray-700 font-medium">Abbreviated Name</Text>
+        <Controller
+          control={control}
+          name="abbreviatedName"
+          rules={{ required: "Abbreviated Name is required" }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <>
+              <Input
+                placeholder="Enter abbreviated name"
+                value={value}
+                onChangeText={onChange}
+              />
+              {error && (
+                <Text className="text-red-500 text-xs">{error.message}</Text>
+              )}
+            </>
+          )}
+        />
+      </View>
+      <View className="mt-4">
+        <Text className="text-gray-700 font-medium">Name on Card</Text>
+        <Controller
+          control={control}
+          name="nameOnCard"
+          rules={{ required: "Name is required" }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <>
+              <Input
+                placeholder="Enter Card holder name"
+                value={value}
+                onChangeText={onChange}
+              />
+              {error && (
+                <Text className="text-red-500 text-xs">{error.message}</Text>
+              )}
+            </>
+          )}
         />
       </View>
 
-      {/* Join Button */}
-      <Button className="  mt-10 mb-20">
-        <Text className="text-white text-center font-bold">
-          Join now {amount} SAR
-        </Text>
-      </Button>
+      <CreditCardInput
+        autoFocus
+        onChange={setFormData}
+        // onFocusField={(field) => console.log("Focused field:", field)}
+      />
 
-      <View className="flex-1 justify-center items-center  mt-10 mb-20">
-        <Button onPress={() => setIsDrawerVisible(true)} variant={"link"}>
-          <Text className="">This todo appers after Payment</Text>
+      <View className="mt-4 flex-row justify-between gap-4">
+        <Button className="flex-1" onPress={handleSubmit(handleAddCard)}>
+          <Text className="text-white font-medium">Add New Card</Text>
         </Button>
-
-        <Drawer
-          visible={isDrawerVisible}
-          onClose={() => setIsDrawerVisible(false)}
-          title="My Drawer"
-          height="40%"
-          className="max-h-[40%]"
-        >
-          <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-            <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
-              <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
-              <CustomIcons.Thumb.Icon height={80} width={80} />
-            </View>
-
-            <H3 className="border-none ">Payment Successful</H3>
-          </View>
-        </Drawer>
       </View>
     </ScrollView>
   );
-}
 
-function RadioGroupItemWithLabel({
-  value,
-  onLabelPress,
-}: Readonly<{
-  value: string;
-  onLabelPress: () => void;
-}>) {
   return (
-    <View className={"flex-row gap-2 items-center"}>
-      <RadioGroupItem aria-labelledby={"label-for-" + value} value={value} />
-      <Label nativeID={"label-for-" + value} onPress={onLabelPress}>
-        {value}
-      </Label>
+    <View className="flex-1 bg-blue-50/10 p-4">
+      {currentStep === "main" && renderMainScreen()}
+      {currentStep === "addCard" && renderAddCardScreen()}
+
+      <Drawer
+        visible={isDrawerVisible}
+        onClose={() => setIsDrawerVisible(false)}
+        title=""
+        height="40%"
+      >
+        <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
+          <View className=" aspect-square  flex justify-center items-center relative overflow-visible  p-2">
+            <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute "></View>
+            <CustomIcons.Thumb.Icon height={80} width={80} />
+          </View>
+
+          <H3 className="border-none ">Card has been successfully added</H3>
+        </View>
+      </Drawer>
     </View>
   );
 }

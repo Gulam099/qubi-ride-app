@@ -53,9 +53,9 @@
           "iCloudContainerEnvironment": "Production"
         }
       ],
-
       "expo-localization",
-      "expo-font"
+      "expo-font",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,11 +1,16 @@
-import { View, Text, ImageBackground } from "react-native";
-import React from "react";
+import {
+  View,
+  ImageBackground,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
 import { H3 } from "@/components/ui/Typography";
-import { Calendar, Clock } from "iconsax-react-native";
+import { Calendar, Clock, InfoCircle } from "iconsax-react-native";
 import {
   PatientHomeImage,
   PatientPageInstantMenuImage,
@@ -14,14 +19,52 @@ import { Image } from "react-native";
 import { cn } from "@/lib/utils";
 import { StatusBar } from "expo-status-bar";
 import colors from "@/utils/colors";
+import { Text } from "@/components/ui/Text";
+import Drawer from "@/components/ui/Drawer";
+import { Controller, useForm } from "react-hook-form";
+import { Switch } from "@/components/ui/Switch";
+import { Input } from "@/components/ui/Input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PatientPage() {
+  const insets = useSafeAreaInsets();
+  const contentInsets = {
+    top: insets.top,
+    bottom: insets.bottom,
+    left: 12,
+    right: 12,
+  };
   const user = useSelector((state: any) => state.user);
+  const { control, handleSubmit, setValue, watch, reset } = useForm({
+    defaultValues: {
+      sex: "",
+      category: "",
+      specialization: "",
+      language: "",
+      duration: "",
+      overview: "",
+      closestAppointment: false,
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    console.log("Submitted Data:", data);
+    reset();
+    setisInstedBookingDrawerOpen(false);
+  };
 
   if (!user.isAuthenticated) {
   }
 
   const router = useRouter();
+
+  const [isInstedBookingDrawerOpen, setisInstedBookingDrawerOpen] =
+    useState(false);
 
   return (
     <View className=" flex gap-6 flex-col">
@@ -32,60 +75,259 @@ export default function PatientPage() {
       <View className="flex gap-6 flex-col px-4">
         <H3 className="text-center">What type of consultation do you need?</H3>
 
-        {[
-          {
-            title: "Instant",
-            desc: "Immediate sessions with a specialist",
-            image: PatientPageInstantMenuImage,
-          },
-          {
-            title: "Scheduled",
-            desc: "Book your appointment with the appropriate specialist for you.",
-          },
-        ].map((e, i) => (
-          <View
-            key={e.title}
-            className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40"
-          >
+        <TouchableOpacity onPress={() => setisInstedBookingDrawerOpen(true)}>
+          <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">
-              <H3 className="font-normal">{e.title}</H3>
-              <Text className=" text-base font-normal">{e.desc}</Text>
+              <H3 className="font-normal">Instant</H3>
+              <Text className=" text-base font-normal">
+                Immediate sessions with a specialist
+              </Text>
             </View>
             <View className="flex justify-end w-1/3  items-end">
-              {e.image && (
-                <Image
-                  source={e.image}
-                  className={cn("w-full h-[undefined] aspect-square")}
-                />
-              )}
+              <Image
+                source={PatientPageInstantMenuImage}
+                className={cn("w-full h-[undefined] aspect-square")}
+              />
             </View>
           </View>
-        ))}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/p/account/consult")}>
+          <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40">
+            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
+            <View className="w-2/3 flex flex-col justify-end">
+              <H3 className="font-normal">Scheduled</H3>
+              <Text className=" text-base font-normal">
+                Book your appointment with the appropriate specialist for you
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
 
         <Button
           className="bg-blue-50/30 backdrop-blur-md "
           onPress={() => router.push("/p/account/consult")}
         >
-          <Text className="font-medium text-left w-full ">
+          <Text className="font-medium text-left w-full text-neutral-700">
             Help me find the right consultant{" "}
           </Text>
         </Button>
-        <Button
-          className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/(Routes)/(patient)/(nt)/text")}
-        >
-          <Text className="font-medium text-left w-full ">
-            test
-          </Text>
-        </Button>
-        {/* <Button
-          className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/faqs/index")}
-        >
-          <Text className="font-medium text-left w-full ">FAQ</Text>
-        </Button> */}
+        <View className="flex-row">
+          <Button
+            className="bg-blue-50/30 backdrop-blur-md "
+            onPress={() => router.push("/(Routes)/(patient)/(nt)/text")}
+          >
+            <Text className="font-medium text-left w-full text-neutral-700">
+              test
+            </Text>
+          </Button>
+          <Button
+            className="bg-blue-50/30 backdrop-blur-md "
+            onPress={() =>
+              router.push("/(Routes)/(patient)/(nt)/call/56468456")
+            }
+          >
+            <Text className="font-medium text-left w-full text-neutral-700">
+              VCall
+            </Text>
+          </Button>
+          <Button
+            className="bg-blue-50/30 backdrop-blur-md "
+            onPress={() =>
+              router.push("/(Routes)/(patient)/(nt)/chat/tertettrt")
+            }
+          >
+            <Text className="font-medium text-left w-full text-neutral-700">
+              Chat
+            </Text>
+          </Button>
+        </View>
       </View>
+
+      <Drawer
+        visible={isInstedBookingDrawerOpen}
+        onClose={() => setisInstedBookingDrawerOpen(false)}
+        title="My Drawer"
+        className="max-h-[100%]"
+        height="100%"
+      >
+        <ScrollView
+          contentContainerClassName="px-2 gap-3"
+          showsHorizontalScrollIndicator={false}
+        >
+          {/* Sex Selection */}
+          <Text className="font-semibold">Sex</Text>
+          <View className="flex-row gap-2 ">
+            {["Male", "Female", "Rather not say"].map((sex) => (
+              <Controller
+                key={sex}
+                control={control}
+                name="sex"
+                render={({ field: { onChange, value } }) => (
+                  <Button
+                    className={`flex-1 ${
+                      value === sex ? "bg-blue-500" : "bg-gray-200"
+                    }`}
+                    onPress={() => onChange(sex)}
+                  >
+                    <Text
+                      className={value === sex ? "text-white" : "text-gray-800"}
+                    >
+                      {sex}
+                    </Text>
+                  </Button>
+                )}
+              />
+            ))}
+          </View>
+
+          {/* Specialist Category */}
+          <View className="flex-row gap-3 items-center">
+            <Text className="font-semibold">Specialist Category</Text>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger className="rounded-full p-1">
+                <InfoCircle size="20" color="#000" />
+              </TooltipTrigger>
+              <TooltipContent insets={contentInsets}>
+                <Text className="native:text-lg">Add to library</Text>
+              </TooltipContent>
+            </Tooltip>
+          </View>
+          <View className="flex-row flex-wrap gap-2 mb-4">
+            {[
+              "Psychologist",
+              "Psychiatrist",
+              "Developmental Psychologist",
+              "Child Psychologist",
+              "Marriage and Family Therapist",
+            ].map((category) => (
+              <Controller
+                key={category}
+                control={control}
+                name="category"
+                render={({ field: { onChange, value } }) => (
+                  <Button
+                    className={`flex-none px-4 py-2 rounded-lg ${
+                      value === category ? "bg-blue-500" : "bg-gray-200"
+                    }`}
+                    onPress={() => onChange(category)}
+                  >
+                    <Text
+                      className={
+                        value === category ? "text-white" : "text-gray-800"
+                      }
+                    >
+                      {category}
+                    </Text>
+                  </Button>
+                )}
+              />
+            ))}
+          </View>
+
+          {/* Specialization */}
+          <Text className="font-semibold">Specialization</Text>
+          <Controller
+            control={control}
+            name="specialization"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Write the specific specialization"
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+
+          {/* Language Selection */}
+          <Text className="font-semibold">Language</Text>
+          <View className="flex-row gap-2 ">
+            {["French", "English", "Arabic"].map((language) => (
+              <Controller
+                key={language}
+                control={control}
+                name="language"
+                render={({ field: { onChange, value } }) => (
+                  <Button
+                    className={`flex-1 ${
+                      value === language ? "bg-blue-500" : "bg-gray-200"
+                    }`}
+                    onPress={() => onChange(language)}
+                  >
+                    <Text
+                      className={
+                        value === language ? "text-white" : "text-gray-800"
+                      }
+                    >
+                      {language}
+                    </Text>
+                  </Button>
+                )}
+              />
+            ))}
+          </View>
+
+          {/* Duration Selection */}
+          <Text className="font-semibold">Duration</Text>
+          <View className="flex-row gap-2 ">
+            {["60 minutes", "45 minutes", "30 minutes"].map((duration) => (
+              <Controller
+                key={duration}
+                control={control}
+                name="duration"
+                render={({ field: { onChange, value } }) => (
+                  <Button
+                    className={`flex-1 ${
+                      value === duration ? "bg-blue-500" : "bg-gray-200"
+                    }`}
+                    onPress={() => onChange(duration)}
+                  >
+                    <Text
+                      className={
+                        value === duration ? "text-white" : "text-gray-800"
+                      }
+                    >
+                      {duration}
+                    </Text>
+                  </Button>
+                )}
+              />
+            ))}
+          </View>
+
+          {/* Overview of the Consultation */}
+          <Text className="font-semibold">Overview of the Consultation</Text>
+          <Controller
+            control={control}
+            name="overview"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Write a brief overview for the specialist about the consultation"
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+
+          {/* Closest Appointment */}
+          <View className="flex-row items-center justify-between">
+            <Text className=" font-semibold">Closest Appointment</Text>
+            <Controller
+              control={control}
+              name="closestAppointment"
+              render={({ field: { onChange, value } }) => (
+                <Switch checked={value} onCheckedChange={onChange} />
+              )}
+            />
+          </View>
+
+          {/* Submit Button */}
+          <Button onPress={handleSubmit(onSubmit)}>
+            <Text className="text-white font-semibold">Book now</Text>
+          </Button>
+        </ScrollView>
+      </Drawer>
     </View>
   );
 }
