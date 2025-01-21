@@ -1,30 +1,87 @@
 import { View, Text, FlatList } from "react-native";
-import React, { useState } from "react";
-import { OtpInput } from "react-native-otp-entry";
-import colors from "@/utils/colors";
-import { Stack } from "expo-router";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
+import { OtpInput } from "react-native-otp-entry";
 import { cn } from "@/lib/utils";
 import ReportCard from "@/features/account/components/ReportCard";
-import { H2, H3 } from "@/components/ui/Typography";
-import { useSelector } from "react-redux";
-import { AppStateType } from "@/features/setting/types/setting.type";
-import { UserType } from "@/features/user/types/user.type";
 import { toast } from "sonner-native";
+import colors from "@/utils/colors";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { AppStateType } from "@/features/setting/types/setting.type";
+
+type ReportProps = {
+  _id: string;
+  title: string;
+  doctorName: string;
+  date: string;
+  number: string;
+  type: "previous" | "current";
+  category: "plan" | "prescription";
+};
+
+// Mock Data
+const mockReportData = {
+  "Medical Plan": {
+    Current: [
+      {
+        _id: "1",
+        title: "Plan Report 1",
+        doctorName: "Dr. Ahmad",
+        date: "2024 / 01 / 01",
+        number: "12345678",
+        type: "current",
+        category: "plan",
+      },
+    ],
+    Previous: [
+      {
+        _id: "2",
+        title: "Plan Report 2",
+        doctorName: "Dr. Sarah",
+        date: "2023 / 12 / 20",
+        number: "98765432",
+        type: "previous",
+        category: "plan",
+      },
+    ],
+  },
+  "My Prescriptions": {
+    Current: [
+      {
+        _id: "3",
+        title: "Prescription 1",
+        doctorName: "Dr. Yusuf",
+        date: "2024 / 02 / 01",
+        number: "56789012",
+        type: "current",
+        category: "prescription",
+      },
+    ],
+    Previous: [
+      {
+        _id: "4",
+        title: "Prescription 2",
+        doctorName: "Dr. Adam",
+        date: "2023 / 11 / 15",
+        number: "34567890",
+        type: "previous",
+        category: "prescription",
+      },
+    ],
+  },
+};
 
 export default function AccountReportPage() {
-  const appState: AppStateType = useSelector((state: any) => state.appState);
   const user: UserType = useSelector((state: any) => state.user);
-  // const [ReportVerificationCode, setReportVerificationCode] = useState("1234");
-  const [ShowReports, setShowReports] = useState(
+  const appState: AppStateType = useSelector((state: any) => state.appState);
+  const [showReports, setShowReports] = useState(
     user.passcode === null ? true : false
   );
-
-  const [ActiveTab, setActiveTab] = useState({
-    report: "My Prescriptions",
-    reportType: "Current",
-  });
+  const [activeTab, setActiveTab] = useState("My Prescriptions");
+  const [activeCategory, setActiveCategory] = useState("Current");
+  const [reports, setReports] = useState<ReportProps[]>([]);
 
   async function handleSubmit(text: string): Promise<void> {
     const payload = {
@@ -57,30 +114,33 @@ export default function AccountReportPage() {
     }
   }
 
-  const reportData = [
-    {
-      id: "1",
-      title: "Prescription name",
-      doctorName: "Mada Muhammad Al-Muhammad",
-      date: "2023 / 12 / 30",
-      number: "49575930",
-    },
-    {
-      id: "2",
-      title: "Prescription name",
-      doctorName: "Mada Muhammad Al-Muhammad",
-      date: "2023 / 12 / 30",
-      number: "49575930",
-    },
-  ];
+  // Fetch reports dynamically based on tab and category
+  useEffect(() => {
+    const fetchReports = async () => {
+      const data = mockReportData[activeTab][activeCategory] || [];
+      setReports(data);
+    };
+
+    fetchReports();
+  }, [activeTab, activeCategory]);
+
+  const handleOtpSubmit = async (otp: string) => {
+    // Simulated verification
+    if (otp === "1234") {
+      toast.success("Passcode verified successfully!");
+      setShowReports(true);
+    } else {
+      toast.error("Invalid passcode. Please try again.");
+    }
+  };
 
   return (
     <View className="bg-blue-50/10 w-full h-full">
-      {!ShowReports ? (
-        <View className="px-6 py-20 flex flex-col gap-16 ">
-          <H3 className="border-none text-center text-neutral-600 text-3xl">
+      {!showReports ? (
+        <View className="px-6 py-20 flex flex-col gap-16">
+          <Text className="text-center text-2xl font-semibold text-gray-700">
             Enter your secret code
-          </H3>
+          </Text>
           <OtpInput
             numberOfDigits={4}
             focusColor={colors.primary[500]}
@@ -112,82 +172,82 @@ export default function AccountReportPage() {
               },
             }}
           />
-          <View className="flex-col gap-4">
-            <Button>
-              <Text className="text-white font-semibold">Submit</Text>
-            </Button>
-            <Button variant={"ghost"}>
-              <Text className=" font-medium text-sm text-neutral-500">
-                Forgot your Password ?{" "}
-              </Text>
-            </Button>
-          </View>
+          <Button>
+            <Text className="text-white font-semibold">Submit</Text>
+          </Button>
         </View>
       ) : (
-        <View className="bg-blue-50/20 w-full h-full px-4 flex flex-col gap-2">
-          <View className="py-4 flex flex-col gap-4">
+        <View className="px-4 py-6">
+          <View className="mb-6">
             <Text className="font-semibold text-xl">My Reports</Text>
-            <View className="w-full flex flex-row gap-2">
-              {["Medical Plan", "My Prescriptions"].map((e, i) => {
-                const isActiveTabThis = e === ActiveTab.report;
-                return (
-                  <Button
-                    key={e + i}
-                    size={"sm"}
+            <View className="flex flex-row gap-2 mt-4">
+              {["Medical Plan", "My Prescriptions"].map((tab) => (
+                <Button
+                  key={tab}
+                  className={cn(
+                    tab === activeTab ? "bg-blue-900" : "bg-white",
+                    "rounded-xl flex-1"
+                  )}
+                  onPress={() => setActiveTab(tab)}
+                >
+                  <Text
                     className={cn(
-                      isActiveTabThis ? "bg-blue-900" : "bg-white",
-                      " rounded-xl  flex-1"
+                      tab === activeTab ? "text-white" : "text-gray-700",
+                      "font-medium"
                     )}
                   >
-                    <Text
-                      className={cn(
-                        isActiveTabThis ? "text-white" : "",
-                        "font-medium"
-                      )}
-                    >
-                      {e}
-                    </Text>
-                  </Button>
-                );
-              })}
+                    {tab}
+                  </Text>
+                </Button>
+              ))}
             </View>
           </View>
-          <View className="py-4 flex flex-col gap-4">
+          <View className="mb-6">
             <Text className="font-semibold text-xl">Report Type</Text>
-            <View className="w-full flex flex-row gap-2">
-              {["Previous", "Current"].map((e, i) => {
-                const isActiveTabThis = e === ActiveTab.reportType;
-                return (
-                  <Button
-                    key={e + i}
-                    size={"sm"}
+            <View className="flex flex-row gap-2 mt-4">
+              {["Current", "Previous"].map((category) => (
+                <Button
+                  key={category}
+                  className={cn(
+                    category === activeCategory ? "bg-blue-900" : "bg-white",
+                    "rounded-xl flex-1"
+                  )}
+                  onPress={() => setActiveCategory(category)}
+                >
+                  <Text
                     className={cn(
-                      isActiveTabThis ? "bg-blue-900" : "bg-white",
-                      " rounded-xl  flex-1"
+                      category === activeCategory
+                        ? "text-white"
+                        : "text-gray-700",
+                      "font-medium"
                     )}
                   >
-                    <Text
-                      className={cn(
-                        isActiveTabThis ? "text-white" : "",
-                        "font-medium"
-                      )}
-                    >
-                      {e}
-                    </Text>
-                  </Button>
-                );
-              })}
+                    {category}
+                  </Text>
+                </Button>
+              ))}
             </View>
           </View>
-          <View className="flex gap-4">
-            <Text className="font-semibold text-xl">All Reports</Text>
-            <FlatList
-              data={reportData}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <ReportCard {...item} />}
-              contentContainerClassName="flex flex-col gap-3"
-            />
-          </View>
+          <FlatList
+            data={reports}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <ReportCard
+                type={item.type}
+                category={item.category}
+                title={item.title}
+                doctorName={item.doctorName}
+                date={item.date}
+                number={item.number}
+                _id={item._id}
+              />
+            )}
+            ListEmptyComponent={
+              <Text className="text-center text-gray-500 mt-4">
+                No reports available.
+              </Text>
+            }
+          />
         </View>
       )}
     </View>

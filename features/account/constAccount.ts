@@ -9,14 +9,16 @@ export const PatientDeleteAccountOptions = [
 
 export const AppointmentData: AppointmentCardType[] = [
   {
-    id: "1",
-    doctorName: "Dr.. Abdul Wahab Muhammad",
+    _id: "1",
+    specialist_Id : "1",
+    doctorName: "Dr. Abdul Wahab Muhammad",
     sessionDateTime: "2024-12-22T01:30:00Z", // ISO format
     image: "https://via.placeholder.com/50",
   },
   {
-    id: "2",
-    doctorName: "Dr.. Abdul Wahab Muhammad",
+    _id: "2",
+    specialist_Id : "2",
+    doctorName: "Dr. Abdul Wahab Muhammad",
     sessionDateTime: "2024-12-21T01:30:00Z",
     image: "https://via.placeholder.com/50",
   },

@@ -11,10 +11,15 @@ import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
 import { format } from "date-fns";
 import { RelativePathString, useRouter } from "expo-router";
 import { CustomIcons } from "@/const";
+import { Separator } from "@/components/ui/Separator";
+import { cn } from "@/lib/utils";
 
 type Props = AppointmentCardType;
 
 export default function AppointmentCard({
+  _id,
+  type,
+  specialist_Id,
   doctorName,
   sessionDateTime,
   image,
@@ -30,8 +35,12 @@ export default function AppointmentCard({
 
   const handleCancelSubmit = async () => {
     try {
+      const payload = {
+        _id,
+        cancelReason,
+      };
       // Simulating API submission
-      console.log("Submitting cancellation reason:", cancelReason);
+      console.log("Submitting cancellation reason:", payload);
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API delay
       setIsCancelSuccess(true);
     } catch (error) {
@@ -41,8 +50,12 @@ export default function AppointmentCard({
 
   const handleReScheduleSubmit = async () => {
     try {
+      const payload = {
+        _id,
+        ScheduleTime,
+      };
       // Simulating API submission
-      console.log("Submitting reschedule time:", ScheduleTime);
+      console.log("Submitting reschedule time:", payload);
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API delay
       setIsRescheduleSuccess(true);
     } catch (error) {
@@ -78,31 +91,50 @@ export default function AppointmentCard({
       </View>
 
       {/* Card Footer */}
-      <View className="flex-row justify-around mt-4">
-        <Button
-          onPress={() => setIsDrawerCancelVisible(true)}
-          className="flex-row items-center bg-red-100  h-9"
-        >
-          <Trash size="20" color="#000" />
-          <Text className="ml-2 font-medium">Cancel</Text>
-        </Button>
+      <View className="flex-col gap-2 mt-4 ">
+        <Separator />
+        {type === "current" ? (
+          <View className="flex-row justify-around  ">
+            <Button
+              onPress={() => setIsDrawerCancelVisible(true)}
+              className="flex-row items-center bg-red-100  h-9"
+            >
+              <Trash size="20" color="#000" />
+              <Text className="ml-2 font-medium">Cancel</Text>
+            </Button>
 
-        <Button
-          className="flex-row items-center bg-leaves-100  h-9"
-          onPress={() => setIsDrawerRescheduleVisible(true)}
-        >
-          <CalendarEdit size="20" color="#000" />
-          <Text className="ml-2 font-medium">Reschedule</Text>
-        </Button>
+            <Button
+              className="flex-row items-center bg-leaves-100  h-9"
+              onPress={() => setIsDrawerRescheduleVisible(true)}
+            >
+              <CalendarEdit size="20" color="#000" />
+              <Text className="ml-2 font-medium">Reschedule</Text>
+            </Button>
 
-        <Button className="flex-row items-center bg-blue-100/60  h-9" onPress={
-          () => {
-            router.push(`/p/account/chat/1234abcd` as RelativePathString);
-          }
-        }>
-          <MessageText size="20" color="#000" />
-          <Text className="ml-2 font-medium">Chats</Text>
-        </Button>
+            <Button
+              className="flex-row items-center bg-blue-100/60  h-9"
+              onPress={() => {
+                router.push(`/chat/${specialist_Id}`);
+              }}
+            >
+              <MessageText size="20" color="#000" />
+              <Text className="ml-2 font-medium">Chats</Text>
+            </Button>
+          </View>
+        ) : (
+          <View>
+            <Text
+              className={cn(
+                "text-center text-lg font-semibold",
+                type === "completed" ? "text-green-500" : "text-red-500"
+              )}
+            >
+              {type === "completed"
+                ? "Your session was complete"
+                : "Your session was canceled"}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Cancel Drawer */}

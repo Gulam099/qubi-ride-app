@@ -11,7 +11,7 @@ import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-type Specialist = {
+type ConsultType = {
   id: number;
   name: string;
   title: string;
@@ -39,7 +39,7 @@ export default function ConsultPage() {
     ClosestAppointment: string;
   }>();
 
-  const [specialists, setSpecialists] = useState<Specialist[]>([]);
+  const [consult, setConsult] = useState<ConsultType[]>([]);
 
   // Mock API call
   useEffect(() => {
@@ -119,7 +119,7 @@ export default function ConsultPage() {
           imageUrl: "https://via.placeholder.com/100",
         },
       ];
-      setSpecialists(data);
+      setConsult(data);
     };
 
     fetchData();
@@ -131,7 +131,7 @@ export default function ConsultPage() {
         <Input placeholder="Search for a consultant" />
 
         <FlatList
-          data={specialists}
+          data={consult}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <SpecialistCard

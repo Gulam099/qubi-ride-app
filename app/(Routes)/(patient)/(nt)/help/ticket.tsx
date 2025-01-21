@@ -9,6 +9,8 @@ import { View, FlatList, TextInput, TouchableOpacity } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Textarea } from "@/components/ui/Textarea";
 import { toast } from "sonner-native";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
 
 const fakeApiData = [
   {
@@ -28,6 +30,7 @@ const fakeApiData = [
 ];
 
 export default function TicketPage() {
+  const user: UserType = useSelector((state: any) => state.user);
   const [tickets, setTickets] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const {
@@ -63,6 +66,13 @@ export default function TicketPage() {
       subject: data.details,
     };
     setTickets((prev) => [...prev, newTicket]);
+    console.log("New Ticket", {
+      userId: user._id,
+      topic: data.topic,
+      type: data.type,
+      subject: data.details,
+    });
+
     toast.success("Ticket Created Successfully");
     setShowForm(false);
     reset();

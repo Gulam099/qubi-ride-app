@@ -23,6 +23,7 @@ import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { UserType } from "@/features/user/types/user.type";
 import { CustomIcons } from "@/const";
 import { H3 } from "@/components/ui/Typography";
+import { useRouter } from "expo-router";
 
 const styles = StyleSheet.create({
   cardView: {
@@ -41,6 +42,7 @@ type CardType = {
 };
 
 export default function AccountPage() {
+  const router = useRouter();
   const [walletBalance, setWalletBalance] = useState(0);
   const [cards, setCards] = useState<CardType[]>([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -118,19 +120,23 @@ export default function AccountPage() {
 
   const renderMainScreen = () => (
     <View>
-      <View className="bg-white p-4 rounded-2xl mb-4 flex-row gap-2">
-        <View>
-          <View className="bg-blue-50/30 rounded-full w-12 aspect-square justify-center items-center">
-            <Wallet size="24" color="#000" />
+      <TouchableOpacity
+        onPress={() => router.push("/p/account/payment/wallet")}
+      >
+        <View className="bg-white p-4 rounded-2xl mb-4 flex-row gap-2">
+          <View>
+            <View className="bg-blue-50/30 rounded-full w-12 aspect-square justify-center items-center">
+              <Wallet size="24" color="#000" />
+            </View>
+          </View>
+          <View className="flex-col gap-1">
+            <Text className="text-lg font-bold text-neutral-700">Wallet</Text>
+            <Text className="text-sm text-neutral-500">
+              The balance is {currencyFormatter(walletBalance)}
+            </Text>
           </View>
         </View>
-        <View className="flex-col gap-1">
-          <Text className="text-lg font-bold text-neutral-700">Wallet</Text>
-          <Text className="text-sm text-neutral-500">
-            The balance is {currencyFormatter(walletBalance)}
-          </Text>
-        </View>
-      </View>
+      </TouchableOpacity>
 
       <View>
         <Text className="text-lg font-bold text-neutral-700 mb-2">

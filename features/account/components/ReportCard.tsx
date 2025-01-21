@@ -5,10 +5,13 @@ import { ExportCurve, Moneys } from "iconsax-react-native";
 import colors from "@/utils/colors";
 
 type ReportCardProps = {
+  _id: string;
   title: string;
   doctorName: string;
   date: string;
   number: string;
+  type: "previous" | "current";
+  category: "plan" | "prescription";
 };
 
 const ReportCard = ({ title, doctorName, date, number }: ReportCardProps) => {
@@ -43,7 +46,10 @@ const ReportCard = ({ title, doctorName, date, number }: ReportCardProps) => {
           <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8 flex justify-center items-center">
             <Moneys size="18" color={colors.primary[900]} />
           </View>
-          <Text className="font-medium text-sm text-neutral-600 "> Number : {number}</Text>
+          <Text className="font-medium text-sm text-neutral-600 ">
+            {" "}
+            Number : {number}
+          </Text>
         </View>
       </View>
     </View>
