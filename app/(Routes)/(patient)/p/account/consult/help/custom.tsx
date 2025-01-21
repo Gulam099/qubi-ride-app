@@ -171,7 +171,7 @@ export default function CustomConsultPage() {
               />
             )}
             showsVerticalScrollIndicator={false}
-            contentContainerClassName="flex flex-col gap-3 pb-16"
+            contentContainerClassName="flex flex-col gap-3 "
           />
         </View>
       ) : (

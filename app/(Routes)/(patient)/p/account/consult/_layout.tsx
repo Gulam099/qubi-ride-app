@@ -17,42 +17,28 @@ export default function ConsultLayout() {
       <Stack.Screen
         name="index"
         options={{
-          headerStyle: {
-            backgroundColor: colors.blue[900],
-          },
-          headerLeft: () => (
-            <BackButton iconColor="white" customBackLink="/" className="" />
-          ),
+          headerLeft: () => <BackButton customBackLink="/" className="" />,
 
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">
-              Help me find the right consultant
-            </Text>
+            <Text className="font-semibold text-lg ">Consultants</Text>
           ),
         }}
       />
       <Stack.Screen
-        name="filter"
+        name="s/[specialist_Id]/session"
         options={{
-          headerLeft: () => <BackButton className="" />,
+          headerLeft: () => <BackButton />,
 
           headerTitle: () => (
-            <Text className="font-semibold text-lg ">
-              Help me find the right consultant
-            </Text>
+            <Text className="font-semibold text-lg ">Session Details</Text>
           ),
         }}
       />
-      <Stack.Screen
-        name="custom"
-        options={{
-          headerLeft: () => <BackButton className="" />,
 
-          headerTitle: () => (
-            <Text className="font-semibold text-lg ">
-              Help me find the right consultant
-            </Text>
-          ),
+      <Stack.Screen
+        name="help"
+        options={{
+          headerShown: false,
         }}
       />
     </Stack>

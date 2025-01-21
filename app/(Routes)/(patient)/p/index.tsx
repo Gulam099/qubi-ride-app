@@ -107,12 +107,13 @@ export default function PatientPage() {
 
         <Button
           className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/p/account/consult")}
+          onPress={() => router.push("/p/account/consult/help")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">
             Help me find the right consultant{" "}
           </Text>
         </Button>
+
         <View className="flex-row">
           <Button
             className="bg-blue-50/30 backdrop-blur-md "

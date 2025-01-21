@@ -151,7 +151,7 @@ export default function ConsultFilter() {
       console.log("Final Filter Data:", tempFilterData);
       //Api call Here
       router.push({
-        pathname: "/p/account/consult/custom",
+        pathname: "/p/account/consult/help/custom",
         params: {
           ...tempFilterData,
           ClosestAppointment: ClosestAppointmentCheck ? "true" : "false",
