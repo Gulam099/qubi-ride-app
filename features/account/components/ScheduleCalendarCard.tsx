@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity } from "react-native";
 
 import colors from "@/utils/colors";
 import { Edit2, Trash } from "iconsax-react-native";
+import { format } from "date-fns";
 
 type ScheduleCalendarCardProps = {
   time: string;
-  date: string;
+
   title: string;
   description: string;
   onDelete: () => void;
@@ -15,7 +16,7 @@ type ScheduleCalendarCardProps = {
 
 export default function ScheduleCalendarCard({
   time,
-  date,
+
   title,
   description,
   onDelete,
@@ -25,8 +26,10 @@ export default function ScheduleCalendarCard({
     <View className="bg-white rounded-lg px-4 py-6 shadow-md flex-row items-center relative">
       {/* Left Section */}
       <View className="w-1/4 pr-4">
-        <Text className="font-bold text-lg text-black">{time}</Text>
-        <Text className="text-gray-500">{date}</Text>
+        <Text className="font-bold text-lg text-black">
+          {format(time, "hh:mm a")}
+        </Text>
+        <Text className="text-gray-500">{format(time, "dd-MM-yy")}</Text>
       </View>
 
       {/* Middle Divider */}
