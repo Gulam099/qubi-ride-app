@@ -1,72 +1,82 @@
 import { View, Text, FlatList, ScrollView } from "react-native";
 import React, { useState } from "react";
-import { H2, H3 } from "@/components/ui/Typography";
-import {
-  SupportGroupArray,
-  supportGroups,
-} from "@/features/supportGroup/constSupportGroup";
-import SupportGroupCard from "@/features/supportGroup/components/SupportGroupCard";
+import { H3 } from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { toKebabCase } from "@/utils/string.utils";
+import LibraryCard from "@/features/culturalLibrary/components/LibraryCard";
+import { libraryContent } from "@/features/culturalLibrary/constLibrary";
 
 export default function LibraryPage() {
-  const [ActiveTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("All");
+
   const handleCardPress = (id: number) => {
-    console.log("library Card Pressed:", id);
+    console.log("Library Card Pressed:", id);
     // Navigate to details page or perform any action
   };
+
+  // Filter content based on the active tab
+  const filteredContent =
+    activeTab === "All"
+      ? libraryContent
+      : libraryContent.filter(
+          (item) => item.type.toLowerCase() === activeTab.toLowerCase()
+        );
+
   return (
-    <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
+    <View className="p-4 pb-0 bg-blue-50/10 h-full flex flex-col gap-4">
       <H3>Cultural Libraries</H3>
 
+      {/* Tabs for filtering */}
       <ScrollView
-        horizontal={true}
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
       >
-        {SupportGroupArray.map((e, i) => {
-          const isActiveTabThis = e === ActiveTab;
+        {["All", "Video", "Article", "Audio"].map((tab) => {
+          const isActiveTab = tab === activeTab;
           return (
             <Button
-              key={e + i}
+              key={tab}
               size={"sm"}
               className={cn(
-                isActiveTabThis ? "bg-blue-900" : "bg-white",
-                "w-36 h-9 rounded-xl  "
+                isActiveTab ? "bg-blue-900" : "bg-white",
+                "w-32 h-9 rounded-xl"
               )}
+              onPress={() => setActiveTab(tab)}
             >
               <Text
-                className={cn(
-                  isActiveTabThis ? "text-white" : "",
-                  "font-medium"
-                )}
+                className={cn(isActiveTab ? "text-white" : "", "font-medium")}
               >
-                {e}
+                {tab}
               </Text>
             </Button>
           );
         })}
       </ScrollView>
 
-      {/* List of Support Groups */}
+      {/* List of Library Content */}
       <FlatList
-        data={supportGroups}
+        data={filteredContent}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <SupportGroupCard
+          <LibraryCard
             title={item.title}
             category={item.category}
-            price={item.price}
-            recorded={item.recorded}
+            image={item.thumbnail}
+            link={`/p/library/${toKebabCase(item.id)}`}
+            type={item.type}
+            seenCount={item.seenCount}
             rating={item.rating}
-            image={item.image}
-            onPress={() => handleCardPress(item.id)}
-            link={`/p/library/${toKebabCase(item.title)}`}
           />
         )}
-        contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
+        contentContainerClassName="gap-4 "
+        ListEmptyComponent={() => (
+          <Text className="text-gray-500 text-center">
+            No content available.
+          </Text>
+        )}
       />
     </View>
   );

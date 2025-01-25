@@ -9,21 +9,31 @@ import SupportGroupCard from "@/features/supportGroup/components/SupportGroupCar
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { toKebabCase } from "@/utils/string.utils";
+import ProgramCard from "@/features/program/components/ProgramCard";
 
 export default function ProgramPage() {
   const [ActiveTab, setActiveTab] = useState("All");
-  const handleCardPress = (id: number) => {
+
+  const handleCardPress = (id: string) => {
     console.log("Card Pressed:", id);
     // Navigate to details page or perform any action
   };
+
+  const filteredGroups =
+    ActiveTab === "All"
+      ? supportGroups
+      : supportGroups.filter(
+          (group) => group.category.toLowerCase() === ActiveTab.toLowerCase()
+        );
+
   return (
-    <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
+    <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-2">
       <H3>Programs</H3>
 
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
+        contentContainerClassName="gap-4 py-2 "
       >
         {SupportGroupArray.map((e, i) => {
           const isActiveTabThis = e === ActiveTab;
@@ -31,9 +41,10 @@ export default function ProgramPage() {
             <Button
               key={e + i}
               size={"sm"}
+              onPress={() => setActiveTab(e)}
               className={cn(
                 isActiveTabThis ? "bg-blue-900" : "bg-white",
-                "w-36 h-9 rounded-xl  "
+                "w-36 h-9 rounded-xl"
               )}
             >
               <Text
@@ -50,24 +61,33 @@ export default function ProgramPage() {
       </ScrollView>
 
       {/* List of Support Groups */}
-      <FlatList
-        data={supportGroups}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <SupportGroupCard
-            title={item.title}
-            category={item.category}
-            price={item.price}
-            recorded={item.recorded}
-            rating={item.rating}
-            image={item.image}
-            onPress={() => handleCardPress(item.id)}
-            link={`/p/program/${toKebabCase(item.title)}`}
-          />
-        )}
-        contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
-      />
+      {filteredGroups.length > 0 ? (
+        <FlatList
+          data={filteredGroups}
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerClassName=""
+          renderItem={({ item }) => (
+            <ProgramCard
+              title={item.title}
+              category={item.category}
+              price={item.price}
+              recorded={item.recordedCount}
+              rating={item.rating}
+              image={item.image}
+              onPress={() => handleCardPress(item.id)}
+              link={`/p/program/${toKebabCase(item.id)}`}
+            />
+          )}
+          contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
+        />
+      ) : (
+        <View className="flex-1">
+          <Text className="text-center text-gray-500 mt-4 ">
+            No Group Available
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

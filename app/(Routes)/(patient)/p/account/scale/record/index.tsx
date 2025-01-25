@@ -80,12 +80,6 @@ export default function ScaleRecordPage() {
         withDots: true,
       },
     ],
-    // legend: [
-    //   "Generalized Anxiety Disorder scale",
-    //   "Depression scale",
-    //   "Depression scale",
-    //   "Generalized Anxiety Disorder scale",
-    // ],
   };
 
   const legend = [

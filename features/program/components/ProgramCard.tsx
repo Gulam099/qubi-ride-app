@@ -21,7 +21,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { RelativePathString, useRouter } from "expo-router";
 
-type SupportGroupCardProps = {
+type ProgramCardProps = {
   title: string;
   category: string;
   price: number;
@@ -32,7 +32,7 @@ type SupportGroupCardProps = {
   link: string; // Route to navigate to
 };
 
-export default function SupportGroupCard({
+export default function ProgramCard({
   title,
   category,
   price,
@@ -41,7 +41,7 @@ export default function SupportGroupCard({
   image,
   onPress,
   link,
-}: SupportGroupCardProps) {
+}: ProgramCardProps) {
   const router = useRouter();
 
   return (

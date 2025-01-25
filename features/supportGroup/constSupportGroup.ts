@@ -4,49 +4,111 @@ const supportGroupImage1 = require("./assets/images/supportGroupImage-1.png");
 const supportGroupImage2 = require("./assets/images/supportGroupImage-2.png");
 export const supportGroups = [
   {
-    id: 1,
+    id: "5465464",
     title: "Psychological Health",
     category: "psychological",
-    price: "280 SAR",
-    recorded: 30,
-    rating: 4.3,
+    description: " Mental health is a state of psychological well-being that enables a person to cope with the stresses of life",
     image: supportGroupImage1,
-    details: {
-      goals: [
-        "Increasing awareness about mental health disorders.",
-        "Striving to keep the community mentally safe.",
-      ],
-      content: [
-        "Understanding mental health.",
-        "Explaining the concept of mental health and its importance.",
-        "Providing strategies for dealing with psychological stress.",
-      ],
-      consultants: [
-        {
-          name: "Dr. Deem Abdulla",
-          specialty: "Psychologist",
-          image: "https://via.placeholder.com/100",
-        },
-      ],
-      faq: [
-        {
-          question: "What results will the program achieve after completion?",
-          answer: "Better understanding of mental health.",
-        },
-        {
-          question: "How long is the program valid for?",
-          answer: "Lifetime access.",
-        },
-      ],
-    },
+    price: 280,
+    recordedCount: 81,
+    rating: 4.3,
+    likes: 21,
+    shares: 64,
+    groupGoals: [
+      "Increasing awareness about mental health disorders.",
+      "Striving to keep the community mentally safe.",
+    ],
+    programContent: [
+      {
+        title: "Understanding mental health",
+        description: "Explain the concept of mental health and its importance.",
+      },
+      {
+        title: "Providing strategies for dealing with psychological stress",
+        description:
+          "Explain how to deal with stress and psychological pressures in daily life.",
+      },
+    ],
+    consultants: [
+      {
+        id: "56466777",
+        name: "Dr. Deem Abdullah",
+        specialization: "Psychologists",
+        image: "https://via.placeholder.com/100",
+      },
+    ],
+    faq: [
+      {
+        question: "What results will the program achieve after its completion?",
+        answer: "Participants will gain coping mechanisms and awareness.",
+      },
+      {
+        question: "How long is the program valid for?",
+        answer: "The program is valid for 1 month.",
+      },
+    ],
+    availableDates: [
+      "2024-12-01T11:00:00Z",
+      "2024-12-01T14:00:00Z",
+      "2024-12-02T09:00:00Z",
+      "2024-12-02T12:00:00Z",
+    ],
   },
   {
-    id: 2,
-    title: "Family Harmony",
+    id: "2",
+    title: "Psychological Health",
     category: "family",
-    price: "300 SAR",
-    recorded: 50,
-    rating: 4.7,
+    description: " Mental health is a state of psychological well-being that enables a person to cope with the stresses of life",
     image: supportGroupImage2,
+    price: 280,
+    recordedCount: 81,
+    rating: 4.3,
+    likes: 21,
+    shares: 64,
+    groupGoals: [
+      "Increasing awareness about mental health disorders.",
+      "Striving to keep the community mentally safe.",
+    ],
+    programContent: [
+      {
+        title: "Understanding mental health",
+        description: "Explain the concept of mental health and its importance.",
+      },
+      {
+        title: "Providing strategies for dealing with psychological stress",
+        description:
+          "Explain how to deal with stress and psychological pressures in daily life.",
+      },
+    ],
+    consultants: [
+      {
+        id: "1",
+        name: "Dr. Deem Abdullah",
+        specialization: "Psychologists",
+        image: "https://via.placeholder.com/100",
+      },
+      {
+        id: "2",
+        name: "Dr. Deem Abdullah",
+        specialization: "Psychologists",
+        image: "https://via.placeholder.com/100",
+      },
+    ],
+    faq: [
+      {
+        question: "What results will the program achieve after its completion?",
+        answer: "Participants will gain coping mechanisms and awareness.",
+      },
+      {
+        question: "How long is the program valid for?",
+        answer: "The program is valid for 1 month.",
+      },
+    ],
+    availableDates: [
+      "2024-12-01T11:00:00Z",
+      "2024-12-01T14:00:00Z",
+      "2024-12-02T09:00:00Z",
+      "2024-12-02T12:00:00Z",
+    ],
   },
 ];

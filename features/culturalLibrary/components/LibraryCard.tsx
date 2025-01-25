@@ -8,8 +8,14 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 import colors from "@/utils/colors";
-import { currencyFormatter } from "@/utils/currencyFormatter.utils";
-import { Heart, Moneys, People } from "iconsax-react-native";
+import {
+  AudioSquare,
+  Heart,
+  Moneys,
+  Notepad,
+  People,
+  VideoHorizontal,
+} from "iconsax-react-native";
 import React from "react";
 import {
   View,
@@ -18,76 +24,95 @@ import {
   ImageSourcePropType,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { RelativePathString, useRouter } from "expo-router";
 
 type LibraryCardProps = {
   title: string;
   category: string;
   type: string;
-  recorded: number;
+  seenCount: number;
   rating: number;
   image: string;
   link: string; // Route to navigate to
-  onJoin: () => void; // Custom handler for "Join"
-  onLike: () => void;
 };
 
 export default function LibraryCard(props: LibraryCardProps) {
   const router = useRouter();
-  const { title, category, type, link, onLike, onJoin, recorded, image } =
-    props;
+  const { title, category, type, link, seenCount, image } = props;
 
-  const ArticalTypeIcon = type.toLowerCase() === "video";
+  // Define icons based on type
+  const IconList: Record<string, React.ElementType> = {
+    video: VideoHorizontal,
+    article: Notepad,
+    audio: AudioSquare,
+  };
+  const Icon = IconList[type.toLowerCase()] || Notepad;
+
+  // Handlers
+  const onLike = () => {
+    console.log(`Liked ${title}`);
+  };
+  const onJoin = () => {
+    console.log(`Joined ${title}`);
+  };
 
   return (
-    <Card className="w-full px-0">
+    <Card className="w-full">
       {/* Header with clickable title */}
       <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
-        <CardHeader className="flex flex-row">
-          <View className="w-2/3">
-            <CardTitle className="text-xl">{title}</CardTitle>
-            <CardDescription>{category}</CardDescription>
+        <CardHeader className="flex flex-row justify-between items-start">
+          <View className="flex-1 pr-4">
+            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+            <CardDescription className="text-sm text-gray-500 capitalize">
+              {category}
+            </CardDescription>
           </View>
 
-          <View className="w-1/3 flex justify-end items-end">
-            <Button
-              className="aspect-square bg-primary-50/40 p-0 rounded-full"
-              onPress={onLike}
-            >
-              <Heart size="24" color={colors.primary[500]} />
-            </Button>
-          </View>
+          {/* Like button */}
+          <Button
+            className="aspect-square bg-primary-50/40 p-0 rounded-full"
+            onPress={onLike}
+          >
+            <Heart size="20" color={colors.primary[500]} />
+          </Button>
         </CardHeader>
       </TouchableOpacity>
 
       {/* Content with clickable image */}
       <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
-        <CardContent className="px-0 rounded-none">
+        <CardContent className="p-0">
           <Image
-            source={image as ImageSourcePropType}
-            className="w-full h-[undefined] aspect-video "
+            source={{ uri: image }}
+            className="w-full h-64 "
             resizeMode="cover"
           />
         </CardContent>
       </TouchableOpacity>
 
-      {/* Footer with "Join" button */}
-      <CardFooter className="flex flex-row justify-between items-center">
-        <View className="flex flex-row gap-2 justify-center items-center">
+      {/* Footer with type, seen count, and Join button */}
+      <CardFooter className="flex flex-row justify-between items-center mt-2">
+        <View className="flex-row gap-4">
+
+        {/* Type */}
+        <View className="flex flex-row items-center gap-2">
           <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8 flex justify-center items-center">
-            <Moneys size="18" color={colors.primary[900]} />
+            <Icon size="18" color={colors.primary[900]} />
           </View>
-          <Text className="font-medium">{type}</Text>
+          <Text className="text-sm font-medium capitalize leading-6">{type}</Text>
         </View>
-        <View className="flex flex-row gap-2 justify-center items-center">
+
+        {/* Seen Count */}
+        <View className="flex flex-row items-center gap-2">
           <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8 flex justify-center items-center">
             <People size="18" color={colors.primary[900]} />
           </View>
-          <Text className="font-medium">{recorded} seen</Text>
+          <Text className="text-sm font-medium leading-6">{seenCount} seen</Text>
         </View>
-        <Button onPress={onJoin}>
-          <Text className="text-white font-semibold">Join</Text>
+        </View>
+
+        {/* Join Button */}
+        <Button onPress={onJoin} className="py-1 px-4 bg-blue-600">
+          <Text className="text-white font-medium text-sm leading-6">Join</Text>
         </Button>
       </CardFooter>
     </Card>

@@ -1,32 +1,35 @@
 import { View, Text, Dimensions, ScrollView } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import colors from "@/utils/colors";
 import { LineChart } from "react-native-chart-kit";
-
 import { Button } from "@/components/ui/Button";
 import { AddCircle, ArrowCircleDown } from "iconsax-react-native";
-import { moodOptions } from "@/features/scale/constScale";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Calendar } from "@/components/ui/Calendar";
 import {
-  DropdownMenuGroup,
   DropdownMenu,
-  DropdownMenuShortcut,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuItem,
 } from "@/components/ui/DropdownMenu";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
-import { Calendar } from "@/components/ui/Calendar";
-import { Link } from "expo-router";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { moodOptions } from "@/features/scale/constScale";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
 
 export default function MoodScaleRecord() {
-  const [LastMoodOption, setLastMoodOption] = useState(moodOptions[1]);
+  const [LastMoodOption, setLastMoodOption] = useState(null);
   const [ActiveRecordType, setActiveRecordType] = useState<
     "weekly" | "monthly"
   >("weekly");
+  const [markedDates, setMarkedDates] = useState({});
+  const [selectedDate, setSelectedDate] = useState("");
+  const [moodRecords, setMoodRecords] = useState([]);
+  const [chartData, setChartData] = useState({ weekly: [], monthly: [] });
+  const user: UserType = useSelector((state: any) => state.user);
+  const userId = user._id;
 
   const chartConfig = {
     backgroundColor: "#fff",
@@ -44,84 +47,60 @@ export default function MoodScaleRecord() {
     },
   };
 
-  const data = {
-    labels: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ],
-    datasets: [
-      {
-        data: [20, 30, 40, 50, 60, 70, 80],
-        color: (opacity = 1) => colors.blue[100], // optional
-        strokeWidth: 2, // optional
-        withDots: true,
-      },
-      {
-        data: [10, 15, 25, 35, 45, 55, 65],
-        color: (opacity = 1) => colors.red[100], // optional
-        strokeWidth: 2, // optional
-        withDots: true,
-      },
-    ],
+  // Fetch mood scale data from API
+  const fetchMoodScaleData = async () => {
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/api/mood-scale/${userId}?page=1`
+      );
+      const data = await response.json();
+
+      if (response && data.responses) {
+        setMoodRecords(data.responses);
+
+        // Set last mood record
+        const lastMood = data.responses[0];
+        if (lastMood) {
+          const moodOption = moodOptions.find(
+            (option) =>
+              option.label.toLowerCase() === lastMood.mood.toLowerCase()
+          );
+          setLastMoodOption({ ...lastMood, Icon: moodOption?.Icon || null });
+        }
+
+        // Generate markedDates for the calendar
+        const marks = {};
+        data.responses.forEach((record) => {
+          const date = record.createdAt.split("T")[0];
+          marks[date] = { marked: true };
+        });
+        setMarkedDates(marks);
+
+        // Prepare chart data for weekly and monthly records
+        const weekly = Array(7).fill(0); // For weekly chart
+        const monthly = Array(4).fill(0); // For monthly chart (assuming 4 weeks)
+
+        data.responses.forEach((record) => {
+          const day = new Date(record.createdAt).getDay(); // Get weekday (0 - 6)
+          const week = Math.floor(new Date(record.createdAt).getDate() / 7); // Estimate week number
+          weekly[day] += record.score; // Aggregate weekly scores
+          if (week < 4) monthly[week] += record.score; // Aggregate monthly scores
+        });
+
+        setChartData({ weekly, monthly });
+      }
+    } catch (error) {
+      console.error("Error fetching mood scale data:", error);
+    }
   };
 
-  const legend = [
-    { title: "Good mood", color: colors.blue[100] },
-    { title: "Bad mood", color: colors.red[100] },
-  ];
+  useEffect(() => {
+    fetchMoodScaleData();
+  }, []);
 
-  const triggerRef =
-    React.useRef<React.ElementRef<typeof DropdownMenuTrigger>>(null);
-  const insets = useSafeAreaInsets();
-  const contentInsets = {
-    top: insets.top,
-    bottom: insets.bottom,
-    left: 12,
-    right: 12,
-  };
-
-  const mostInfluentialFactors = {
-    weekly: ["Sport", "Relationships", "Work", "Family"],
-    monthly: ["Travel", "Health", "Work", "Hobbies"],
-  };
-
-  const [selectedDate, setSelectedDate] = useState("");
-  const weeklyData = {
-    labels: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    datasets: [
-      {
-        data: [3, 4, 3, 5, 2, 4, 4],
-        color: () => colors.blue[400],
-        strokeWidth: 2,
-      },
-      {
-        data: [1, 2, 1, 3, 1, 2, 1],
-        color: () => colors.red[400],
-        strokeWidth: 2,
-      },
-    ],
-  };
-
-  const monthlyData = {
-    labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-    datasets: [
-      {
-        data: [12, 15, 11, 14],
-        color: () => colors.blue[400],
-        strokeWidth: 2,
-      },
-      {
-        data: [5, 7, 6, 4],
-        color: () => colors.red[400],
-        strokeWidth: 2,
-      },
-    ],
-  };
+  const filteredRecords = selectedDate
+    ? moodRecords.filter((record) => record.createdAt.startsWith(selectedDate))
+    : moodRecords;
 
   return (
     <ScrollView
@@ -129,139 +108,126 @@ export default function MoodScaleRecord() {
       contentContainerStyle={{ flexGrow: 1, gap: 8, paddingBottom: 20 }}
       className="bg-blue-50/10 flex flex-col gap-4 h-full w-full"
     >
-      <View className="flex-col gap-2 justify-center items-center rounded-xl bg-background py-4 px-4">
-        <View className="flex-1 gap-1 flex-row justify-between items-center w-full ">
-          <Text className="text-lg font-semibold text-neutral-600">
-            Last mood recording
-          </Text>
-          <Link href="/p/account/scale/mood-scale">
+      {/* Last Mood Recording */}
+      {LastMoodOption && (
+        <View className="flex-col gap-2 justify-center items-center rounded-xl bg-background py-4 px-4">
+          <View className="flex-1 gap-1 flex-row justify-between items-center w-full">
+            <Text className="text-lg font-semibold text-neutral-600">
+              Last mood recording
+            </Text>
             <View className="flex-row gap-2 justify-center items-center">
               <AddCircle size="16" color={colors.gray[500]} />
               <Text className="text-sm font-medium text-neutral-600 leading-7 text-center">
                 Add a feeling
               </Text>
             </View>
-          </Link>
+          </View>
+          <Text className="text-xs w-full text-blue-500">
+            {format(
+              new Date(LastMoodOption.createdAt),
+              "EE, dd MMM yyyy, hh:mm a"
+            )}
+          </Text>
+          <LastMoodOption.Icon height={60} width={60} />
+          <Text className="text-sm font-medium text-neutral-600">
+            {LastMoodOption.mood}
+          </Text>
         </View>
-        <Text className="text-xs w-full text-blue-500">
-          {format(new Date(), " EE , dd MMM yyyy , hh:mm a")}
-        </Text>
-        <LastMoodOption.Icon height={60} width={60} />
-        <Text className="text-sm font-medium text-neutral-600">
-          {LastMoodOption.label}
-        </Text>
-      </View>
+      )}
 
+      {/* Mood Chart */}
       <View className="overflow-hidden rounded-xl bg-background py-4 px-4">
         <Text className="text-lg font-semibold">Chart</Text>
-        <LineChart
-          data={data}
-          width={Dimensions.get("window").width + 70} // from react-native
+        { (chartData.weekly.length != 0 || chartData.monthly.length != 0) &&  
+         <LineChart
+          data={{
+            labels:
+              ActiveRecordType === "weekly"
+                ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                : ["Week 1", "Week 2", "Week 3", "Week 4"],
+            datasets: [
+              {
+                data:
+                  ActiveRecordType === "weekly"
+                    ? chartData.weekly
+                    : chartData.monthly,
+                color: () => colors.blue[400],
+                strokeWidth: 2,
+              },
+            ],
+          }}
+          width={Dimensions.get("window").width + 70}
           height={140}
+          chartConfig={chartConfig}
+          bezier
           withInnerLines={false}
           withOuterLines={false}
           withVerticalLabels={false}
           withHorizontalLabels={false}
-          yAxisInterval={1} // optional, defaults to 1
-          chartConfig={chartConfig}
-          bezier
+          yAxisInterval={1}
           style={{
             position: "relative",
             left: -60,
             borderRadius: 0,
             display: "flex",
           }}
-        />
-        {legend.map((dataset, index) => {
-          return (
-            <View key={index} className="flex flex-row items-center gap-2 py-1">
-              <View
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: dataset.color }}
-              ></View>
-              <Text className="text-xs">{dataset.title}</Text>
-            </View>
-          );
-        })}
+        /> 
+        }
       </View>
 
+      {/* Calendar */}
       <View className="flex-col gap-2">
         <View className="flex-row justify-between items-center">
-          <Text className="text-lg font-semibold">Mood record </Text>
+          <Text className="text-lg font-semibold">Mood record</Text>
           <DropdownMenu>
-            <DropdownMenuTrigger ref={triggerRef} asChild>
+            <DropdownMenuTrigger asChild>
               <Button className="bg-primary-50/30 flex-row gap-2">
                 <Text className="text-primary-500 font-semibold">
-                  {toCapitalizeFirstLetter(ActiveRecordType)}{" "}
+                  {toCapitalizeFirstLetter(ActiveRecordType)}
                 </Text>
                 <ArrowCircleDown size="20" color={colors.primary[500]} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent insets={contentInsets} className="w-28">
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  onPress={() => {
-                    setActiveRecordType("weekly");
-                  }}
-                >
-                  <Text>Weekly</Text>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onPress={() => {
-                    setActiveRecordType("monthly");
-                  }}
-                >
-                  <Text>Monthly</Text>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
+            <DropdownMenuContent className="w-28">
+              <DropdownMenuItem onPress={() => setActiveRecordType("weekly")}>
+                <Text>Weekly</Text>
+              </DropdownMenuItem>
+              <DropdownMenuItem onPress={() => setActiveRecordType("monthly")}>
+                <Text>Monthly</Text>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </View>
-
-        {ActiveRecordType === "weekly" ? (
-          <View className="flex-row gap-2">
-            {weeklyData.labels.map((day, index) => (
-              <View
-                key={index}
-                className="flex items-center p-2 flex-1 rounded-lg bg-blue-50/30 border-blue-600"
-              >
-                <Text className="text-sm text-neutral-600">{day}</Text>
-                <Text className="text-xs text-neutral-400">Mood Data</Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Calendar onDayPress={(day) => setSelectedDate(day.dateString)} />
-        )}
-
-        <View className="mt-4">
-          {selectedDate && (
-            <Text className="text-sm text-neutral-500">
-              Selected Date: {format(new Date(selectedDate), "dd MMM yyyy")}
-            </Text>
-          )}
-        </View>
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={{
+            ...markedDates,
+            [selectedDate]: { selected: true },
+          }}
+        />
       </View>
 
-      {/* Influential Factors Section */}
-      <View className="bg-white rounded-xl shadow p-4">
-        <Text className="text-lg font-semibold text-neutral-700">
-          The most influential factors on your mood
-        </Text>
-        <View className="grid grid-cols-2 gap-2 mt-4">
-          {["Sport", "Relationships", "Work", "Family"].map((factor, index) => (
-            <View
-              key={index}
-              className="flex items-center justify-center p-2 bg-blue-100 rounded-lg"
-            >
-              <Text className="text-sm font-medium text-neutral-600">
-                {index + 1}. {factor}
+      {/* Selected Date Records */}
+      {selectedDate && (
+        <View className="bg-white rounded-xl p-4 mt-4">
+          <Text className="text-lg font-semibold text-neutral-700">
+            Mood Records
+          </Text>
+          {filteredRecords.map((record) => (
+            <View key={record._id} className="mt-2">
+              <Text className="text-sm text-neutral-600">
+                Mood: {record.mood}
+              </Text>
+              <Text className="text-sm text-neutral-600">
+                Reasons: {record.reasons.join(", ")}
+              </Text>
+              <Text className="text-sm text-neutral-600">
+                Score: {record.score}
               </Text>
             </View>
           ))}
         </View>
-      </View>
+      )}
     </ScrollView>
   );
 }

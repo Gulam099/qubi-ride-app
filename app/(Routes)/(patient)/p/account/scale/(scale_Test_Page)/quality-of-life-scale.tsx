@@ -22,14 +22,12 @@ type optionType = {
 export default function QualityOfLifeScale() {
   const [currentScreen, setCurrentScreen] = useState("OptionSelectorScreen");
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [selectedReasons, setSelectedReasons] = useState<
-    Record<string, string>
-  >({});
+  const [selectedReasons, setSelectedReasons] = useState({});
   const [selectedMoods, setSelectedMoods] = useState("");
 
   const options: optionType[] = [
     {
-      id: "1",
+      id: "feeling",
       title: "Feeling",
       description: "Choose your mood for the day.",
       type: [
@@ -46,7 +44,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "2",
+      id: "sleep",
       title: "Sleep",
       description: "Track your sleep pattern.",
       type: [
@@ -58,7 +56,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "3",
+      id: "bestForMe",
       title: "Best for me",
       description: "Make a gift, donate, or do something meaningful.",
       type: [
@@ -70,7 +68,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "4",
+      id: "health",
       title: "Health",
       description: "Track your health activities.",
       type: [
@@ -81,7 +79,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "5",
+      id: "communicate",
       title: "Communicating with others",
       description: "Engage with people in your community.",
       type: [
@@ -93,7 +91,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "6",
+      id: "homework",
       title: "Homeworks",
       description: "Track your home-related activities.",
       type: [
@@ -104,7 +102,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "7",
+      id: "hobbies",
       title: "Hobbies",
       description: "Engage in activities you love.",
       type: [
@@ -115,7 +113,7 @@ export default function QualityOfLifeScale() {
       ],
     },
     {
-      id: "8",
+      id: "productivity",
       title: "Productivity",
       description: "Track your productive activities.",
       type: [
@@ -135,8 +133,16 @@ export default function QualityOfLifeScale() {
     );
   };
 
-  const handleReasonSelect = (optionId: string, reason: string) => {
-    setSelectedReasons((prev) => ({ ...prev, [optionId]: reason }));
+  const handleReasonSelect = (
+    optionId: string,
+    reason: string,
+    index: number
+  ) => {
+    const optionLength = options.find((opt) => opt.id === optionId)?.type
+      .length;
+    if (!optionLength) return;
+    const score = (index / optionLength) * 100;
+    setSelectedReasons((prev) => ({ ...prev, [optionId]: { reason, score } }));
   };
 
   const handleSubmit = () => {
@@ -145,9 +151,11 @@ export default function QualityOfLifeScale() {
   };
 
   const handleFinalSubmit = () => {
-    console.log("Final Submission:");
-    console.log("Selected Moods:", selectedMoods);
-    console.log("Selected Reasons:", selectedReasons);
+    const payload = {
+      mood: selectedMoods,
+      activity: selectedReasons,
+    };
+    console.log("Final Submission:", payload);
   };
 
   const OptionSelectorScreen = () => (
@@ -178,7 +186,7 @@ export default function QualityOfLifeScale() {
                 <Text className="text-base font-semibold text-gray-800">
                   {item.title}
                 </Text>
-                <Text className="text-sm text-gray-500">
+                <Text className="text-sm text-gray-500 ">
                   {item.description}
                 </Text>
               </View>
@@ -241,12 +249,14 @@ export default function QualityOfLifeScale() {
                   {option.title}
                 </Text>
                 <View className="flex-row gap-3 flex-wrap">
-                  {option.type.map(({ label, Icon }) => {
+                  {option.type.map(({ label, Icon }, index) => {
                     const isSelected = selectedReasons[option.id] === label;
                     return (
                       <TouchableOpacity
                         key={label}
-                        onPress={() => handleReasonSelect(option.id, label)}
+                        onPress={() =>
+                          handleReasonSelect(option.id, label, index)
+                        }
                         className={cn(
                           "flex-col items-center gap-2 w-[22%]",
                           isSelected && "rounded-lg "

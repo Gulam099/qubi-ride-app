@@ -1,70 +1,50 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Image } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, ScrollView, Image, FlatList } from "react-native";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/ui/Button";
-import { H3, H2 } from "@/components/ui/Typography";
-import { apiBaseUrl } from "@/features/Home/constHome"; // Replace with your base API URL if needed.
+import { H2 } from "@/components/ui/Typography";
 import { toast } from "sonner-native";
+import { supportGroups } from "@/features/supportGroup/constSupportGroup";
+import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
+import BackButton from "@/features/Home/Components/BackButton";
+import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
+import {
+  ChartCircle,
+  ExportCurve,
+  Heart,
+  MessageText,
+  Messages1,
+  People,
+  Profile2User,
+  Star1,
+} from "iconsax-react-native";
+import { Text } from "@/components/ui/Text";
+import ProfileImage from "@/features/account/components/ProfileImage";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/Accordion";
+import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 
 export default function SupportDetailPage() {
   const { support } = useLocalSearchParams();
+  const user: UserType = useSelector((state: any) => state.user);
   const [groupDetails, setGroupDetails] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Mock data for now
-  const mockDetails = {
-    id: 1,
-    title: "Psychological Health",
-    category: "psychological",
-    price: "280 SAR",
-    recorded: 81,
-    rating: 4.3,
-    description:
-      "Mental health is a state of psychological well-being that enables a person to cope with the stresses of life.",
-    details: {
-      goals: [
-        "Increasing awareness about mental health disorders.",
-        "Striving to keep the community mentally safe.",
-      ],
-      content: [
-        "Understanding mental health.",
-        "Explaining the concept of mental health and its importance.",
-        "Providing strategies for dealing with psychological stress.",
-      ],
-      consultants: [
-        {
-          name: "Dr. Deem Abdulla",
-          specialty: "Psychologist",
-          image: "https://via.placeholder.com/100",
-        },
-      ],
-      faq: [
-        {
-          question: "What results will the program achieve after completion?",
-          answer: "Better understanding of mental health.",
-        },
-        {
-          question: "How long is the program valid for?",
-          answer: "Lifetime access.",
-        },
-      ],
-    },
-  };
+  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [showScheduleSelector, setShowScheduleSelector] = useState(false);
 
   useEffect(() => {
-    // Fetch group details dynamically based on the `support` parameter
+    // Fetch group details dynamically
     const fetchGroupDetails = async () => {
       try {
         setLoading(true);
-        // Uncomment below for real API calls
-        // const response = await fetch(`${apiBaseUrl}/api/support-groups/${support}`);
-        // const data = await response.json();
-        // if (response.ok) {
-        //   setGroupDetails(data);
-        // } else {
-        //   toast.error(data.message || "Failed to fetch support group details");
-        // }
-        setGroupDetails(mockDetails); // Using mock data for now
+        const group = supportGroups.find((group) => group.id === support);
+        setGroupDetails(group);
       } catch (error) {
         console.error("Error fetching support group details:", error);
         toast.error("Error fetching support group details");
@@ -75,6 +55,26 @@ export default function SupportDetailPage() {
 
     fetchGroupDetails();
   }, [support]);
+
+  const handleBuy = () => {
+    setShowScheduleSelector(true);
+  };
+
+  const finalSubmit = () => {
+    if (!selectedDateTime) {
+      toast.error("Please select a date and time.");
+      return;
+    }
+
+    const payload = {
+      groupId: groupDetails.id,
+      userId: user._id,
+      dateTime: selectedDateTime,
+    };
+
+    console.log("Final Submission Payload:", payload);
+    toast.success("Schedule confirmed successfully!");
+  };
 
   if (loading) {
     return (
@@ -93,77 +93,209 @@ export default function SupportDetailPage() {
   }
 
   return (
-    <ScrollView className="p-4 bg-blue-50/10 flex-1">
-      {/* Group Header */}
-      <View className="mb-6">
-        <H2>{groupDetails.title}</H2>
-        <Text className="text-gray-500 capitalize">{groupDetails.category}</Text>
-        <Image
-          source={{ uri: groupDetails.details.consultants[0]?.image }}
-          className="w-full h-64 rounded-md mt-4"
-          resizeMode="cover"
-        />
-        <View className="flex-row justify-between items-center mt-4">
-          <Text className="text-gray-700">{groupDetails.recorded} Recorded</Text>
-          <Text className="text-gray-700">{groupDetails.rating} ★ Rate</Text>
-        </View>
-        <Text className="text-gray-600 mt-4">{groupDetails.description}</Text>
-      </View>
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerShadowVisible: false,
+          headerTitle: () => (
+            <Text className="font-semibold text-lg leading-8">
+              {groupDetails.title}
+            </Text>
+          ),
+          headerLeft: () => <BackButton />,
+          headerRight: () => <NotificationIconButton className="mr-4" />,
+        }}
+      />
 
-      {/* Support Group Goals */}
-      <View className="mb-6">
-        <H3>Support Group Goals</H3>
-        {groupDetails.details.goals.map((goal: string, index: number) => (
-          <Text key={`goal-${index}`} className="text-gray-700">
-            • {goal}
-          </Text>
-        ))}
-      </View>
-
-      {/* Program Content */}
-      <View className="mb-6">
-        <H3>Program Content</H3>
-        {groupDetails.details.content.map((content: string, index: number) => (
-          <Text key={`content-${index}`} className="text-gray-700">
-            • {content}
-          </Text>
-        ))}
-      </View>
-
-      {/* Consultants */}
-      <View className="mb-6">
-        <H3>Consultants</H3>
-        <View className="flex-row gap-4">
-          {groupDetails.details.consultants.map((consultant: any, index: number) => (
-            <View key={`consultant-${index}`} className="items-center">
+      <ScrollView className=" bg-blue-50/10 flex-1">
+        {!showScheduleSelector ? (
+          <View className="px-4 py-4 gap-4">
+            {/* Group Header */}
+            <View className="bg-white py-6  rounded-2xl">
+              <View className="flex-row justify-between pb-4">
+                <View className="gap-2 px-4">
+                  <Text className="font-semibold text-xl">
+                    {groupDetails.title}
+                  </Text>
+                  <Text className="text-gray-500 capitalize">
+                    {groupDetails.category}
+                  </Text>
+                </View>
+                <View className="gap-3 px-4 flex-row items-center justify-center">
+                  <View className="p-2 bg-blue-50/20 aspect-square rounded-full items-center justify-center">
+                    <ExportCurve size="20" color="#000" />
+                  </View>
+                  <Text className="text-gray-500 leading-8">
+                    {groupDetails.shares}
+                  </Text>
+                  <View className="p-2 bg-blue-50/20 aspect-square rounded-full items-center justify-center">
+                    <Heart size="20" color="#000" />
+                  </View>
+                  <Text className="text-gray-500 leading-8 ">
+                    {groupDetails.likes}
+                  </Text>
+                </View>
+              </View>
               <Image
-                source={{ uri: consultant.image }}
-                className="w-16 h-16 rounded-full"
+                source={groupDetails.image}
+                className="w-full h-64"
+                resizeMode="cover"
               />
-              <Text className="text-gray-700 mt-2 text-center">{consultant.name}</Text>
-              <Text className="text-gray-500">{consultant.specialty}</Text>
+              <View className="px-4 py-6 gap-4">
+                <View className="gap-3 flex-row items-center justify-start">
+                  <View className="p-2 bg-blue-50/20 aspect-square rounded-full items-center justify-center">
+                    <People size="20" color="#000" />
+                  </View>
+                  <Text className="text-gray-500 leading-8">
+                    {groupDetails.recordedCount} Recorded
+                  </Text>
+                  <View className="p-2 bg-blue-50/20 aspect-square rounded-full items-center justify-center">
+                    <Star1 size="20" color="#000" />
+                  </View>
+                  <Text className="text-gray-500 leading-8 ">
+                    {groupDetails.rating} Rate
+                  </Text>
+                </View>
+                <Text className="text-gray-600 mt-4">
+                  {groupDetails.description}
+                </Text>
+              </View>
             </View>
-          ))}
-        </View>
-      </View>
 
-      {/* FAQ */}
-      <View className="mb-6">
-        <H3>Frequently Asked Questions (FAQ)</H3>
-        {groupDetails.details.faq.map((faq: any, index: number) => (
-          <View key={`faq-${index}`} className="mb-4">
-            <Text className="font-semibold">{faq.question}</Text>
-            <Text className="text-gray-700">{faq.answer}</Text>
+            {/* Support Group Goals */}
+            <View className="gap-2">
+              <View className="gap-2 flex-row items-center justify-start">
+                <View className="bg-white rounded-full p-2">
+                  <ChartCircle size="24" color="#000" />
+                </View>
+                <Text className="font-semibold text-xl leading-10">
+                  Support Group Goals
+                </Text>
+              </View>
+              {groupDetails.groupGoals.map((goal: string, index: number) => (
+                <Text key={`goal-${index}`} className="text-gray-700 pl-6 ">
+                  • {goal}
+                </Text>
+              ))}
+            </View>
+
+            {/* Program Content */}
+            <View className="gap-2">
+              <View className="gap-2 flex-row items-center justify-start">
+                <View className="bg-white rounded-full p-2">
+                  <MessageText size="24" color="#000" />
+                </View>
+                <Text className="font-semibold text-xl leading-10">
+                  Program Content
+                </Text>
+              </View>
+              {groupDetails.programContent.map(
+                (content: any, index: number) => (
+                  <Text key={`content-${index}`} className="text-gray-700 pl-6">
+                    • {content.title}: {content.description}
+                  </Text>
+                )
+              )}
+            </View>
+
+            {/* Consultants */}
+            <View className="gap-2">
+              <View className="gap-2 flex-row items-center justify-start">
+                <View className="bg-white rounded-full p-2">
+                  <Profile2User size="24" color="#000" />
+                </View>
+                <Text className="font-semibold text-xl leading-10">
+                  Consultants
+                </Text>
+              </View>
+              <FlatList
+                data={groupDetails.consultants}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <View className="items-center bg-white flex-row gap-2 py-4 px-6 rounded-2xl">
+                    <ProfileImage
+                      className="size-16"
+                      imageUrl={item.image}
+                      name={item.name}
+                    />
+                    <View className="flex-col gap-1">
+                      <Text className="text-gray-800 mt-2 text-center font-medium text-lg">
+                        {item.name}
+                      </Text>
+                      <Text className="text-gray-500 text-sm">
+                        {item.specialization}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                contentContainerClassName="gap-2 py-6"
+              />
+            </View>
+
+            {/* FAQ */}
+            <View className="gap-2">
+              <View className="gap-2 flex-row items-center justify-start">
+                <View className="bg-white rounded-full p-2">
+                  <Messages1 size="24" color="#000" />
+                </View>
+                <Text className="font-semibold text-xl leading-10">
+                  Frequently Asked Questions ( FAQ )
+                </Text>
+              </View>
+              <Accordion
+                type="multiple"
+                collapsible
+                defaultValue={["item-1"]}
+                className="w-full max-w-sm native:max-w-md"
+              >
+                {groupDetails.faq.map((faq: any, index: number) => (
+                  <AccordionItem value={`faq-${index}`} key={`faq-${index}`}>
+                    <AccordionTrigger>
+                      <Text>{faq.question}</Text>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Text>{faq.answer}</Text>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </View>
+
+            <Button
+              className="w-full bg-purple-600 py-4 rounded-md my-6"
+              onPress={handleBuy}
+            >
+              <Text className="text-white font-semibold">
+                Pay {currencyFormatter(groupDetails.price)}
+              </Text>
+            </Button>
           </View>
-        ))}
-      </View>
-
-      {/* Action Button */}
-      <Button className="w-full bg-purple-600 py-4 rounded-md">
-        <Text className="text-white font-semibold">
-          Pay {groupDetails.price}
-        </Text>
-      </Button>
-    </ScrollView>
+        ) : (
+          <View className="p-4 gap-4">
+            {/* Schedule Selector */}
+            <ScheduleSelector
+              selectedDateTime={selectedDateTime}
+              setSelectedDateTime={setSelectedDateTime}
+              availableTimes={groupDetails.availableDates}
+            />
+            <Button className="w-full " onPress={finalSubmit}>
+              <Text className="text-white font-semibold">Confirm Schedule</Text>
+            </Button>
+            <Button
+              className="w-full "
+              variant={"ghost"}
+              onPress={() => {
+                setShowScheduleSelector(false);
+              }}
+            >
+              <Text className="text-neutral-700 font-semibold">Back</Text>
+            </Button>
+          </View>
+        )}
+      </ScrollView>
+    </>
   );
 }

@@ -13,7 +13,7 @@ import { toKebabCase } from "@/utils/string.utils";
 export default function SupportPage() {
   const [ActiveTab, setActiveTab] = useState("All");
 
-  const handleCardPress = (id: number) => {
+  const handleCardPress = (id: string) => {
     console.log("Card Pressed:", id);
     // Navigate to details page or perform any action
   };
@@ -71,11 +71,11 @@ export default function SupportPage() {
               title={item.title}
               category={item.category}
               price={item.price}
-              recorded={item.recorded}
+              recorded={item.recordedCount}
               rating={item.rating}
               image={item.image}
               onPress={() => handleCardPress(item.id)}
-              link={`/p/support/${toKebabCase(item.title)}`}
+              link={`/p/support/${toKebabCase(item.id)}`}
             />
           )}
           contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
