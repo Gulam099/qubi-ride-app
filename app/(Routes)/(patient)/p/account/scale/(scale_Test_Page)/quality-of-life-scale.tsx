@@ -2,14 +2,18 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Text } from "@/components/ui/Text";
-import { CustomIcons } from "@/const";
+import { CustomIcons, apiNewUrl } from "@/const";
 import { moodOptions } from "@/features/scale/constScale";
+import { UserType } from "@/features/user/types/user.type";
 import { cn } from "@/lib/utils";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { useSelector } from "react-redux";
+import { toast } from "sonner-native";
 
-type optionType = {
+type OptionType = {
   id: string;
   title: string;
   description: string;
@@ -19,13 +23,21 @@ type optionType = {
   }[];
 };
 
+type ReasonType = {
+  type: string;
+  reason: string;
+  score: number;
+};
+
 export default function QualityOfLifeScale() {
+  const router = useRouter(); // Initialize router
+  const user: UserType = useSelector((state: any) => state.user);
   const [currentScreen, setCurrentScreen] = useState("OptionSelectorScreen");
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [selectedReasons, setSelectedReasons] = useState({});
+  const [selectedReasons, setSelectedReasons] = useState<ReasonType[]>([]);
   const [selectedMoods, setSelectedMoods] = useState("");
 
-  const options: optionType[] = [
+  const options: OptionType[] = [
     {
       id: "feeling",
       title: "Feeling",
@@ -124,7 +136,6 @@ export default function QualityOfLifeScale() {
       ],
     },
   ];
-
   const handleSelection = (id: string) => {
     setSelectedOptions((prev) =>
       prev.includes(id)
@@ -141,21 +152,53 @@ export default function QualityOfLifeScale() {
     const optionLength = options.find((opt) => opt.id === optionId)?.type
       .length;
     if (!optionLength) return;
-    const score = (index / optionLength) * 100;
-    setSelectedReasons((prev) => ({ ...prev, [optionId]: { reason, score } }));
+
+    const score = Math.round((index / (optionLength - 1)) * 100); // Calculate score
+    setSelectedReasons((prev) => {
+      const updatedReasons = prev.filter((reason) => reason.type !== optionId);
+      return [...updatedReasons, { type: optionId, reason, score }];
+    });
   };
 
   const handleSubmit = () => {
+    if (selectedOptions.length === 0) {
+      return toast.error("Please select at least one option.");
+    }
     setCurrentScreen("DataCollectScreen");
-    console.log("Selected Options:", selectedOptions);
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     const payload = {
       mood: selectedMoods,
       activity: selectedReasons,
+      userId: user._id,
     };
-    console.log("Final Submission:", payload);
+
+    try {
+      const response = await fetch(
+        `${apiNewUrl}/life_scale/scale/quality-life`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Final Submission:", payload);
+        toast.success("Data submitted successfully!");
+        router.push("/p/account/scale/record/quality-of-life-scale-record"); // Navigate to the next page
+      } else {
+        const errorData = await response.json();
+        console.error("Error submitting data:", errorData);
+        toast.error("Failed to submit data. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error during submission:", error);
+      toast.error("An error occurred while submitting data. Please try again.");
+    }
   };
 
   const OptionSelectorScreen = () => (
@@ -174,27 +217,22 @@ export default function QualityOfLifeScale() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="flex-1 border-none shadow-none"
+            className="flex-1"
             onPress={() => handleSelection(item.id)}
           >
-            <Card className="flex-1 flex-col gap-2 items-start p-4 rounded-2xl bg-white h-32">
+            <Card className="p-4 rounded-2xl bg-white h-32">
               <Checkbox
                 checked={selectedOptions.includes(item.id)}
                 onCheckedChange={() => handleSelection(item.id)}
               />
-              <View>
-                <Text className="text-base font-semibold text-gray-800">
-                  {item.title}
-                </Text>
-                <Text className="text-sm text-gray-500 ">
-                  {item.description}
-                </Text>
-              </View>
+              <Text className="text-base font-semibold text-gray-800">
+                {item.title}
+              </Text>
+              <Text className="text-sm text-gray-500">{item.description}</Text>
             </Card>
           </TouchableOpacity>
         )}
       />
-
       <Button
         onPress={handleSubmit}
         className="mt-6 w-full"
@@ -211,18 +249,18 @@ export default function QualityOfLifeScale() {
         <Text className="text-lg font-bold text-gray-700 mb-2">
           How are you today?
         </Text>
-        <View className="flex-row gap-2 justify-center items-center relative overflow-visible p-2">
+        <View className="flex-row gap-2 justify-center items-center relative p-2">
           {moodOptions.map(({ label, Icon }) => (
             <TouchableOpacity
               key={label}
               onPress={() => setSelectedMoods(label)}
               className={`flex-col items-center gap-3 ${
-                selectedMoods === label ? "" : ""
+                selectedMoods === label ? "opacity-100" : "opacity-70"
               }`}
             >
               <Icon height={60} width={60} />
               <Text
-                className={`font-semibold text-sm  ${
+                className={`font-semibold text-sm ${
                   selectedMoods === label ? "text-blue-500" : "text-neutral-600"
                 }`}
               >
@@ -231,7 +269,6 @@ export default function QualityOfLifeScale() {
             </TouchableOpacity>
           ))}
         </View>
-
         <View className="mt-6">
           <Text className="text-lg font-bold text-gray-700 mb-2">
             Selected Activities
@@ -250,7 +287,10 @@ export default function QualityOfLifeScale() {
                 </Text>
                 <View className="flex-row gap-3 flex-wrap">
                   {option.type.map(({ label, Icon }, index) => {
-                    const isSelected = selectedReasons[option.id] === label;
+                    const isSelected = selectedReasons.some(
+                      (reason) =>
+                        reason.type === option.id && reason.reason === label
+                    );
                     return (
                       <TouchableOpacity
                         key={label}
@@ -259,7 +299,7 @@ export default function QualityOfLifeScale() {
                         }
                         className={cn(
                           "flex-col items-center gap-2 w-[22%]",
-                          isSelected && "rounded-lg "
+                          isSelected && " p-2 rounded-lg"
                         )}
                       >
                         <Icon height={40} width={40} />
@@ -279,10 +319,9 @@ export default function QualityOfLifeScale() {
             );
           })}
         </View>
-
         <Button
           onPress={handleFinalSubmit}
-          className="mt-6 w-full py-3  text-white "
+          className="mt-6 w-full py-3 bg-blue-600"
         >
           <Text className="text-white font-semibold">Save Feeling</Text>
         </Button>

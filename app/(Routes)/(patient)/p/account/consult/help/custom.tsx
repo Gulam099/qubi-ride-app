@@ -5,15 +5,18 @@ import SpecialistCard from "@/features/account/components/SpecialistCard";
 import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
 
 import { Button } from "@/components/ui/Button";
+import { apiNewUrl } from "@/const";
+import { toast } from "sonner-native";
 
 type Specialist = {
-  id: number;
+  id: string;
   name: string;
   title: string;
-  price: string;
-  likes: string;
+  price: number;
+  likes: number;
   imageUrl: string;
 };
+
 export default function CustomConsultPage() {
   const router = useRouter();
   const {
@@ -38,117 +41,53 @@ export default function CustomConsultPage() {
   const [selectedSpecialist, setSelectedSpecialist] = useState<
     Specialist | undefined
   >();
-
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
 
-  // Consolidated available times as ISO strings
-  const availableTimes = [
-    "2024-12-26T11:00:00Z",
-    "2024-12-26T13:00:00Z",
-    "2024-12-26T15:00:00Z",
-    "2024-12-27T09:00:00Z",
-    "2024-12-27T12:00:00Z",
-    "2024-12-27T16:00:00Z",
-    "2024-12-28T10:00:00Z",
-    "2024-12-28T14:00:00Z",
-    "2024-12-17T02:15:00Z",
-  ];
-
-  // Mock API call
+  // Fetch doctors and filter based on the query params
   useEffect(() => {
-    const fetchData = async () => {
-      // Simulated data (replace with real API fetch)
-      const data = [
-        {
-          id: 1,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "800",
-          likes: "180",
-          imageUrl: "https://via.placeholder.com/100", // Replace with real image
-        },
-        {
-          id: 2,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "1800",
-          likes: "1850",
-          imageUrl: "https://via.placeholder.com/100",
-        },
-        {
-          id: 3,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "2000",
-          likes: "180",
-          imageUrl: "https://via.placeholder.com/100",
-        },
-        {
-          id: 4,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "800",
-          likes: "180",
-          imageUrl: "https://via.placeholder.com/100", // Replace with real image
-        },
-        {
-          id: 5,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "1800",
-          likes: "1850",
-          imageUrl: "https://via.placeholder.com/100",
-        },
-        {
-          id: 6,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "2000",
-          likes: "180",
-          imageUrl: "https://via.placeholder.com/100",
-        },
-        {
-          id: 7,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "1800",
-          likes: "1850",
-          imageUrl: "https://via.placeholder.com/100",
-        },
-        {
-          id: 8,
-          name: "Dr. Deem Abdullah",
-          title:
-            "Consultant physician, certified by the Saudi Board in Psychiatry",
-          price: "2000",
-          likes: "180",
-          imageUrl: "https://via.placeholder.com/100",
-        },
-      ];
-      setSpecialists(data);
+    const fetchSpecialists = async () => {
+      try {
+        const response = await fetch(`${apiNewUrl}/doctors/list`);
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          const filteredSpecialists = result.data
+            .filter(
+              (doctor: any) =>
+                doctor.approvalStatus === "Approved" &&
+                (!type || doctor.speciality?.includes(type)) &&
+                (!language || doctor.languagesKnown?.includes(language)) &&
+                (!gender || doctor.gender === gender) &&
+                (!budget || doctor.fees <= parseFloat(budget))
+            )
+            .map((doctor: any) => ({
+              id: doctor._id,
+              name: doctor.name,
+              title: doctor.speciality || "Specialist",
+              price: doctor.fees || 0,
+              likes: doctor.likes || 0,
+              imageUrl: doctor.image || "https://via.placeholder.com/100",
+            }));
+
+          setSpecialists(filteredSpecialists);
+        } else {
+          toast.error("Failed to fetch specialists.");
+        }
+      } catch (error) {
+        console.error("Error fetching specialists:", error);
+        toast.error("An error occurred while fetching specialists.");
+      }
     };
 
-    fetchData();
-  }, []);
+    fetchSpecialists();
+  }, [type, language, gender, budget]);
 
-  // Handle card press
   const onPressSpecialistCard = (item: Specialist) => {
     setSelectedSpecialist(item);
-    console.log("Selected Specialist:", item);
   };
 
   return (
-    <View className="px-4 py-6 bg-blue-50/10 h-full w-full ">
-      {/* <Text>
-        Search: {situation + " / " +  budget + " / " + type +  " / "  + language +  " / "  + gender +  " / "  + duration +  " / "  + ClosestAppointment}
-      </Text> */}
+    <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
       {!selectedSpecialist ? (
         <View className="flex-col gap-3">
           <Text className="text-lg font-medium">
@@ -158,7 +97,7 @@ export default function CustomConsultPage() {
 
           <FlatList
             data={specialists}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <SpecialistCard
                 name={item.name}
@@ -166,12 +105,17 @@ export default function CustomConsultPage() {
                 price={item.price}
                 likes={item.likes}
                 imageUrl={item.imageUrl}
-                shareLink={`item.id`}
+                shareLink={`${item.id}`}
                 onPress={() => onPressSpecialistCard(item)}
               />
             )}
             showsVerticalScrollIndicator={false}
-            contentContainerClassName="flex flex-col gap-3 "
+            contentContainerClassName="flex flex-col gap-3"
+            ListEmptyComponent={() => (
+              <Text className="text-center text-gray-500">
+                No specialists match your search criteria.
+              </Text>
+            )}
           />
         </View>
       ) : (
@@ -180,7 +124,9 @@ export default function CustomConsultPage() {
             <ScheduleSelector
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
-              availableTimes={availableTimes}
+              availableTimes={
+                specialists.length > 0 ? selectedSpecialist?.availableTimes : []
+              }
               CalenderHeading={"Available Dates"}
               TimeSliderHeading={"Available Times"}
             />
@@ -191,14 +137,15 @@ export default function CustomConsultPage() {
                 pathname: "/p/account/payment",
                 params: {
                   appointmentDuration: duration,
-                  specialistsId: selectedSpecialist.id,
+                  specialistsId: selectedSpecialist?.id,
                   schedule: selectedDateTime,
-                  amount: selectedSpecialist.price
+                  amount: selectedSpecialist?.price,
                 },
               })
             }
+            disabled={!selectedDateTime}
           >
-            <Text className=" text-background font-semibold">Next</Text>
+            <Text className="text-white font-semibold">Next</Text>
           </Button>
         </View>
       )}

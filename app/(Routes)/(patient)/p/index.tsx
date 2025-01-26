@@ -30,6 +30,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { apiNewUrl } from "@/const";
+import { toast } from "sonner-native";
 
 export default function PatientPage() {
   const insets = useSafeAreaInsets();
@@ -40,7 +42,12 @@ export default function PatientPage() {
     right: 12,
   };
   const user = useSelector((state: any) => state.user);
-  const { control, handleSubmit, setValue, watch, reset } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
     defaultValues: {
       sex: "",
       category: "",
@@ -52,10 +59,35 @@ export default function PatientPage() {
     },
   });
 
-  const onSubmit = (data: any) => {
-    console.log("Submitted Data:", data);
-    reset();
-    setisInstedBookingDrawerOpen(false);
+  const onSubmit = async (data: any) => {
+    try {
+      const response = await fetch(`${apiNewUrl}/booking/instant`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          userId: user._id,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Booking successful!");
+        reset();
+        setisInstedBookingDrawerOpen(false);
+        const result = await response.json();
+        console.log("Booking result:", result);
+
+        router.push("/(Routes)/(patient)/(nt)/payment/1234");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Booking failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error during booking:", error);
+      toast.error("An error occurred while booking. Please try again.");
+    }
   };
 
   if (!user.isAuthenticated) {
@@ -114,7 +146,7 @@ export default function PatientPage() {
           </Text>
         </Button>
 
-        <View className="flex-row">
+        {/* <View className="flex-row">
           <Button
             className="bg-blue-50/30 backdrop-blur-md "
             onPress={() => router.push("/(Routes)/(patient)/(nt)/text")}
@@ -143,13 +175,23 @@ export default function PatientPage() {
               Chat
             </Text>
           </Button>
-        </View>
+          <Button
+            className="bg-blue-50/30 backdrop-blur-md "
+            onPress={() =>
+              router.push("/(Routes)/(patient)/(nt)/payment/56565")
+            }
+          >
+            <Text className="font-medium text-left w-full text-neutral-700">
+              Payment
+            </Text>
+          </Button>
+        </View> */}
       </View>
 
       <Drawer
         visible={isInstedBookingDrawerOpen}
         onClose={() => setisInstedBookingDrawerOpen(false)}
-        title="My Drawer"
+        title="Book an Instant Session"
         className="max-h-[100%]"
         height="100%"
       >
@@ -159,11 +201,12 @@ export default function PatientPage() {
         >
           {/* Sex Selection */}
           <Text className="font-semibold">Sex</Text>
-          <View className="flex-row gap-2 ">
+          <View className="flex-row gap-2">
             {["Male", "Female", "Rather not say"].map((sex) => (
               <Controller
                 key={sex}
                 control={control}
+                rules={{ required: "Sex is required." }}
                 name="sex"
                 render={({ field: { onChange, value } }) => (
                   <Button
@@ -182,6 +225,9 @@ export default function PatientPage() {
               />
             ))}
           </View>
+          {errors.sex && (
+            <Text className="text-red-500 text-sm">{errors.sex.message}</Text>
+          )}
 
           {/* Specialist Category */}
           <View className="flex-row gap-3 items-center">
@@ -190,8 +236,8 @@ export default function PatientPage() {
               <TooltipTrigger className="rounded-full p-1">
                 <InfoCircle size="20" color="#000" />
               </TooltipTrigger>
-              <TooltipContent insets={contentInsets}>
-                <Text className="native:text-lg">Add to library</Text>
+              <TooltipContent>
+                <Text className="text-lg">Select a category</Text>
               </TooltipContent>
             </Tooltip>
           </View>
@@ -206,6 +252,7 @@ export default function PatientPage() {
               <Controller
                 key={category}
                 control={control}
+                rules={{ required: "Category is required." }}
                 name="category"
                 render={({ field: { onChange, value } }) => (
                   <Button
@@ -226,12 +273,18 @@ export default function PatientPage() {
               />
             ))}
           </View>
+          {errors.category && (
+            <Text className="text-red-500 text-sm">
+              {errors.category.message}
+            </Text>
+          )}
 
           {/* Specialization */}
           <Text className="font-semibold">Specialization</Text>
           <Controller
             control={control}
             name="specialization"
+            rules={{ required: "Specialization is required." }}
             render={({ field: { onChange, value } }) => (
               <Input
                 placeholder="Write the specific specialization"
@@ -240,14 +293,20 @@ export default function PatientPage() {
               />
             )}
           />
+          {errors.specialization && (
+            <Text className="text-red-500 text-sm">
+              {errors.specialization.message}
+            </Text>
+          )}
 
           {/* Language Selection */}
           <Text className="font-semibold">Language</Text>
-          <View className="flex-row gap-2 ">
+          <View className="flex-row gap-2">
             {["French", "English", "Arabic"].map((language) => (
               <Controller
                 key={language}
                 control={control}
+                rules={{ required: "Language is required." }}
                 name="language"
                 render={({ field: { onChange, value } }) => (
                   <Button
@@ -268,14 +327,20 @@ export default function PatientPage() {
               />
             ))}
           </View>
+          {errors.language && (
+            <Text className="text-red-500 text-sm">
+              {errors.language.message}
+            </Text>
+          )}
 
           {/* Duration Selection */}
           <Text className="font-semibold">Duration</Text>
-          <View className="flex-row gap-2 ">
+          <View className="flex-row gap-2">
             {["60 minutes", "45 minutes", "30 minutes"].map((duration) => (
               <Controller
                 key={duration}
                 control={control}
+                rules={{ required: "Duration is required." }}
                 name="duration"
                 render={({ field: { onChange, value } }) => (
                   <Button
@@ -296,12 +361,18 @@ export default function PatientPage() {
               />
             ))}
           </View>
+          {errors.duration && (
+            <Text className="text-red-500 text-sm">
+              {errors.duration.message}
+            </Text>
+          )}
 
           {/* Overview of the Consultation */}
           <Text className="font-semibold">Overview of the Consultation</Text>
           <Controller
             control={control}
             name="overview"
+            rules={{ required: "Overview is required." }}
             render={({ field: { onChange, value } }) => (
               <Input
                 placeholder="Write a brief overview for the specialist about the consultation"
@@ -310,10 +381,15 @@ export default function PatientPage() {
               />
             )}
           />
+          {errors.overview && (
+            <Text className="text-red-500 text-sm">
+              {errors.overview.message}
+            </Text>
+          )}
 
           {/* Closest Appointment */}
           <View className="flex-row items-center justify-between">
-            <Text className=" font-semibold">Closest Appointment</Text>
+            <Text className="font-semibold">Closest Appointment</Text>
             <Controller
               control={control}
               name="closestAppointment"

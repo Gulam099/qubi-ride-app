@@ -5,7 +5,7 @@ import { userSchema } from "../schema/user.schema";
 
 export async function updateUser(payload: {
   phoneNumber: string;
-  data: Partial<z.infer<typeof userSchema>>;
+  data: Partial<z.infer<typeof userSchema>> | null;
 }): Promise<{ success: boolean; message: string; data?: any }> {
   try {
     const { phoneNumber, data } = payload;

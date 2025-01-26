@@ -1,70 +1,51 @@
+import React, { useEffect, useState } from "react";
 import { View, Text, FlatList } from "react-native";
-import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/Calendar";
 import ScheduleCalendarCard from "@/features/account/components/ScheduleCalendarCard";
-import { format } from "date-fns";
+import { useSelector } from "react-redux";
+import { UserType } from "@/features/user/types/user.type";
 
-export default function AccountCalenderPage() {
-  // Mock API function
-  const fetchSchedulesForMonth = async (month: string, year: string) => {
-    // Simulated API response
-    const mockResponse = [
-      {
-        id: "1",
-        time: "2025-01-02T12:00:00Z",
-        title: "Anxiety program",
-        description: "Simple text, not more than one line",
-      },
-      {
-        id: "2",
-        time: "2025-01-02T14:00:00Z",
-        title: "Depression support group",
-        description: "Short description for this schedule",
-      },
-      {
-        id: "3",
-        time: "2025-01-05T15:00:00Z",
-        title: "Mindfulness workshop",
-        description: "Simple text, not more than one line",
-      },
-      {
-        id: "3",
-        time: "2025-02-05T14:00:00Z",
-        title: "Depression support group",
-        description: "Short description for this schedule",
-      },
-      {
-        id: "4",
-        time: "2024-12-15T15:00:00Z",
-        title: "Mindfulness workshop",
-        description: "Simple text, not more than one line",
-      },
-    ];
-
-    return mockResponse.filter((item) =>
-      item.time.startsWith(`${year}-${month.padStart(2, "0")}`)
-    );
-  };
-
+export default function AccountCalendarPage() {
+  const user: UserType = useSelector((state: any) => state.user); // Fetch user details from Redux state
   const [markedDates, setMarkedDates] = useState({});
   const [scheduleData, setScheduleData] = useState([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const handleMonthChange = (date: { month: number; year: number }) => {
-    const { month, year } = date;
-    fetchSchedulesForMonth(month.toString(), year.toString()).then((data) => {
-      const marks = {};
-      data.forEach((item) => {
-        const date = item.time.split("T")[0]; // Extract date part from ISO string
-        if (!marks[date]) {
-          marks[date] = { marked: true };
-        }
-      });
+  const fetchSchedulesForMonth = async (month: number, year: number) => {
+    try {
+      const response = await fetch(
+        `http://159.65.158.38/booking/calendar?userId=${user._id}&month=${month}&year=${year}`
+      );
+      const result = await response.json();
 
-      setMarkedDates(marks);
-      setScheduleData(data);
-      setSelectedDate(""); // Clear selected date when the month changes
+      if (response.ok && result.success) {
+        return result.data;
+      } else {
+        // console.error("Failed to fetch schedules:", result.message);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+      return [];
+    }
+  };
+
+  const handleMonthChange = async (date: { month: number; year: number }) => {
+    const { month, year } = date;
+
+    const data = await fetchSchedulesForMonth(month, year);
+
+    const marks = {};
+    data.forEach((item: any) => {
+      const date = item.time.split("T")[0]; // Extract date part from ISO string
+      if (!marks[date]) {
+        marks[date] = { marked: true };
+      }
     });
+
+    setMarkedDates(marks);
+    setScheduleData(data);
+    setSelectedDate(""); // Clear selected date when the month changes
   };
 
   const handleDayPress = (date: { dateString: string }) => {
@@ -73,12 +54,13 @@ export default function AccountCalenderPage() {
 
   const fetchCurrentMonthData = async () => {
     const currentDate = new Date();
-    const currentMonth = (currentDate.getMonth() + 1).toString();
-    const currentYear = currentDate.getFullYear().toString();
+    const currentMonth = currentDate.getMonth() + 1; // Get month as a number
+    const currentYear = currentDate.getFullYear();
 
     const data = await fetchSchedulesForMonth(currentMonth, currentYear);
+
     const marks = {};
-    data.forEach((item) => {
+    data.forEach((item: any) => {
       const date = item.time.split("T")[0]; // Extract date part from ISO string
       if (!marks[date]) {
         marks[date] = { marked: true };
@@ -95,7 +77,7 @@ export default function AccountCalenderPage() {
   }, []);
 
   const filteredSchedules = selectedDate
-    ? scheduleData.filter((item) => item.time.startsWith(selectedDate))
+    ? scheduleData.filter((item: any) => item.time.startsWith(selectedDate))
     : scheduleData;
 
   return (
@@ -114,8 +96,8 @@ export default function AccountCalenderPage() {
 
       <FlatList
         data={filteredSchedules}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={(item: any) => item.id}
+        renderItem={({ item }: any) => (
           <ScheduleCalendarCard
             time={item.time}
             title={item.title}
@@ -125,6 +107,11 @@ export default function AccountCalenderPage() {
           />
         )}
         contentContainerClassName="flex flex-col gap-3"
+        ListEmptyComponent={() => (
+          <Text className="text-gray-500 text-center mt-4">
+            No schedules available for the selected date.
+          </Text>
+        )}
       />
     </View>
   );

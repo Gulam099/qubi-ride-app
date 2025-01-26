@@ -11,28 +11,13 @@ import { Textarea } from "@/components/ui/Textarea";
 import { toast } from "sonner-native";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
-
-const fakeApiData = [
-  {
-    id: "1",
-    status: "Open",
-    topic: "Problem",
-    type: "Financial",
-    subject: "I can't add a credit card",
-  },
-  {
-    id: "2",
-    status: "Closed",
-    topic: "Problem",
-    type: "Financial",
-    subject: "I can't add a credit card",
-  },
-];
+import { apiNewUrl } from "@/const";
 
 export default function TicketPage() {
   const user: UserType = useSelector((state: any) => state.user);
   const [tickets, setTickets] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   const {
     control,
     handleSubmit,
@@ -47,36 +32,72 @@ export default function TicketPage() {
   });
 
   useEffect(() => {
-    // Simulate fetching tickets from a fake API
-    setTimeout(() => {
-      setTickets(fakeApiData);
-    }, 1000);
+    const fetchTickets = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${apiNewUrl}/ticket/list`);
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setTickets(result.data);
+        } else {
+          throw new Error(result.message || "Failed to fetch tickets.");
+        }
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+        toast.error("Error loading tickets.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTickets();
   }, []);
 
   const handleAddNewTicket = () => {
     setShowForm(true);
   };
 
-  const onSubmit = (data: { topic: any; type: any; details: any }) => {
-    const newTicket = {
-      id: (tickets.length + 1).toString(),
-      status: "Open",
-      topic: data.topic,
-      type: data.type,
-      subject: data.details,
-    };
-    setTickets((prev) => [...prev, newTicket]);
-    console.log("New Ticket", {
-      userId: user._id,
-      topic: data.topic,
-      type: data.type,
-      subject: data.details,
-    });
+  const onSubmit = async (data: { topic: any; type: any; details: any }) => {
+    try {
+      const newTicket = {
+        topic: data.topic,
+        type: data.type,
+        details: data.details,
+        userId: user._id,
+      };
 
-    toast.success("Ticket Created Successfully");
-    setShowForm(false);
-    reset();
+      const response = await fetch(`${apiNewUrl}/ticket/list`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTicket),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setTickets((prev) => [...prev, result.data]);
+        toast.success("Ticket Created Successfully");
+        setShowForm(false);
+        reset();
+      } else {
+        throw new Error(result.message || "Failed to create ticket.");
+      }
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast.error("Error creating ticket.");
+    }
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-gray-500">Loading...</Text>
+      </View>
+    );
+  }
 
   if (showForm) {
     return (

@@ -20,18 +20,19 @@ export default function AccountLayout() {
       }}
     >
       <Stack.Screen
-        name="notification/index"
-        options={{
-          title: "Notification",
-        }}
-      />
-      <Stack.Screen
         name="index"
         options={{
           title: "In",
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="notification/index"
+        options={{
+          title: "Notification",
+        }}
+      />
+
       <Stack.Screen
         name="calendar/index"
         options={{

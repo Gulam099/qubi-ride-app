@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, ScrollView, Image, FlatList } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/ui/Button";
-import { H2 } from "@/components/ui/Typography";
 import { toast } from "sonner-native";
-import { supportGroups } from "@/features/supportGroup/constSupportGroup";
 import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
@@ -29,9 +27,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/Accordion";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+import { apiNewUrl } from "@/const";
 
-export default function ProgramDetailPage() {
-  const { program } = useLocalSearchParams();
+export default function ProgramPage() {
+  const { program } = useLocalSearchParams(); // Get groupId from route params
   const user: UserType = useSelector((state: any) => state.user);
   const [groupDetails, setGroupDetails] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,10 +42,18 @@ export default function ProgramDetailPage() {
     const fetchGroupDetails = async () => {
       try {
         setLoading(true);
-        const group = supportGroups.find((group) => group.id === program);
-        setGroupDetails(group);
+        const response = await fetch(
+          `${apiNewUrl}/program/get_program_by_id?programId=${program}`
+        );
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setGroupDetails(result.data);
+        } else {
+          throw new Error(result.message || "Failed to fetch group details");
+        }
       } catch (error) {
-        console.error("Error fetching support group details:", error);
+        console.error("Error fetching group details:", error);
         toast.error("Error fetching support group details");
       } finally {
         setLoading(false);
@@ -60,20 +67,36 @@ export default function ProgramDetailPage() {
     setShowScheduleSelector(true);
   };
 
-  const finalSubmit = () => {
+  const finalSubmit = async () => {
     if (!selectedDateTime) {
       toast.error("Please select a date and time.");
       return;
     }
 
     const payload = {
-      programId: groupDetails.id,
+      groupId: groupDetails._id,
       userId: user._id,
       dateTime: selectedDateTime,
     };
 
-    console.log("Final Submission Payload:", payload);
-    toast.success("Schedule confirmed successfully!");
+    try {
+      const response = await fetch(`${apiNewUrl}/group/book`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        toast.success("Schedule confirmed successfully!");
+      } else {
+        toast.error("Failed to book the schedule.");
+      }
+    } catch (error) {
+      console.error("Error submitting schedule:", error);
+      toast.error("An error occurred while booking.");
+    }
   };
 
   if (loading) {
@@ -112,7 +135,7 @@ export default function ProgramDetailPage() {
         {!showScheduleSelector ? (
           <View className="px-4 py-4 gap-4">
             {/* Group Header */}
-            <View className="bg-white py-6  rounded-2xl">
+            <View className="bg-white py-6 rounded-2xl">
               <View className="flex-row justify-between pb-4">
                 <View className="gap-2 px-4">
                   <Text className="font-semibold text-xl">
@@ -138,7 +161,7 @@ export default function ProgramDetailPage() {
                 </View>
               </View>
               <Image
-                source={groupDetails.image}
+                source={{ uri: groupDetails.image }}
                 className="w-full h-64"
                 resizeMode="cover"
               />
@@ -163,7 +186,7 @@ export default function ProgramDetailPage() {
               </View>
             </View>
 
-            {/* Support Group Goals */}
+            {/* Group Goals */}
             <View className="gap-2">
               <View className="gap-2 flex-row items-center justify-start">
                 <View className="bg-white rounded-full p-2">
@@ -198,9 +221,9 @@ export default function ProgramDetailPage() {
                 )
               )}
             </View>
-
-            {/* Consultants */}
-            <View className="gap-2">
+            
+              {/* Consultants */}
+              <View className="gap-2">
               <View className="gap-2 flex-row items-center justify-start">
                 <View className="bg-white rounded-full p-2">
                   <Profile2User size="24" color="#000" />
@@ -213,7 +236,7 @@ export default function ProgramDetailPage() {
                 data={groupDetails.consultants}
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item._id.toString()}
                 renderItem={({ item }) => (
                   <View className="items-center bg-white flex-row gap-2 py-4 px-6 rounded-2xl">
                     <ProfileImage
@@ -237,20 +260,7 @@ export default function ProgramDetailPage() {
 
             {/* FAQ */}
             <View className="gap-2">
-              <View className="gap-2 flex-row items-center justify-start">
-                <View className="bg-white rounded-full p-2">
-                  <Messages1 size="24" color="#000" />
-                </View>
-                <Text className="font-semibold text-xl leading-10">
-                  Frequently Asked Questions ( FAQ )
-                </Text>
-              </View>
-              <Accordion
-                type="multiple"
-                collapsible
-                defaultValue={["item-1"]}
-                className="w-full max-w-sm native:max-w-md"
-              >
+              <Accordion type="multiple" collapsible>
                 {groupDetails.faq.map((faq: any, index: number) => (
                   <AccordionItem value={`faq-${index}`} key={`faq-${index}`}>
                     <AccordionTrigger>

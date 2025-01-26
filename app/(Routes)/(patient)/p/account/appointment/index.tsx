@@ -5,72 +5,48 @@ import { useRouter } from "expo-router";
 import { cn } from "@/lib/utils";
 import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { AppointmentCardType } from "@/features/account/types/account.types";
-
-// Mock API response for different tabs and categories
-const mockData = {
-  "My Sessions": {
-    Current: [
-      {
-        _id: "1",
-        specialist_Id: "1",
-        doctorName: "Dr. Abdul Wahab Muhammad",
-        sessionDateTime: "2024-12-22T01:30:00Z",
-        image: "https://via.placeholder.com/50",
-        type: "current",
-        category: "session",
-      },
-    ],
-    Completed: [
-      {
-        _id: "3",
-        specialist_Id: "2",
-        doctorName: "Dr. Abdul Wahab Muhammad",
-        sessionDateTime: "2024-12-21T01:30:00Z",
-        image: "https://via.placeholder.com/50",
-        type: "completed",
-        category: "session",
-      },
-    ],
-    Canceled: [
-      {
-        _id: "2",
-        specialist_Id: "2",
-        doctorName: "Dr. Abdul Wahab Muhammad",
-        sessionDateTime: "2024-12-21T01:30:00Z",
-        image: "https://via.placeholder.com/50",
-        type: "canceled",
-        category: "session",
-      },
-    ],
-  },
-  "My Program": {
-    Current: [],
-    Completed: [],
-    Canceled: [],
-  },
-  "My Groups": {
-    Current: [],
-    Completed: [],
-    Canceled: [],
-  },
-};
+import { apiNewUrl } from "@/const";
+import { useSelector } from "react-redux";
+import { toast } from "sonner-native";
 
 export default function AccountAppointmentsPage() {
   const router = useRouter();
+  const user = useSelector((state: any) => state.user);
   const [activeTab, setActiveTab] = useState("My Sessions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [appointments, setAppointments] = useState<AppointmentCardType[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Fetch data based on active tab and category
   useEffect(() => {
     const fetchAppointments = async () => {
-      // Simulate API call
-      const data = mockData[activeTab][activeCategory] || [];
-      setAppointments(data);
+      if (!user?._id) {
+        toast.error("User is not authenticated.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${apiNewUrl}/booking/list?userId=${user._id}&type=${activeTab}&category=${activeCategory}`
+        );
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setAppointments(result.data);
+        } else {
+          toast.error("Failed to fetch appointments.");
+        }
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        toast.error("An error occurred while fetching appointments.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAppointments();
-  }, [activeTab, activeCategory]);
+  }, [activeTab, activeCategory, user]);
 
   return (
     <View className="bg-blue-50/20 w-full h-full px-4 flex flex-col gap-2">
@@ -125,7 +101,9 @@ export default function AccountAppointmentsPage() {
         </View>
       </View>
       <View>
-        {appointments.length > 0 ? (
+        {loading ? (
+          <Text className="text-center text-gray-500 mt-4">Loading...</Text>
+        ) : appointments.length > 0 ? (
           <FlatList
             data={appointments}
             keyExtractor={(item) => item._id}

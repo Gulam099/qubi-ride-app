@@ -4,7 +4,6 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BackButton from "@/features/Home/Components/BackButton";
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
-import { useSelector } from "react-redux";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import {
   ClipboardText,
@@ -16,55 +15,54 @@ import { Hourglass, IdCard } from "lucide-react-native";
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+import { toast } from "sonner-native";
+import { apiNewUrl } from "@/const";
 
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const { specialist_Id } = useLocalSearchParams();
   const [specialistData, setSpecialistData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const mockData = {
-    name: "DR. Deem Alabdullah",
-    title: "Consultant physician, certified by the Saudi Board in Psychiatry",
-    rating: 4.8,
-    experience: "10 Years",
-    sessionType: "Psychological",
-    responseTime: "Within an hour",
-    specialties: [
-      "Anxiety and stress",
-      "Overthinking",
-      "Psychological stress",
-      "Panic",
-      "Obsessive",
-      "Dealing with remorse of conscience",
-      "Social phobia",
-    ],
-    qualities: [
-      { label: "Adherence to appointments", percentage: "100%" },
-      { label: "Quiet environment", percentage: "100%" },
-      { label: "Compassion and acceptance", percentage: "100%" },
-      { label: "Respecting thoughts and opinions", percentage: "99%" },
-      { label: "Attentiveness and listening", percentage: "100%" },
-      { label: "Feeling safe during the session", percentage: "100%" },
-    ],
-    feedback: [
-      { username: "a******", comment: "Good", date: "05 Sep 2023" },
-      { username: "b******", comment: "Excellent", date: "05 Sep 2023" },
-    ],
-    price: "280 SAR",
-    profileImage:
-      "https://static.vecteezy.com/system/resources/thumbnails/026/375/249/small_2x/ai-generative-portrait-of-confident-male-doctor-in-white-coat-and-stethoscope-standing-with-arms-crossed-and-looking-at-camera-photo.jpg", // Replace with specialist image
-  };
-
-  // Fetch specialist data (mocked for now)
   useEffect(() => {
-    // Replace with actual API call if necessary
-    setSpecialistData(mockData);
+    const fetchSpecialistData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${apiNewUrl}/doctors/get_doctor_by_id?consultId=${specialist_Id}`
+        );
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setSpecialistData(result.data);
+        } else {
+          throw new Error("Failed to fetch specialist data");
+        }
+      } catch (err) {
+        console.error("Error fetching specialist data:", err);
+        setError("Unable to fetch data. Please try again later.");
+        toast.error("Error loading specialist data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpecialistData();
   }, [specialist_Id]);
 
-  if (!specialistData) {
+  if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (error || !specialistData) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">{error || "Specialist not found."}</Text>
       </View>
     );
   }
@@ -76,42 +74,43 @@ export default function SpecialistConsultantPage() {
           headerLeft: () => <BackButton />,
           headerTitle: () => (
             <Text className="font-semibold text-lg ">
-              Consultant: {specialist_Id}
+              {specialistData.name}
             </Text>
           ),
         }}
       />
 
-      <ScrollView className="flex-1 bg-blue-50/10 px-2 ">
+      <ScrollView className="flex-1 bg-blue-50/10 px-2">
         {/* Header Section */}
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
           <View className="absolute w-full h-24 bg-blue-900"></View>
           <ProfileImage
-            imageUrl={specialistData.profileImage}
+            imageUrl={specialistData.image || ""}
             name={specialistData.name}
             className="size-32"
           />
-          <Text className="text-xl font-bold ">{specialistData.name}</Text>
+          <Text className="text-xl font-semibold ">{specialistData.name}</Text>
           <Text className="text-sm text-neutral-600 text-center font-normal w-2/3">
-            {specialistData.title}
+            {specialistData.speciality || "Specialist"}
           </Text>
+
           {/* Details Section */}
-          <View className="mt-4 ">
-            <View className=" flex-row  w-full">
+          <View className="mt-4">
+            <View className="flex-row w-full">
               {[
                 {
                   title: "Rating",
-                  value: specialistData.rating,
+                  value: specialistData.rating || "N/A",
                   icon: Star1,
                 },
                 {
                   title: "Experience",
-                  value: specialistData.experience,
+                  value: specialistData.experience || "N/A",
                   icon: IdCard,
                 },
                 {
-                  title: "Session type",
-                  value: specialistData.sessionType,
+                  title: "Session Type",
+                  value: specialistData.sessionType || "N/A",
                   icon: HeartSearch,
                 },
               ].map((item) => (
@@ -134,98 +133,85 @@ export default function SpecialistConsultantPage() {
               <View>
                 <Text className="text-sm text-gray-600">Response time</Text>
                 <Text className="text-sm font-bold">
-                  {specialistData.responseTime}
+                  {specialistData.responseTime || "N/A"}
                 </Text>
               </View>
             </View>
           </View>
+
           {/* Specialties Section */}
-          <View className="mt-4 bg-white p-4 rounded-2xl gap-4">
-            <View className="flex-row gap-2 items-center">
-              <View className="bg-blue-50/30 rounded-full p-2">
-                <ClipboardText size={22} color="#222" />
-              </View>
-
-              <Text className="text-lg font-bold ">My experience includes</Text>
-            </View>
-            <View className="flex-row flex-wrap gap-2">
-              {specialistData.specialties.map((item: any, index: any) => (
-                <Text
-                  key={index}
-                  className="bg-blue-50/20 text-blue-800 border border-blue-800 px-4 py-2 rounded-2xl text-sm font-medium leading-6"
-                >
-                  {item}
-                </Text>
-              ))}
-            </View>
-          </View>
-          {/* Qualities Section */}
-          <View className=" bg-white p-4 rounded-2xl w-full">
-            <View className="flex-row gap-2 items-center">
-              <View className="bg-blue-50/30 rounded-full p-2">
-                <ClipboardText size={22} color="#222" />
-              </View>
-
-              <Text className="text-lg font-bold ">Why choose me?</Text>
-            </View>
-            <View className="gap-2 pt-4">
-              {specialistData.qualities.map((quality: any, index: any) => (
-                <View
-                  key={index}
-                  className="flex-row justify-between items-center mb-2"
-                >
-                  <View className="flex-row items-center gap-2">
-                    <View className="bg-blue-800 size-3 rounded-full"></View>
-                    <Text className="text-sm text-gray-600 ">
-                      {quality.label}
-                    </Text>
-                  </View>
-                  <Text className="text-sm font-bold">
-                    {quality.percentage}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-          {/* Feedback Section */}
-          <View className="mt-4 bg-white p-4 rounded-2xl w-full gap-2">
-            <View className="flex-row justify-between items-center">
-              <View className="flex-row gap-2 items-center">
+          {specialistData.expertise && (
+            <View className="mt-4 bg-white p-4 rounded-2xl gap-4 w-full">
+              <View className="flex-row gap-2 items-center w-full">
                 <View className="bg-blue-50/30 rounded-full p-2">
-                  <Messages2 size={22} color="#222" />
+                  <ClipboardText size={22} color="#222" />
                 </View>
-                <Text className="text-lg font-bold ">Feedback</Text>
-              </View>
-              <Text className="text-sm text-blue-500">View All</Text>
-            </View>
-            <Separator />
-            {specialistData.feedback.map((item: any, index: any) => (
-              <View
-                key={index}
-                className="flex-row justify-between items-center py-2 gap-2"
-              >
-                <View className="flex-row items-center">
-                  <Avatar alt="avatar-without-image">
-                    <AvatarFallback className="bg-primary-700">
-                      <Text className="text-white font-semibold">
-                        {toCapitalizeFirstLetter(item.username.slice(0, 1))}
-                      </Text>
-                    </AvatarFallback>
-                  </Avatar>
-                </View>
-                <View className="flex-1 w-full">
-                  <View className="flex-row justify-between">
-                    <Text>{item.username}</Text>
-                    <Text className="text-sm text-neutral-500">
-                      {item.date}
-                    </Text>
-                  </View>
 
-                  <Text className="text-sm text-blue-600">{item.comment}</Text>
-                </View>
+                <Text className="text-lg font-bold ">
+                  My expertise includes
+                </Text>
               </View>
-            ))}
-          </View>
+              <View className="flex-row flex-wrap gap-2">
+                {specialistData.expertise.map((item: any, index: any) => (
+                  <Text
+                    key={index}
+                    className="bg-blue-50/20 text-blue-800 border border-blue-800 px-4 py-2 rounded-2xl text-sm font-medium leading-6"
+                  >
+                    {item}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Feedback Section */}
+          {specialistData.feedback && (
+            <View className="mt-4 bg-white p-4 rounded-2xl w-full gap-2">
+              <View className="flex-row justify-between items-center">
+                <View className="flex-row gap-2 items-center">
+                  <View className="bg-blue-50/30 rounded-full p-2">
+                    <Messages2 size={22} color="#222" />
+                  </View>
+                  <Text className="text-lg font-bold ">Feedback</Text>
+                </View>
+                <Text className="text-sm text-blue-500">View All</Text>
+              </View>
+              <Separator />
+              {specialistData.feedback.length !== 0 ? (
+                specialistData.feedback.map((item: any, index: any) => (
+                  <View
+                    key={index}
+                    className="flex-row justify-between items-center py-2 gap-2"
+                  >
+                    <View className="flex-row items-center">
+                      <Avatar alt="avatar-without-image">
+                        <AvatarFallback className="bg-primary-700">
+                          <Text className="text-white font-semibold">
+                            {toCapitalizeFirstLetter(item.slice(0, 1))}
+                          </Text>
+                        </AvatarFallback>
+                      </Avatar>
+                    </View>
+                    <View className="flex-1 w-full">
+                      <View className="flex-row justify-between">
+                        <Text>{item.user || "Anonymous"}</Text>
+                        <Text className="text-sm text-neutral-500">
+                          {item.date || "N/A"}
+                        </Text>
+                      </View>
+                      <Text className="text-sm text-blue-600">
+                        {item.comment || ""}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Text className="text-sm text-center text-neutral-600">
+                  No feedback available
+                </Text>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Book Now Button */}
@@ -236,7 +222,7 @@ export default function SpecialistConsultantPage() {
           }
         >
           <Text className="text-white font-bold">
-            Book now {currencyFormatter(specialistData.price)}
+            Book now {currencyFormatter(specialistData.fees || 0)}
           </Text>
         </Button>
       </ScrollView>

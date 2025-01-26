@@ -1,25 +1,11 @@
 import { View, Text, Dimensions, ScrollView, FlatList } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import { format } from "date-fns";
 import colors from "@/utils/colors";
 import { LineChart, ProgressChart } from "react-native-chart-kit";
 
-import { Button } from "@/components/ui/Button";
-import { AddCircle, ArrowCircleDown } from "iconsax-react-native";
 import { moodOptions } from "@/features/scale/constScale";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  DropdownMenuGroup,
-  DropdownMenu,
-  DropdownMenuShortcut,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-} from "@/components/ui/DropdownMenu";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
-import { Calendar } from "@/components/ui/Calendar";
 import { H3 } from "@/components/ui/Typography";
 import { cn } from "@/lib/utils";
 

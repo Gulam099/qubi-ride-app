@@ -1,29 +1,50 @@
 import { View, Text, FlatList, ScrollView } from "react-native";
-import React, { useState } from "react";
-import { H2, H3 } from "@/components/ui/Typography";
-import {
-  SupportGroupArray,
-  supportGroups,
-} from "@/features/supportGroup/constSupportGroup";
+import React, { useState, useEffect } from "react";
+import { H3 } from "@/components/ui/Typography";
 import SupportGroupCard from "@/features/supportGroup/components/SupportGroupCard";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { toKebabCase } from "@/utils/string.utils";
-import ProgramCard from "@/features/program/components/ProgramCard";
+import { toast } from "sonner-native";
+import { apiNewUrl } from "@/const";
 
-export default function ProgramPage() {
-  const [ActiveTab, setActiveTab] = useState("All");
+export default function SupportPage() {
+  const [activeTab, setActiveTab] = useState("All");
+  const [groups, setGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleCardPress = (id: string) => {
-    console.log("Card Pressed:", id);
-    // Navigate to details page or perform any action
-  };
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${apiNewUrl}/program/list`);
+        const result = await response.json();
 
+        if (response.ok && result.success) {
+          // Filter only "Approved" status groups
+          const approvedGroups = result.data.filter(
+            (group: any) => group.status === "Approved"
+          );
+          setGroups(approvedGroups);
+        } else {
+          toast.error("Failed to fetch support groups.");
+        }
+      } catch (error) {
+        console.error("Error fetching support groups:", error);
+        toast.error("An error occurred while fetching support groups.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
+  // Filter groups based on the active tab
   const filteredGroups =
-    ActiveTab === "All"
-      ? supportGroups
-      : supportGroups.filter(
-          (group) => group.category.toLowerCase() === ActiveTab.toLowerCase()
+    activeTab === "All"
+      ? groups
+      : groups.filter(
+          (group) => group.category?.toLowerCase() === activeTab.toLowerCase()
         );
 
   return (
@@ -33,27 +54,27 @@ export default function ProgramPage() {
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        contentContainerClassName="gap-4 py-2 "
+        contentContainerClassName="gap-4 py-2"
       >
-        {SupportGroupArray.map((e, i) => {
-          const isActiveTabThis = e === ActiveTab;
+        {["All",  "Family", "Health" , "Psychological"].map((category) => {
+          const isActive = category === activeTab;
           return (
             <Button
-              key={e + i}
+              key={category}
               size={"sm"}
-              onPress={() => setActiveTab(e)}
+              onPress={() => setActiveTab(category)}
               className={cn(
-                isActiveTabThis ? "bg-blue-900" : "bg-white",
+                isActive ? "bg-blue-900" : "bg-white",
                 "w-36 h-9 rounded-xl"
               )}
             >
               <Text
                 className={cn(
-                  isActiveTabThis ? "text-white" : "",
+                  isActive ? "text-white" : "",
                   "font-medium"
                 )}
               >
-                {e}
+                {category}
               </Text>
             </Button>
           );
@@ -61,30 +82,32 @@ export default function ProgramPage() {
       </ScrollView>
 
       {/* List of Support Groups */}
-      {filteredGroups.length > 0 ? (
+      {loading ? (
+        <Text className="text-center text-gray-500 mt-4">Loading...</Text>
+      ) : filteredGroups.length > 0 ? (
         <FlatList
           data={filteredGroups}
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item._id}
           contentContainerClassName=""
           renderItem={({ item }) => (
-            <ProgramCard
+            <SupportGroupCard
               title={item.title}
               category={item.category}
               price={item.price}
-              recorded={item.recordedCount}
-              rating={item.rating}
-              image={item.image}
-              onPress={() => handleCardPress(item.id)}
-              link={`/p/program/${toKebabCase(item.id)}`}
+              recorded={item.recordedCount || 0}
+              rating={item.rating || 0}
+              image={item.image || "https://via.placeholder.com/150"}
+              onPress={() => console.log("Group Selected:", item._id)}
+              link={`/p/program/${item._id}`}
             />
           )}
           contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
         />
       ) : (
         <View className="flex-1">
-          <Text className="text-center text-gray-500 mt-4 ">
-            No Group Available
+          <Text className="text-center text-gray-500 mt-4">
+            No Groups Available
           </Text>
         </View>
       )}

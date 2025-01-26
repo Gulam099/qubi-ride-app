@@ -7,12 +7,13 @@ import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
 import { EmptyWalletTick } from "iconsax-react-native";
+import ProfileImage from "./ProfileImage";
 
 type SpecialistCardProps = {
   name: string;
   title: string;
-  price: string;
-  likes: string;
+  price: number;
+  likes: number;
   imageUrl: string;
   shareLink: string;
   onPress: () => void;
@@ -30,11 +31,16 @@ export default function SpecialistCard({
   return (
     <View className="flex-row items-center bg-white  rounded-lg overflow-hidden relative">
       {/* Specialist Image */}
-      <TouchableOpacity onPress={onPress} className="w-36 h-36 ">
-        <Image
+      <TouchableOpacity onPress={onPress} className="size-36">
+        {/* <Image
           source={{ uri: imageUrl }}
-          className="w-36 h-full "
+          className="w-36 h-36 "
           resizeMode="cover"
+        /> */}
+        <ProfileImage
+          imageUrl={imageUrl}
+          name={name}
+          className="rounded-none size-36 border-none border-transparent bg-primary-600"
         />
       </TouchableOpacity>
 

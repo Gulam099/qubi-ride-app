@@ -60,9 +60,6 @@ import WeakFeeling from "@/assets/icon/WeakFeeling.svg";
 import Weather from "@/assets/icon/Weather.svg";
 import Work from "@/assets/icon/Work.svg";
 import Worried from "@/assets/icon/Worried.svg";
-
-export const AppLogo = require("@/assets/images/icon.png");
-
 export const CustomIcons = {
   Relaxation: { label: "Relaxation", Icon: Relaxation },
   Angry: { label: "Angry", Icon: Angry },
@@ -127,3 +124,7 @@ export const CustomIcons = {
   Work: { label: "Work", Icon: Work },
   Worried: { label: "Worried", Icon: Worried },
 };
+
+export const AppLogo = require("@/assets/images/icon.png");
+export const apiNewUrl = "http://159.65.158.38"
+
