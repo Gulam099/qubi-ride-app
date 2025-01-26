@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import LibraryCard from "@/features/culturalLibrary/components/LibraryCard";
 import { toast } from "sonner-native";
+import { apiNewUrl } from "@/const";
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState("All");
@@ -16,7 +17,7 @@ export default function LibraryPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          "http://159.65.158.38/doctors/library/cultural"
+          `${apiNewUrl}/doctors/library/cultural`
         );
         const result = await response.json();
 

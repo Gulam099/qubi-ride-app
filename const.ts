@@ -126,5 +126,4 @@ export const CustomIcons = {
 };
 
 export const AppLogo = require("@/assets/images/icon.png");
-export const apiNewUrl = "http://159.65.158.38"
-
+export const apiNewUrl = "https://159.65.158.38";

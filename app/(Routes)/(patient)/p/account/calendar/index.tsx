@@ -4,6 +4,7 @@ import { Calendar } from "@/components/ui/Calendar";
 import ScheduleCalendarCard from "@/features/account/components/ScheduleCalendarCard";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
+import { apiNewUrl } from "@/const";
 
 export default function AccountCalendarPage() {
   const user: UserType = useSelector((state: any) => state.user); // Fetch user details from Redux state
@@ -14,7 +15,7 @@ export default function AccountCalendarPage() {
   const fetchSchedulesForMonth = async (month: number, year: number) => {
     try {
       const response = await fetch(
-        `http://159.65.158.38/booking/calendar?userId=${user._id}&month=${month}&year=${year}`
+        `${apiNewUrl}/booking/calendar?userId=${user._id}&month=${month}&year=${year}`
       );
       const result = await response.json();
 
