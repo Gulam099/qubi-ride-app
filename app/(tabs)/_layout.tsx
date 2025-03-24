@@ -25,13 +25,10 @@ import { Button } from "@/components/ui/Button";
 import BackButton from "@/features/Home/Components/BackButton";
 import { useEffect } from "react";
 import ProfileImage from "@/features/account/components/ProfileImage";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function PatientLayout() {
-  const user = useSelector((state: any) => state.user);
-
-  if (!user.isAuthenticated) {
-    return <Redirect href="/" />;
-  }
+  const { user } = useUser();
 
   return (
     <Tabs
@@ -67,20 +64,20 @@ export default function PatientLayout() {
 
           headerLeft: () => (
             <View className="pl-4">
-              <Link href={"/p/account"}>
+              <Link href={"/account"}>
                 <ProfileImage
                   className="size-12 border border-primary-600"
                   TextClassName="text-sm font-bold"
-                  imageUrl={user.imageUrl}
-                  name={user.name}
+                  imageUrl={user?.imageUrl!}
+                  name={user?.firstName!}
                 />
               </Link>
             </View>
           ),
           headerTitle: () => (
-            <Link href={"/p/account"} className="ml-2">
+            <Link href={"/account"} className="ml-2">
               <Text className="font-semibold text-lg text-white">
-                Hello , {user.name === null ? "User" : user.name}
+                Hello , {user?.firstName ?? "User"}
               </Text>
             </Link>
           ),

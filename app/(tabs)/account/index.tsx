@@ -36,10 +36,11 @@ import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 import AccountCard2 from "@/features/account/components/AccountCard2";
 import AccountDeleteButton from "@/features/account/components/AccountDeleteButton";
 import ProfileImage from "@/features/account/components/ProfileImage";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user);
+  const {user} = useUser();
   const router = useRouter();
 
   const [isContactUsDrawerVisible, setIsContactUsDrawerVisible] =
@@ -52,8 +53,8 @@ export default function AccountPage() {
       backgroundColor: colors.primary[800],
       iconColor: "white",
       items: [
-        { link: "/p/account/calendar", label: "My calendar", icon: MenuBoard },
-        { link: "/p/account/scale", label: "Metrics", icon: Clipboard },
+        { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
+        { link: "/account/scale", label: "Metrics", icon: Clipboard },
       ],
     },
   ]);
@@ -67,13 +68,13 @@ export default function AccountPage() {
       iconColor: colors.gray[700],
       items: [
         {
-          link: "/p/account/appointment",
+          link: "/account/appointment",
           label: "My bookings",
           icon: ClipboardText,
         },
-        { link: "/p/account/report", label: "My reports", icon: Book },
-        { link: "/p/account/calendar", label: "My calendar", icon: MenuBoard },
-        { link: "/p/account/scale", label: "Metrics", icon: Clipboard },
+        { link: "/account/report", label: "My reports", icon: Book },
+        { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
+        { link: "/account/scale", label: "Metrics", icon: Clipboard },
       ],
     },
     {
@@ -83,12 +84,12 @@ export default function AccountPage() {
       backgroundColor: "white",
       iconColor: colors.gray[700],
       items: [
-        { link: "/p/account/payment", label: "Payment", icon: EmptyWalletTime },
-        { link: "/p/account/favorite", label: "My favorites", icon: Like1 },
-        { link: "/p/account/chat", label: "My conversations", icon: Message },
-        { link: "/p/account/invoice", label: "My bills", icon: Receipt },
-        { link: "/p/account/family", label: "My family", icon: Profile2User },
-        { link: "/p/account/setting", label: "My settings", icon: Setting2 },
+        { link: "/account/payment", label: "Payment", icon: EmptyWalletTime },
+        { link: "/account/favorite", label: "My favorites", icon: Like1 },
+        { link: "/account/chat", label: "My conversations", icon: Message },
+        { link: "/account/invoice", label: "My bills", icon: Receipt },
+        { link: "/account/family", label: "My family", icon: Profile2User },
+        { link: "/account/setting", label: "My settings", icon: Setting2 },
       ],
     },
   ]);
@@ -98,7 +99,7 @@ export default function AccountPage() {
     className: "",
     backgroundColor: "white",
     iconColor: colors.gray[700],
-    item: { link: "/p/contact", label: "Contact us", icon: Messages },
+    item: { link: "/contact", label: "Contact us", icon: Messages },
   };
 
   const handleAccountCardPress = (link: string) => {
@@ -123,20 +124,20 @@ export default function AccountPage() {
           contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
         >
           <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16 relative">
-            <ProfileImage imageUrl={user.imageUrl} name={user.name} />
+            <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
-                {user.name === null ? "User" : user.name}
+                {user?.fullName ??  "User"}
               </Text>
               <CopyToClipboard
-                data={user._id}
+                data={user?.publicMetadata?.dbUserId as string ?? "User id not found"}
                 variant={"ghost"}
                 className="flex-row gap-2 justify-start items-start p-0"
               >
-                <Text className="text-base  text-gray-200 ">{user._id}</Text>
+                <Text className="text-base  text-gray-200 ">{user?.publicMetadata?.dbUserId as string ?? "User id not found"}</Text>
                 <Copy size="16" color={colors.gray[200]} />
               </CopyToClipboard>
-              <Link href="/p/account/profile">
+              <Link href={"/account/profile"}>
                 <Text className="text-blue-100 text-sm underline">
                   View Profile
                 </Text>
@@ -148,7 +149,7 @@ export default function AccountPage() {
 
             <Button
               className="bg-primary-700 p-2 rounded-2xl aspect-square"
-              onPress={() => router.push("/p/account/profile")}
+              onPress={() => router.push("/account/profile")}
             >
               <Edit size="24" color={colors.gray[100]} />
             </Button>
@@ -266,7 +267,7 @@ export default function AccountPage() {
                 <Button
                   onPress={() => {
                     setIsContactUsDrawerVisible(false);
-                    router.push("/p/account/chat/support");
+                    router.push("/account/chat/support");
                   }}
                   className="w-full"
                   variant={"secondary"}

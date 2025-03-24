@@ -8,10 +8,12 @@ import { AppointmentCardType } from "@/features/account/types/account.types";
 import { apiNewUrl } from "@/const";
 import { useSelector } from "react-redux";
 import { toast } from "sonner-native";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function AccountAppointmentsPage() {
   const router = useRouter();
-  const user = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userDbId = user?.publicMetadata?.dbUserId;
   const [activeTab, setActiveTab] = useState("My Sessions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [appointments, setAppointments] = useState<AppointmentCardType[]>([]);
@@ -20,15 +22,15 @@ export default function AccountAppointmentsPage() {
   // Fetch data based on active tab and category
   useEffect(() => {
     const fetchAppointments = async () => {
-      if (!user?._id) {
-        toast.error("User is not authenticated.");
+      if (!userDbId) {
+        toast.error("User Id is not found.");
         return;
       }
 
       setLoading(true);
       try {
         const response = await fetch(
-          `${apiNewUrl}/booking/list?userId=${user._id}&type=${activeTab}&category=${activeCategory}`
+          `${apiNewUrl}/booking/list?userId=${userDbId}&type=${activeTab}&category=${activeCategory}`
         );
         const result = await response.json();
 

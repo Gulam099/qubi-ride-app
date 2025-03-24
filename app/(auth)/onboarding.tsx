@@ -18,14 +18,17 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import axios from "axios";
+import { useUser } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
 export default function ProfilePage() {
-  const dispatch = useDispatch();
-  const user: UserType = useSelector((state: any) => state.user);
+  const { user } = useUser();
+  const router = useRouter();
   const { t } = useTranslation();
-  const { email, name, phoneNumber, dob, gender, imageUrl } = user;
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(dob);
+  const [selectedDate, setSelectedDate] = useState(
+    user?.unsafeMetadata?.dob as string
+  );
 
   const {
     control,
@@ -33,28 +36,40 @@ export default function ProfilePage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      name,
-      phoneNumber,
-      email,
-      dob,
-      gender,
+      first_name: user?.firstName,
+      last_name: user?.lastName,
+      email: user?.primaryEmailAddress?.emailAddress,
+      phoneNumber: user?.primaryPhoneNumber?.phoneNumber,
+      dob: user?.unsafeMetadata?.dob,
+      gender: user?.unsafeMetadata?.gender as string,
+      // address: user?.unsafeMetadata?.address,
     },
   });
 
-  const onSubmit = (data: Partial<UserType>) => {
-    dispatch(updateUserState(data));
+  const onSubmit = async (data: Partial<UserType>) => {
+    await user?.update({
+      firstName: data.first_name,
+      lastName: data.last_name,
+      unsafeMetadata: {
+        dob: data.dob,
+        gender: data.gender,
+        // address: data.address,
+        onboardingComplete: true,
+      },
+    });
     toast.success("Profile updated successfully!");
+    router.replace("/");
   };
 
   const handleRemoveImage = () => {
-    if (imageUrl === "") {
+    if (user?.imageUrl === "") {
       return;
     }
-    dispatch(updateUserState({ phoneNumber, imageUrl: "" }));
+
     toast.success("Image removed successfully!");
   };
 
-  const handleSelectImage = async () => {
+  async function onPickImage() {
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -67,57 +82,25 @@ export default function ProfilePage() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
+        aspect: [4, 4],
+        quality: 0.1,
+        base64: true,
       });
 
-      if (!result.canceled) {
-        const selectedImage = result.assets[0];
+      if (!result.canceled && result.assets[0].base64) {
+        const base64 = result.assets[0].base64;
+        const mimeType = result.assets[0].mimeType;
 
-        // Create a FormData object and append the required data
-        const formData = new FormData();
-        formData.append("phoneNumber", user.phoneNumber); // Add phoneNumber
-        formData.append("image", {
-          uri: selectedImage.uri,
-          type: "image/png",
-          name: `profile-image.jpg`, // Use fileName or fallback
-        } as any); // Explicitly cast to match FormData type expectations
+        const image = `data:${mimeType};base64,${base64}`;
 
-        const config = {
-          headers: {
-            "Content-Type": "multipart/form-data", // Header for file uploads
-          },
-          transformRequest: () => {
-            return formData;
-          },
-        };
-
-        // Make the API call to upload the image
-        try {
-          const response = await axios.put(
-            `${apiBaseUrl}/api/profile/update-profile`,
-            formData,
-            config
-          );
-
-          const result = await response.data;
-
-          if (response.status === 200) {
-            toast.success("Image updated successfully!");
-            dispatch(updateUserState({}));
-          } else {
-            toast.error(result.message || "Failed to update image.");
-          }
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          toast.error("Error uploading image.");
-        }
+        await user?.setProfileImage({
+          file: image,
+        });
       }
-    } catch (error) {
-      console.error("Error selecting image:", error);
-      toast.error("Error selecting image.");
+    } catch (err: any) {
+      alert(err.errors[0].message);
     }
-  };
+  }
 
   const showDatePicker = () => setDatePickerVisible(true);
   const handleDateChange = (event: any, selectedDateValue: any) => {
@@ -133,26 +116,50 @@ export default function ProfilePage() {
 
       {/* Profile Image */}
       <View className="flex gap-4 items-center ">
-        <ProfileImage imageUrl={imageUrl} name={name} />
+        <ProfileImage
+          imageUrl={user?.imageUrl || ""}
+          name={user?.fullName || ""}
+        />
         <View className="flex-row gap-2 mt-2">
           <Button
             onPress={handleRemoveImage}
             className="bg-red-500"
-            disabled={imageUrl === ""}
+            disabled={user?.imageUrl === ""}
             size="sm"
           >
             <Text className="text-white">{t("Remove Image")}</Text>
           </Button>
-          <Button onPress={handleSelectImage} className="bg-blue-500" size="sm">
+          <Button onPress={onPickImage} className="bg-blue-500" size="sm">
             <Text className="text-white">{t("Select Image")}</Text>
           </Button>
         </View>
       </View>
 
       <View>
-        <Text className="mb-2">{t("Name")}</Text>
+        <Label className="mb-2">{t("Name")}</Label>
         <Controller
-          name="name"
+          name="first_name"
+          control={control}
+          rules={{ required: t("First Name") }}
+          render={({ field: { onChange, value } }) => (
+            <Input
+              placeholder={t("Name")}
+              value={value ? (value as string) : undefined}
+              onChangeText={onChange}
+            />
+          )}
+        />
+        {errors.first_name && (
+          <Text className="text-red-500 text-sm py-1">
+            {errors.first_name.message?.toString()}
+          </Text>
+        )}
+      </View>
+
+      <View>
+        <Label className="mb-2">{t("Last Name")}</Label>
+        <Controller
+          name="last_name"
           control={control}
           rules={{ required: t("Name") }}
           render={({ field: { onChange, value } }) => (
@@ -163,9 +170,9 @@ export default function ProfilePage() {
             />
           )}
         />
-        {errors.name && (
+        {errors.last_name && (
           <Text className="text-red-500 text-sm py-1">
-            {errors.name.message?.toString()}
+            {errors.last_name.message?.toString()}
           </Text>
         )}
       </View>

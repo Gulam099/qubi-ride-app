@@ -79,7 +79,7 @@ export default function PatientPage() {
         const result = await response.json();
         console.log("Booking result:", result);
 
-        router.push("/(Routes)/(patient)/(nt)/payment/1234");
+        router.push("/(nt)/payment/1234");
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Booking failed. Please try again.");
@@ -90,8 +90,7 @@ export default function PatientPage() {
     }
   };
 
-  if (!user.isAuthenticated) {
-  }
+ 
 
   const router = useRouter();
 

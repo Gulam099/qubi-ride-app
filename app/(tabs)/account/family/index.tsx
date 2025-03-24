@@ -10,8 +10,10 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import { useSelector } from "react-redux";
 import { FamilyFormType, FamilyType } from "@/features/family/types/FamilyType";
 import { Label } from "@/components/ui/Label";
+import { useUser } from "@clerk/clerk-expo";
 
 function FamilyPage() {
+  const { user } = useUser();
   const [familyMembers, setFamilyMembers] = useState<FamilyType[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,7 +26,7 @@ function FamilyPage() {
     formState: { errors },
   } = useForm<FamilyFormType>();
 
-  const userPhoneNumber = useSelector((state: any) => state.user.phoneNumber);
+  const userPhoneNumber = user?.primaryPhoneNumber?.phoneNumber;
 
   useEffect(() => {
     fetchFamilyMembers();
