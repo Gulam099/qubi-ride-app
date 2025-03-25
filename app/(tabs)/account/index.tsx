@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/user/user";
 import { Button } from "@/components/ui/Button";
@@ -37,11 +37,15 @@ import AccountCard2 from "@/features/account/components/AccountCard2";
 import AccountDeleteButton from "@/features/account/components/AccountDeleteButton";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
+import { SignOutButton } from "@/features/account/components/SignOutButton";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { X } from "lucide-react-native";
 
 export default function AccountPage() {
-  const dispatch = useDispatch();
-  const {user} = useUser();
+  const { user } = useUser();
   const router = useRouter();
+
+  const contactUsBottomSheetRef = useRef<BottomSheet>(null);
 
   const [isContactUsDrawerVisible, setIsContactUsDrawerVisible] =
     useState(false);
@@ -121,20 +125,25 @@ export default function AccountPage() {
       <View className="h-full bg-neutral-200">
         <ScrollView
           showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
-          contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
         >
           <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16 relative">
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
-                {user?.fullName ??  "User"}
+                {user?.fullName ?? "User"}
               </Text>
               <CopyToClipboard
-                data={user?.publicMetadata?.dbUserId as string ?? "User id not found"}
+                data={
+                  (user?.publicMetadata?.dbUserId as string) ??
+                  "User id not found"
+                }
                 variant={"ghost"}
                 className="flex-row gap-2 justify-start items-start p-0"
               >
-                <Text className="text-base  text-gray-200 ">{user?.publicMetadata?.dbUserId as string ?? "User id not found"}</Text>
+                <Text className="text-base  text-gray-200 ">
+                  {(user?.publicMetadata?.dbUserId as string) ??
+                    "User id not found"}
+                </Text>
                 <Copy size="16" color={colors.gray[200]} />
               </CopyToClipboard>
               <Link href={"/account/profile"}>
@@ -212,7 +221,7 @@ export default function AccountPage() {
               ))}
 
               <TouchableOpacity
-                onPress={() => setIsContactUsDrawerVisible(true)}
+                onPress={() => contactUsBottomSheetRef.current?.expand()}
               >
                 <AccountCard2
                   className={"basis-[30%]"}
@@ -227,17 +236,10 @@ export default function AccountPage() {
               </TouchableOpacity>
             </View>
 
-            <Button
-              onPress={() => dispatch(logout())}
-              variant={"default"}
-              className="w-full"
-            >
-              <Text className="text-white">Logout</Text>
-            </Button>
-
+            <SignOutButton />
             <AccountDeleteButton />
 
-            <Drawer
+            {/* <Drawer
               visible={isContactUsDrawerVisible}
               onClose={() => setIsContactUsDrawerVisible(false)}
               title="My Drawer"
@@ -277,7 +279,61 @@ export default function AccountPage() {
                   </Text>
                 </Button>
               </View>
-            </Drawer>
+            </Drawer> */}
+
+            <BottomSheet
+              ref={contactUsBottomSheetRef}
+              index={-1} // Start fully hidden
+              enablePanDownToClose={true}
+              style={{ zIndex: 500 }}
+            >
+              <BottomSheetView className="w-full flex-1 bg-white ">
+                <View className="flex flex-col justify-center items-center w-full gap-4 p-6 mx-auto">
+                  <Button
+                    size={"icon"}
+                    variant={"ghost"}
+                    className="absolute top-2 right-2 rounded-full p-0 text-neutral-800"
+                    onPress={() => contactUsBottomSheetRef.current?.close()}
+                  >
+                    <X size={20} color={"#262626"} />
+                  </Button>
+
+                  <View className="flex flex-col  justify-center items-center w-full gap-4 py-8">
+                    <H3 className="border-none text-lg text-neutral-700 text-center">
+                      Welcome! Baserah team is here to serve you
+                    </H3>
+                    <Text className="text-base text-neutral-500">
+                      The usual response time for us is a few minutes
+                    </Text>
+
+                    <Button
+                      onPress={() => {
+                        setIsContactUsDrawerVisible(false);
+                        router.push("/help/ticket");
+                      }}
+                      className="w-full"
+                    >
+                      <Text className="text-white font-semibold">
+                        Add a ticket directly
+                      </Text>
+                    </Button>
+                    <Text className="text-base text-neutral-500">or</Text>
+                    <Button
+                      onPress={() => {
+                        setIsContactUsDrawerVisible(false);
+                        router.push("/account/chat/support");
+                      }}
+                      className="w-full"
+                      variant={"secondary"}
+                    >
+                      <Text className="text-neutral-500 font-semibold">
+                        Contact Technical Support
+                      </Text>
+                    </Button>
+                  </View>
+                </View>
+              </BottomSheetView>
+            </BottomSheet>
           </View>
         </ScrollView>
       </View>

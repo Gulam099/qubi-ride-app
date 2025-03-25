@@ -24,13 +24,14 @@ export default function ChatLayout() {
         }}
       />
       <Stack.Screen
-        name="[specialistId_chat]/index"
+        name="[chat_id]"
         options={{
           headerTitle: ({ children }) => (
             <Text className="font-semibold text-lg">My Chats</Text>
           ),
         }}
       />
+      <Stack.Screen name="+not-found" />
     </Stack>
   );
 }

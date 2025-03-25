@@ -102,7 +102,7 @@ function ChatListPage() {
   }, []);
 
   const handleChatPress = (chatId: string) => {
-    router.push(`/p/account/chat/${chatId}` as RelativePathString);
+    router.push(`/(tabs)/account/chat/${chatId}`);
   };
 
   return (
@@ -116,7 +116,7 @@ function ChatListPage() {
         renderItem={({ item }) => (
           <TouchableOpacity
             disabled={!item.isAvailable}
-            onPress={() => handleChatPress(`${item.id}_chat`)}
+            onPress={() => router.push(`/(tabs)/account/chat/${item.id}`)}
             className={cn(
               "p-4 rounded-lg shadow-md flex-row justify-between items-center",
               item.isAvailable ? "bg-white" : "bg-gray-200"
@@ -130,7 +130,9 @@ function ChatListPage() {
                   }}
                 />
                 <AvatarFallback className="bg-primary-500">
-                  <Text className="text-lg font-semibold text-white">{item.name.slice(3,4)}</Text>
+                  <Text className="text-lg font-semibold text-white">
+                    {item.name.slice(3, 4)}
+                  </Text>
                 </AvatarFallback>
               </Avatar>
               <View className="flex-col gap-1">

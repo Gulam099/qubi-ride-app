@@ -79,7 +79,7 @@ export default function PatientPage() {
         const result = await response.json();
         console.log("Booking result:", result);
 
-        router.push("/(nt)/payment/1234");
+        router.push("/(stacks)/payment/1234");
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Booking failed. Please try again.");
@@ -124,7 +124,7 @@ export default function PatientPage() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/p/account/consult")}>
+        <TouchableOpacity onPress={() => router.push("/account/consult")}>
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">
@@ -138,7 +138,7 @@ export default function PatientPage() {
 
         <Button
           className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/p/account/consult/help")}
+          onPress={() => router.push("/account/consult/help")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">
             Help me find the right consultant{" "}

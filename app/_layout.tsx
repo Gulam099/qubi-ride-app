@@ -72,7 +72,7 @@ const InitialLayout = () => {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.replace("/");
+      router.replace("/(tabs)");
     } else {
       router.replace("/(auth)/sign-in");
     }

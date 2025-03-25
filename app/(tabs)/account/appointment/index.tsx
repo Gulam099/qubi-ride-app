@@ -12,7 +12,7 @@ import { useUser } from "@clerk/clerk-expo";
 
 export default function AccountAppointmentsPage() {
   const router = useRouter();
-  const {user} = useUser();
+  const { user } = useUser();
   const userDbId = user?.publicMetadata?.dbUserId;
   const [activeTab, setActiveTab] = useState("My Sessions");
   const [activeCategory, setActiveCategory] = useState("Current");

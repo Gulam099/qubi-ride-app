@@ -40,6 +40,7 @@ export default function Page() {
       });
 
       await signUp.preparePhoneNumberVerification();
+      toast.success("OTP sent successfully");
 
       setVerifying(true);
     } catch (err: any) {

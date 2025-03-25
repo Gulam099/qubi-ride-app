@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import Drawer from "@/components/ui/Drawer";
@@ -11,25 +11,33 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner-native";
 import { logout } from "@/store/user/user";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { X } from "lucide-react-native";
+import { useClerk, useUser } from "@clerk/clerk-expo";
 
 export default function AccountDeleteButton() {
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
   const PatientDeleteAccountOptions = [
     "The services don't apply to me / I do not need the existing services.",
     "The application is not working properly.",
     "Not satisfied with the provided services.",
     "I have another account with a different phone number or ID.",
   ];
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [value, setValue] = useState("");
 
-  const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user);
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
   function onLabelPress(label: string) {
     return () => {
       setValue(label);
     };
   }
+
+  const handelOpenPress = () => bottomSheetRef.current?.expand();
+  const handelClosePress = () => bottomSheetRef.current?.close();
 
   const handleSubmit = async () => {
     if (!value) {
@@ -39,7 +47,7 @@ export default function AccountDeleteButton() {
 
     try {
       const payload = {
-        phoneNumber: user.phoneNumber,
+        phoneNumber: user?.primaryPhoneNumber?.phoneNumber,
         feedback: value,
       };
 
@@ -55,7 +63,7 @@ export default function AccountDeleteButton() {
 
       if (response.ok) {
         toast.success("Account deleted successfully.");
-        dispatch(logout()); // Log the user out
+        await signOut();
       } else {
         toast.error(result.message || "Failed to delete account.");
       }
@@ -63,47 +71,60 @@ export default function AccountDeleteButton() {
       console.error("Error deleting account:", error);
       toast.error("Error deleting account.");
     } finally {
-      setIsDrawerVisible(false);
+      handelClosePress();
     }
   };
 
   return (
-    <View className="flex-1 justify-center items-center">
+    <>
       <Button
-        onPress={() => setIsDrawerVisible(true)}
-        variant={"link"}
-        className="py-4"
+        onPress={handelOpenPress}
+        variant={"secondary"}
+        className="w-full my-2 "
       >
         <Text className="text-neutral-600">Delete Account</Text>
       </Button>
 
-      <Drawer
-        visible={isDrawerVisible}
-        onClose={() => setIsDrawerVisible(false)}
-        title="Delete Account"
-        height="70%"
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1} // Start fully hidden
+        enablePanDownToClose={true}
       >
-        <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-          <View className="aspect-square flex justify-center items-center relative overflow-visible p-2">
-            <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute"></View>
-            <CustomIcons.BellAlert.Icon height={80} width={80} />
+        <BottomSheetView className="w-full flex-1 bg-white ">
+          <View className="flex flex-col justify-center items-center w-[90%] gap-4 p-6 mx-auto">
+            <Button
+              size={"icon"}
+              variant={"ghost"}
+              className="absolute top-2 right-2 rounded-full p-0 text-neutral-800"
+              onPress={handelClosePress}
+            >
+              <X size={20} color={"#262626"} />
+            </Button>
+            <View className="aspect-square flex justify-center items-center relative overflow-visible p-2">
+              <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute"></View>
+              <CustomIcons.BellAlert.Icon height={80} width={80} />
+            </View>
+            <H3 className="border-none">Are you sure you want to delete?</H3>
+            <Text className="text-lg">Could you tell us why?</Text>
+            <RadioGroup
+              value={value}
+              onValueChange={setValue}
+              className="gap-6"
+            >
+              {PatientDeleteAccountOptions.map((option) => (
+                <RadioGroupItemWithLabel
+                  key={option}
+                  value={option}
+                  onLabelPress={onLabelPress(option)}
+                />
+              ))}
+            </RadioGroup>
+            <Button onPress={handleSubmit} className="w-full">
+              <Text className="text-white font-semibold">Submit</Text>
+            </Button>
           </View>
-          <H3 className="border-none">Are you sure you want to delete?</H3>
-          <Text className="text-lg">Could you tell us why?</Text>
-          <RadioGroup value={value} onValueChange={setValue} className="gap-6">
-            {PatientDeleteAccountOptions.map((option) => (
-              <RadioGroupItemWithLabel
-                key={option}
-                value={option}
-                onLabelPress={onLabelPress(option)}
-              />
-            ))}
-          </RadioGroup>
-          <Button onPress={handleSubmit} className="w-full">
-            <Text className="text-white font-semibold">Submit</Text>
-          </Button>
-        </View>
-      </Drawer>
-    </View>
+        </BottomSheetView>
+      </BottomSheet>
+    </>
   );
 }

@@ -30,7 +30,7 @@ export default function ProfileImage(props: {
             TextClassName
           )}
         >
-          {name === null ? "U" : name.slice(0, 1)}
+          {name === null || undefined ? "U" : name.slice(0, 1)}
         </Text>
       </AvatarFallback>
     </Avatar>
