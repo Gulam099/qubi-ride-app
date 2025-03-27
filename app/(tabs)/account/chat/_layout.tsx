@@ -31,7 +31,6 @@ export default function ChatLayout() {
           ),
         }}
       />
-      <Stack.Screen name="+not-found" />
     </Stack>
   );
 }

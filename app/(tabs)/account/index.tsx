@@ -1,11 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/store/user/user";
 import { Button } from "@/components/ui/Button";
 import { Link, RelativePathString } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { H3, H4 } from "@/components/ui/Typography";
 import {
   Add,
@@ -26,12 +23,6 @@ import {
 import colors from "@/utils/colors";
 import AccountCard from "@/features/account/components/AccountCard";
 import { useRouter } from "expo-router";
-import Drawer from "@/components/ui/Drawer";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
-import { Label } from "@/components/ui/Label";
-import { PatientDeleteAccountOptions } from "@/features/account/constAccount";
-
-import TextureCircle from "@/features/account/assets/images/TextureCircle.svg";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 import AccountCard2 from "@/features/account/components/AccountCard2";
 import AccountDeleteButton from "@/features/account/components/AccountDeleteButton";
@@ -40,6 +31,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { SignOutButton } from "@/features/account/components/SignOutButton";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
+import { CustomImages } from "@/const";
 
 export default function AccountPage() {
   const { user } = useUser();
@@ -59,6 +51,7 @@ export default function AccountPage() {
       items: [
         { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
         { link: "/account/scale", label: "Metrics", icon: Clipboard },
+        { link: "/account/chat", label: "My conversations", icon: Message },
       ],
     },
   ]);
@@ -153,7 +146,7 @@ export default function AccountPage() {
               </Link>
             </View>
             <View className={"absolute -top-4 -right-6"}>
-              <TextureCircle />
+              <CustomImages.TextureCircle.image />
             </View>
 
             <Button
@@ -164,14 +157,17 @@ export default function AccountPage() {
             </Button>
           </View>
           <View className="flex justify-center items-center h-full w-full flex-1 p-6 pt-2">
-            <View className="flex justify-center items-center flex-row flex-wrap basis-1/3 gap-4">
+            <View className="flex justify-center items-center flex-row flex-wrap  gap-4">
               {Interests.map((section) => (
-                <View key={section.title} className="flex flex-col  gap-4 py-4">
-                  <View className="flex flex-row flex-wrap gap-4">
+                <View
+                  key={section.title}
+                  className="flex flex-col  gap-4 py-4 w-full"
+                >
+                  <View className="flex flex-row flex-wrap justify-between  gap-4">
                     {section.items.map((item) => (
                       <AccountCard
                         key={item.link + section.title}
-                        className="basis-[30%]"
+                        className="basis-[29%]"
                         iconColor={section.iconColor}
                         iconSize={28}
                         shadowColor={section.shadowColor}
@@ -185,7 +181,7 @@ export default function AccountPage() {
                 </View>
               ))}
 
-              <AccountCard
+              {/* <AccountCard
                 className=""
                 iconColor={colors.gray[700]}
                 iconSize={28}
@@ -194,7 +190,7 @@ export default function AccountPage() {
                 icon={Add}
                 label={"Select my interests"}
                 link={"/"}
-              />
+              /> */}
             </View>
             <View className="flex  w-full pb-4">
               {sections.map((section) => (
@@ -202,11 +198,11 @@ export default function AccountPage() {
                   <H4 className=" font-semibold text-gray-800 ">
                     {section.title}
                   </H4>
-                  <View className="flex flex-row flex-wrap  gap-4">
+                  <View className="flex flex-row flex-wrap justify-between  gap-4">
                     {section.items.map((item) => (
                       <AccountCard
                         key={item.link + section.title}
-                        className={"basis-[30%]"}
+                        className={"basis-[29%]"}
                         iconColor={section.iconColor}
                         iconSize={28}
                         shadowColor={section.shadowColor}
@@ -224,7 +220,7 @@ export default function AccountPage() {
                 onPress={() => contactUsBottomSheetRef.current?.expand()}
               >
                 <AccountCard2
-                  className={"basis-[30%]"}
+                  className={"basis-[29%]"}
                   iconColor={ContactUsCard.iconColor}
                   iconSize={28}
                   shadowColor={ContactUsCard.shadowColor}
@@ -238,48 +234,6 @@ export default function AccountPage() {
 
             <SignOutButton />
             <AccountDeleteButton />
-
-            {/* <Drawer
-              visible={isContactUsDrawerVisible}
-              onClose={() => setIsContactUsDrawerVisible(false)}
-              title="My Drawer"
-              className="max-h-[40%]"
-              height="50%"
-            >
-              <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-                <H3 className="border-none text-lg text-neutral-700 text-center">
-                  Welcome! Baserah team is here to serve you
-                </H3>
-                <Text className="text-base text-neutral-500">
-                  The usual response time for us is a few minutes
-                </Text>
-
-                <Button
-                  onPress={() => {
-                    setIsContactUsDrawerVisible(false);
-                    router.push("/help/ticket");
-                  }}
-                  className="w-full"
-                >
-                  <Text className="text-white font-semibold">
-                    Add a ticket directly
-                  </Text>
-                </Button>
-                <Text className="text-base text-neutral-500">or</Text>
-                <Button
-                  onPress={() => {
-                    setIsContactUsDrawerVisible(false);
-                    router.push("/account/chat/support");
-                  }}
-                  className="w-full"
-                  variant={"secondary"}
-                >
-                  <Text className="text-neutral-500 font-semibold">
-                    Contact Technical Support
-                  </Text>
-                </Button>
-              </View>
-            </Drawer> */}
 
             <BottomSheet
               ref={contactUsBottomSheetRef}

@@ -60,6 +60,8 @@ import WeakFeeling from "@/assets/icon/WeakFeeling.svg";
 import Weather from "@/assets/icon/Weather.svg";
 import Work from "@/assets/icon/Work.svg";
 import Worried from "@/assets/icon/Worried.svg";
+import TextureCircle from "@/features/account/assets/images/TextureCircle.svg";
+
 export const CustomIcons = {
   Relaxation: { label: "Relaxation", Icon: Relaxation },
   Angry: { label: "Angry", Icon: Angry },
@@ -123,6 +125,10 @@ export const CustomIcons = {
   Weather: { label: "Weather", Icon: Weather },
   Work: { label: "Work", Icon: Work },
   Worried: { label: "Worried", Icon: Worried },
+};
+
+export const CustomImages = {
+  TextureCircle: { label: "TextureCircle", image: TextureCircle },
 };
 
 export const AppLogo = require("@/assets/images/icon.png");

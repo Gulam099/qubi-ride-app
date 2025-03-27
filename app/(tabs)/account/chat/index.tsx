@@ -101,9 +101,7 @@ function ChatListPage() {
     fetchChats();
   }, []);
 
-  const handleChatPress = (chatId: string) => {
-    router.push(`/(tabs)/account/chat/${chatId}`);
-  };
+  
 
   return (
     <View className="p-4 bg-blue-50/10 h-full">
@@ -116,7 +114,7 @@ function ChatListPage() {
         renderItem={({ item }) => (
           <TouchableOpacity
             disabled={!item.isAvailable}
-            onPress={() => router.push(`/(tabs)/account/chat/${item.id}`)}
+            onPress={() => router.push(`/account/chat/${item.id}`)}
             className={cn(
               "p-4 rounded-lg shadow-md flex-row justify-between items-center",
               item.isAvailable ? "bg-white" : "bg-gray-200"
