@@ -28,7 +28,7 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import i18n from "@/lib/i18n";
 import { I18nextProvider } from "react-i18next";
-import { I18nManager } from "react-native";
+import { ActivityIndicator, I18nManager, View } from "react-native";
 
 import {
   ClerkProvider,
@@ -42,6 +42,8 @@ import { Text } from "@/components/ui/Text";
 import { tokenCache } from "@/lib/cache";
 import { use } from "i18next";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -79,21 +81,23 @@ const InitialLayout = () => {
   }, [isLoaded]);
 
   return (
-    <ThemeProvider>
-      <GestureHandlerRootView>
-        <SafeAreaProvider>
-          <Stack>
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
-          </Stack>
-        </SafeAreaProvider>
-        <Toaster position="top-center" />
-        <StatusBar style="light" backgroundColor={colors.blue[700]} />
-        <PortalHost />
-      </GestureHandlerRootView>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <GestureHandlerRootView>
+          <SafeAreaProvider>
+            <Stack>
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
+            </Stack>
+          </SafeAreaProvider>
+          <Toaster position="top-center" />
+          <StatusBar style="light" backgroundColor={colors.blue[700]} />
+          <PortalHost />
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 
@@ -124,7 +128,9 @@ const RootLayout = () => {
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoading>
-        <Text>Loading Clerk......</Text>
+        <View className="w-full h-full justify-center items-center">
+          <ActivityIndicator size={48} color={colors.primary[500]} />
+        </View>
       </ClerkLoading>
 
       <ClerkLoaded>

@@ -127,14 +127,14 @@ export default function AccountPage() {
               </Text>
               <CopyToClipboard
                 data={
-                  (user?.publicMetadata?.dbUserId as string) ??
+                  (user?.publicMetadata?.dbPatientId as string) ??
                   "User id not found"
                 }
                 variant={"ghost"}
                 className="flex-row gap-2 justify-start items-start p-0"
               >
                 <Text className="text-base  text-gray-200 ">
-                  {(user?.publicMetadata?.dbUserId as string) ??
+                  {(user?.publicMetadata?.dbPatientId as string) ??
                     "User id not found"}
                 </Text>
                 <Copy size="16" color={colors.gray[200]} />

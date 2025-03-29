@@ -16,42 +16,48 @@ import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { toast } from "sonner-native";
-import { apiNewUrl } from "@/const";
+import { ApiUrl, apiNewUrl } from "@/const";
+import { useQuery } from "@tanstack/react-query";
 
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const { specialist_Id } = useLocalSearchParams();
-  const [specialistData, setSpecialistData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchSpecialistData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `${apiNewUrl}/doctors/get_doctor_by_id?consultId=${specialist_Id}`
-        );
-        const result = await response.json();
+  // Fetch function
+  const fetchSpecialistData = async () => {
+    if (!specialist_Id) throw new Error("Specialist ID is missing.");
 
-        if (response.ok && result.success) {
-          setSpecialistData(result.data);
-        } else {
-          throw new Error("Failed to fetch specialist data");
-        }
-      } catch (err) {
-        console.error("Error fetching specialist data:", err);
-        setError("Unable to fetch data. Please try again later.");
-        toast.error("Error loading specialist data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const response = await fetch(
+      `${ApiUrl}/api/doctor/get-doctor/${specialist_Id}`
+    );
+    if (!response.ok) {
+      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_Id}).`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    }
 
-    fetchSpecialistData();
-  }, [specialist_Id]);
+    const result = await response.json();
 
-  if (loading) {
+    if (!result) {
+      throw new Error("Invalid data received from server.");
+    }
+
+    return result;
+  };
+
+  // Fetching data with useQuery
+  const {
+    data: specialistData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["doctor", specialist_Id],
+    queryFn: fetchSpecialistData,
+    enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
+  });
+
+  if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text>Loading...</Text>
@@ -62,7 +68,9 @@ export default function SpecialistConsultantPage() {
   if (error || !specialistData) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">{error || "Specialist not found."}</Text>
+        <Text className="text-red-500">
+          {error?.message || "Specialist not found."}
+        </Text>
       </View>
     );
   }
@@ -74,7 +82,7 @@ export default function SpecialistConsultantPage() {
           headerLeft: () => <BackButton />,
           headerTitle: () => (
             <Text className="font-semibold text-lg ">
-              {specialistData.name}
+              {specialistData.full_name}
             </Text>
           ),
         }}
@@ -85,13 +93,15 @@ export default function SpecialistConsultantPage() {
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
           <View className="absolute w-full h-24 bg-blue-900"></View>
           <ProfileImage
-            imageUrl={specialistData.image || ""}
-            name={specialistData.name}
+            imageUrl={specialistData.profile_picture || ""}
+            name={specialistData.full_name}
             className="size-32"
           />
-          <Text className="text-xl font-semibold ">{specialistData.name}</Text>
+          <Text className="text-xl font-semibold ">
+            {specialistData.full_name ?? "No name found"}
+          </Text>
           <Text className="text-sm text-neutral-600 text-center font-normal w-2/3">
-            {specialistData.speciality || "Specialist"}
+            {specialistData.specialization ?? "Specialist"}
           </Text>
 
           {/* Details Section */}
@@ -218,7 +228,7 @@ export default function SpecialistConsultantPage() {
         <Button
           className="mt-4 bg-purple-600 mb-6"
           onPress={() =>
-            router.push(`/p/account/consult/s/${specialist_Id}/session`)
+            router.push(`/account/consult/s/${specialist_Id}/session`)
           }
         >
           <Text className="text-white font-bold">

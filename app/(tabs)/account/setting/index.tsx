@@ -232,7 +232,7 @@ export default function SettingsPage() {
           <Text className="text-neutral-700  font-semibold ">Rate the App</Text>
         </Button>
         <Button
-          onPress={() => router.push("/(Routes)/(patient)/help")}
+          onPress={() => router.push("/(stacks)/help")}
           variant={"secondary"}
           className="bg-white"
         >

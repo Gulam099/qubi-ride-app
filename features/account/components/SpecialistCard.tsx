@@ -1,5 +1,3 @@
-// components/SpecialistCard.tsx
-
 import React from "react";
 import { View, Text, Image, TouchableOpacity, Touchable } from "react-native";
 import { Heart, Share, Clock, Share2 } from "lucide-react-native"; // Replace with your icons library
@@ -29,9 +27,9 @@ export default function SpecialistCard({
   onPress,
 }: SpecialistCardProps) {
   return (
-    <View className="flex-row items-center bg-white  rounded-lg overflow-hidden relative">
+    <View className="flex-row items-center bg-white  rounded-lg overflow-hidden relative ">
       {/* Specialist Image */}
-      <TouchableOpacity onPress={onPress} className="size-36">
+      <TouchableOpacity onPress={onPress} className="size-42">
         {/* <Image
           source={{ uri: imageUrl }}
           className="w-36 h-36 "
@@ -39,17 +37,21 @@ export default function SpecialistCard({
         /> */}
         <ProfileImage
           imageUrl={imageUrl}
-          name={name}
-          className="rounded-none size-36 border-none border-transparent bg-primary-600"
+          name={"name"}
+          className="rounded-none size-36 border-none border-transparent "
         />
       </TouchableOpacity>
 
       {/* Specialist Info */}
       <View className="flex-1 px-4 py-3 flex-col gap-1">
         <TouchableOpacity onPress={onPress}>
-          <Text className="text-blue-700 text-lg font-semibold">{name}</Text>
+          <Text className="text-blue-700 text-lg font-semibold">
+            {name ?? "No name Found"}
+          </Text>
         </TouchableOpacity>
-        <Text className="text-gray-600 ">{title}</Text>
+        <Text className="text-gray-600 ">
+          {title ?? "No specialization Found"}
+        </Text>
 
         {/* Price and Duration */}
         <View className="flex-row items-center gap-1">

@@ -15,28 +15,28 @@ export default function ScalePage() {
       title: "Generalized Anxiety Disorder scale",
       time: "3 min",
       users: "1.1M",
-      link: "/p/account/scale/generalized-anxiety-disorder-scale",
+      link: "/account/scale/generalized-anxiety-disorder-scale",
     },
     {
       id: "2",
       title: "Mood scale",
       time: "3 min",
       users: "1.1M",
-      link: "/p/account/scale/mood-scale",
+      link: "/account/scale/mood-scale",
     },
     {
       id: "3",
       title: "Quality of Life scale",
       time: "3 min",
       users: "1.1M",
-      link: "/p/account/scale/quality-of-life-scale",
+      link: "/account/scale/quality-of-life-scale",
     },
     {
       id: "4",
       title: "Depression scale",
       time: "3 min",
       users: "1.1M",
-      link: "/p/account/scale/depression-scale",
+      link: "/account/scale/depression-scale",
     },
   ];
 
@@ -47,7 +47,7 @@ export default function ScalePage() {
         <Button
           className="h-11 max-h-11 py-0 px-0 flex-row bg-primary-50 gap-3"
           onPress={() =>
-            router.push("/p/account/scale/record" as RelativePathString)
+            router.push("/account/scale/record" as RelativePathString)
           }
         >
           <Chart21 size="24" color={colors.primary[500]} />
@@ -71,11 +71,15 @@ export default function ScalePage() {
             <View className="flex-row items-start justify-start gap-3">
               <View className="flex-row items-center justify-center gap-2">
                 <Clock size="16" color={colors.primary[500]} />
-                <Text className="text-gray-500 text-xs font-semibold">{item.time}</Text>
+                <Text className="text-gray-500 text-xs font-semibold">
+                  {item.time}
+                </Text>
               </View>
               <View className="flex-row items-center justify-center gap-2">
                 <Profile2User size="16" color={colors.primary[500]} />
-                <Text className="text-gray-500 text-xs font-semibold">{item.users}</Text>
+                <Text className="text-gray-500 text-xs font-semibold">
+                  {item.users}
+                </Text>
               </View>
             </View>
           </TouchableOpacity>

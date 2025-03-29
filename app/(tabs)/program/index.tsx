@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner-native";
 import { apiNewUrl } from "@/const";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function SupportPage() {
   const [activeTab, setActiveTab] = useState("All");
@@ -16,7 +17,7 @@ export default function SupportPage() {
     const fetchGroups = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiNewUrl}/program/list`);
+        const response = await fetch(`${apiBaseUrl}/program/list`);
         const result = await response.json();
 
         if (response.ok && result.success) {

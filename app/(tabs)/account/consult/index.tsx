@@ -1,5 +1,5 @@
 import { View, Text, FlatList } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -9,15 +9,14 @@ import SpecialistCard from "@/features/account/components/SpecialistCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner-native";
-import { apiNewUrl } from "@/const";
+import { ApiUrl } from "@/const";
+import { useQuery } from "@tanstack/react-query";
 
 type ConsultType = {
-  id: string;
-  name: string;
-  title: string;
-  price: string;
-  likes: string;
-  image: string;
+  _id: string;
+  full_name: string;
+  specialization: string;
+  profile_picture: string;
 };
 
 export default function ConsultPage() {
@@ -30,74 +29,52 @@ export default function ConsultPage() {
     gender,
     duration,
     ClosestAppointment,
-  } = useLocalSearchParams<{
-    situation: string[];
-    budget: string;
-    type: string;
-    language: string;
-    gender: string;
-    duration: string;
-    ClosestAppointment: string;
-  }>();
+  } = useLocalSearchParams();
 
-  const [consult, setConsult] = useState<ConsultType[]>([]);
-  const [filteredConsult, setFilteredConsult] = useState<ConsultType[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${apiNewUrl}/doctors/list`);
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          const filteredConsultants = result.data
-            .filter(
-              (consultant: any) =>
-                consultant.approvalStatus !== "Approval pending"
-            )
-            .map((consultant: any) => ({
-              id: consultant._id,
-              name: consultant.name,
-              title: consultant.speciality || "N/A",
-              price: consultant.fees || "0",
-              likes: consultant.likes || "0",
-              image: consultant.image || "https://via.placeholder.com/100",
-            }));
-
-          setConsult(filteredConsultants);
-          setFilteredConsult(filteredConsultants); // Initialize filtered data
-        } else {
-          toast.error("Failed to fetch consultants.");
-        }
-      } catch (error) {
-        console.error("Error fetching consultants:", error);
-        toast.error("Error fetching consultants.");
-      } finally {
-        setLoading(false);
+  // Fetching consultants using `useQuery`
+  const {
+    data: consultData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["doctor"],
+    queryFn: async () => {
+      const response = await fetch(
+        `${ApiUrl}/api/doctor/get-doctors?page=1&pageSize=5`
+      );
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error("Failed to fetch consultants.");
       }
-    };
+      return result.data;
+    },
+  });
 
-    fetchData();
-  }, []);
+  // Handle search filtering
+  const filteredConsult = consultData?.filter((consultant: ConsultType) => {
+    const name = consultant.full_name?.toLowerCase() || ""; // Default to an empty string
+    const specialization = consultant.specialization?.toLowerCase() || ""; // Default to an empty string
 
-  useEffect(() => {
-    // Filter consultants by name or specialty based on the search text
-    const lowercasedText = searchText.toLowerCase();
-    const filtered = consult.filter(
-      (consultant) =>
-        consultant.name.toLowerCase().includes(lowercasedText) ||
-        consultant.title.toLowerCase().includes(lowercasedText)
+    return (
+      name.includes(searchText.toLowerCase()) ||
+      specialization.includes(searchText.toLowerCase())
     );
-    setFilteredConsult(filtered);
-  }, [searchText, consult]);
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text className="text-gray-500">Loading...</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">Failed to fetch consultants.</Text>
       </View>
     );
   }
@@ -111,21 +88,22 @@ export default function ConsultPage() {
           onChangeText={setSearchText}
         />
 
-        {filteredConsult.length > 0 ? (
+        {filteredConsult?.length > 0 ? (
           <FlatList
             data={filteredConsult}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <SpecialistCard
-                name={item.name}
-                title={item.title}
-                price={item.price}
-                likes={item.likes}
-                imageUrl={item.image}
-                shareLink={`${item.id}`}
+                key={item._id}
+                name={item.full_name}
+                title={item.specialization}
+                price={56}
+                likes={89}
+                imageUrl={item.profile_picture}
+                shareLink={`${item._id}`}
                 onPress={() =>
                   router.push(
-                    `/p/account/consult/s/${item.id}` as RelativePathString
+                    `/account/consult/s/${item._id}` as RelativePathString
                   )
                 }
               />

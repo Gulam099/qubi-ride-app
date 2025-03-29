@@ -7,7 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Drawer from "@/components/ui/Drawer";
 import { H3 } from "@/components/ui/Typography";
 import { format } from "date-fns";
@@ -17,6 +17,8 @@ import { ArrowRight } from "iconsax-react-native";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useUser } from "@clerk/clerk-expo";
 
 type RecordType = {
   _id: string;
@@ -25,50 +27,52 @@ type RecordType = {
 };
 
 export default function GeneralizedAnxietyDisorderScale() {
-  const [RecordList, setRecordList] = useState<RecordType[]>([]);
   const [isListActive, setIsListActive] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [RecordActive, setRecordActive] = useState<RecordType | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const user: UserType = useSelector((state: any) => state.user);
-
-  useEffect(() => {
-    fetchRecords(currentPage);
-  }, [currentPage]);
-
-  const fetchRecords = async (page: number) => {
-    if (!hasMore || isLoading) return;
-
-    setIsLoading(true);
-    try {
+const {user} = useUser()
+const userId = user?.publicMetadata.dbPatientId as string
+  // Fetch records using useInfiniteQuery
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+  } = useInfiniteQuery({
+    queryKey: ["gad-scale-records", userId],
+    queryFn: async ({ pageParam = 1 }) => {
       const response = await fetch(
-        `${apiBaseUrl}/api/gad-scale/user/${user._id}?page=${page}`
+        `${apiBaseUrl}/api/gad-scale/user/${userId}?page=${pageParam}`
       );
-      const result = await response.json();
-
-      if (response.ok && result.responses) {
-        setRecordList((prev) => [...prev, ...result.responses]);
-        setHasMore(page < result.totalPages);
-      } else {
-        console.error(
-          "Failed to fetch records:",
-          result.message || "Unknown error"
-        );
+      if (!response.ok) {
+        throw new Error("Failed to fetch records");
       }
-    } catch (error) {
-      console.error("Error fetching records:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return response.json();
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.totalPages > allPages.length ? allPages.length + 1 : null;
+    },
+  });
 
-  const loadMoreRecords = () => {
-    if (hasMore) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color={colors.primary[500]} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">Failed to load records</Text>
+      </View>
+    );
+  }
+
+  const RecordList = data?.pages.flatMap((page) => page.responses) || [];
 
   const handleRecordActive = (recordId: string) => {
     const record = RecordList.find((item) => item._id === recordId);
@@ -76,8 +80,8 @@ export default function GeneralizedAnxietyDisorderScale() {
     setIsDrawerVisible(true);
   };
 
-  const data = {
-    labels: ["Anxiety"], // optional
+  const dataChart = {
+    labels: ["Anxiety"],
     data: [RecordList[0]?.score / 100 || 0],
   };
 
@@ -113,7 +117,7 @@ export default function GeneralizedAnxietyDisorderScale() {
             </View>
             <View className=" rotate-[180deg] ">
               <ProgressChart
-                data={data}
+                data={dataChart}
                 width={Dimensions.get("window").width - 60}
                 height={250}
                 strokeWidth={18}
@@ -133,17 +137,15 @@ export default function GeneralizedAnxietyDisorderScale() {
           <View className="flex-col rounded-xl bg-background py-4 px-4 ">
             <View className="flex-row">
               <Text className="text-lg font-semibold flex-1 ">Record</Text>
-              <View className="flex-row items-center justify-center gap-1">
-                <Text
-                  onPress={() => {
-                    setIsListActive(!isListActive);
-                  }}
-                  className="text-sm font-semibold  text-end text-primary-500 "
-                >
+              <TouchableOpacity
+                onPress={() => setIsListActive(!isListActive)}
+                className="flex-row items-center justify-center gap-1"
+              >
+                <Text className="text-sm font-semibold text-primary-500 ">
                   View all
                 </Text>
                 <ArrowRight size="20" color={colors.primary[500]} />
-              </View>
+              </TouchableOpacity>
             </View>
             <View className="flex-col h-full gap-2">
               {RecordList.slice(0, 4).map((record, index) => (
@@ -165,71 +167,40 @@ export default function GeneralizedAnxietyDisorderScale() {
           </View>
         </ScrollView>
       ) : (
-        <View className="bg-blue-50/10 flex flex-col gap-4 h-full">
-          <FlatList
-            data={RecordList}
-            contentContainerClassName="gap-2"
-            showsVerticalScrollIndicator={false}
-            onEndReached={loadMoreRecords}
-            onEndReachedThreshold={0.1}
-            ListFooterComponent={
-              isLoading ? (
-                <ActivityIndicator size="small" color={colors.primary[500]} />
-              ) : null
-            }
-            renderItem={({ item, index }) => (
-              <TouchableOpacity
-                key={item._id}
-                onPress={() => handleRecordActive(item._id)}
-                className="flex flex-row justify-between items-center  bg-white border rounded-2xl border-blue-600 gap-2 overflow-hidden h-20"
-              >
-                <View className="bg-blue-600  w-6 h-20 flex-col justify-center items-center ">
-                  <Text className="text-white font-semibold text-center text-sm">
-                    {index + 1}
-                  </Text>
-                </View>
-                <View className="flex-1 p-2">
-                  <Text className="text-lg font-medium leading-6">
-                    Anxiety Score: {item.score}
-                  </Text>
-                  <Text className="text-xs">Moderate Anxiety</Text>
-                </View>
-                <View className=" px-4">
-                  <Text className="text-sm">
-                    {format(new Date(item.createdAt), "dd-MM-yyyy")}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
-          <View className="flex-1 justify-center items-center  mt-10 mb-20">
-            <Drawer
-              visible={isDrawerVisible}
-              onClose={() => setIsDrawerVisible(false)}
-              title="Record Details"
-              height="40%"
-              className="max-h-[40%]"
+        <FlatList
+          data={RecordList}
+          keyExtractor={(item) => item._id}
+          onEndReached={hasNextPage ? fetchNextPage : null}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <ActivityIndicator size="small" color={colors.primary[500]} />
+            ) : null
+          }
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              onPress={() => handleRecordActive(item._id)}
+              className="flex flex-row justify-between items-center bg-white border rounded-2xl border-blue-600 gap-2 overflow-hidden h-20"
             >
-              <View className="flex flex-col flex-1 justify-center items-center w-full gap-6 px-6">
-                <Text className="text-xl font-semibold text-neutral-600">
-                  Details
+              <View className="bg-blue-600 w-6 h-20 flex justify-center items-center">
+                <Text className="text-white font-semibold text-center text-sm">
+                  {index + 1}
                 </Text>
-
-                <View className="flex-col justify-center items-center gap-3 bg-blue-900 aspect-square w-1/3 rounded-xl p-2">
-                  <Text className="text-white text-xs text-center">
-                    Client's answers show
-                  </Text>
-                  <Text className="text-white text-4xl text-center">
-                    {RecordActive?.score}
-                  </Text>
-                </View>
-                {/* <Text className="text-xs">
-                  {format(new Date(RecordActive?.createdAt as string), "dd-MM-yyyy")}
-                </Text> */}
               </View>
-            </Drawer>
-          </View>
-        </View>
+              <View className="flex-1 p-2">
+                <Text className="text-lg font-medium leading-6">
+                  Anxiety Score: {item.score}
+                </Text>
+                <Text className="text-xs">Moderate Anxiety</Text>
+              </View>
+              <View className="px-4">
+                <Text className="text-sm">
+                  {format(new Date(item.createdAt), "dd-MM-yyyy")}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
       )}
     </>
   );

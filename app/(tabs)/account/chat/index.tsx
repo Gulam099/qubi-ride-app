@@ -101,8 +101,6 @@ function ChatListPage() {
     fetchChats();
   }, []);
 
-  
-
   return (
     <View className="p-4 bg-blue-50/10 h-full">
       <Text className="text-xl font-bold mb-4">My Chats</Text>
@@ -114,7 +112,7 @@ function ChatListPage() {
         renderItem={({ item }) => (
           <TouchableOpacity
             disabled={!item.isAvailable}
-            onPress={() => router.push(`/account/chat/${item.id}`)}
+            onPress={() => router.push(`/(stacks)/chat/${item.id}`)}
             className={cn(
               "p-4 rounded-lg shadow-md flex-row justify-between items-center",
               item.isAvailable ? "bg-white" : "bg-gray-200"

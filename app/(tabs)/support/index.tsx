@@ -5,7 +5,7 @@ import SupportGroupCard from "@/features/supportGroup/components/SupportGroupCar
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner-native";
-import { apiNewUrl } from "@/const";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function SupportPage() {
   const [activeTab, setActiveTab] = useState("All");
@@ -16,7 +16,7 @@ export default function SupportPage() {
     const fetchGroups = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiNewUrl}/group/list`);
+        const response = await fetch(`${apiBaseUrl}/group/list`);
         const result = await response.json();
 
         if (response.ok && result.success) {
