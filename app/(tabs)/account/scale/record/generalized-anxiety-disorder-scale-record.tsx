@@ -14,11 +14,9 @@ import { format } from "date-fns";
 import { ProgressChart } from "react-native-chart-kit";
 import colors from "@/utils/colors";
 import { ArrowRight } from "iconsax-react-native";
-import { useSelector } from "react-redux";
-import { UserType } from "@/features/user/types/user.type";
-import { apiBaseUrl } from "@/features/Home/constHome";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-expo";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 type RecordType = {
   _id: string;
@@ -30,9 +28,39 @@ export default function GeneralizedAnxietyDisorderScale() {
   const [isListActive, setIsListActive] = useState(false);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [RecordActive, setRecordActive] = useState<RecordType | null>(null);
-const {user} = useUser()
-const userId = user?.publicMetadata.dbPatientId as string
+
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
+
   // Fetch records using useInfiniteQuery
+  const fetchRecords = async ({ pageParam = 1 }) => {
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/api/gad-scale/user/${userId}?page=${pageParam}`
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to fetch records");
+      }
+
+      // ✅ Ensure the response is structured correctly
+      return {
+        responses: Array.isArray(result.responses) ? result.responses : [], // Always return an array
+        nextPage:
+          result.totalPages && pageParam < result.totalPages
+            ? pageParam + 1
+            : null,
+      };
+    } catch (err) {
+      // console.error("Fetch Error:", err);
+      return {
+        responses: [], // ✅ Return an empty array instead of undefined
+        nextPage: null, // ✅ Stop pagination gracefully
+      };
+    }
+  };
+
   const {
     data,
     fetchNextPage,
@@ -40,20 +68,12 @@ const userId = user?.publicMetadata.dbPatientId as string
     isFetchingNextPage,
     isLoading,
     error,
+    isError,
   } = useInfiniteQuery({
-    queryKey: ["gad-scale-records", userId],
-    queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetch(
-        `${apiBaseUrl}/api/gad-scale/user/${userId}?page=${pageParam}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch records");
-      }
-      return response.json();
-    },
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.totalPages > allPages.length ? allPages.length + 1 : null;
-    },
+    queryKey: ["gad-scale", userId],
+    queryFn: fetchRecords,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage?.nextPage ?? null, // ✅ Avoids undefined error
   });
 
   if (isLoading) {
@@ -64,15 +84,15 @@ const userId = user?.publicMetadata.dbPatientId as string
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Failed to load records</Text>
+        <Text className="text-neutral-500">{error.message}</Text>
       </View>
     );
   }
 
-  const RecordList = data?.pages.flatMap((page) => page.responses) || [];
+  const RecordList = data?.pages?.flatMap((page) => page.responses) ?? []; // ✅ Avoids undefined issues
 
   const handleRecordActive = (recordId: string) => {
     const record = RecordList.find((item) => item._id === recordId);
@@ -88,9 +108,7 @@ const userId = user?.publicMetadata.dbPatientId as string
   const chartConfig = {
     backgroundColor: "#fff",
     backgroundGradientFrom: "#fff",
-    backgroundGradientFromOpacity: 0,
     backgroundGradientTo: "#fff",
-    backgroundGradientToOpacity: 0,
     color: (opacity = 1) => `rgba(1, 40, 150, ${opacity})`,
     strokeWidth: 2,
     barPercentage: 0.5,
@@ -105,17 +123,18 @@ const userId = user?.publicMetadata.dbPatientId as string
           contentContainerStyle={{ flexGrow: 1, gap: 8, paddingBottom: 20 }}
           className="bg-blue-50/10 flex flex-col gap-4 h-full w-full"
         >
+          {/* Last Result Section */}
           <View className="bg-white p-4 rounded-2xl relative h-[400]">
             <H3 className="text-xl">Last Result</H3>
             <View className="absolute top-[140] left-[155] z-10">
-              <Text className=" text-blue-600 font-semibold  w-20 text-center leading-5">
+              <Text className="text-blue-600 font-semibold w-20 text-center leading-5">
                 {RecordList.length > 0 ? "Moderate Anxiety" : "No Data"}
               </Text>
               <Text className="text-3xl font-semibold text-blue-600 text-center leading-10">
                 {RecordList.length > 0 ? `${RecordList[0]?.score}` : "N/A"}
               </Text>
             </View>
-            <View className=" rotate-[180deg] ">
+            <View className="rotate-[180deg]">
               <ProgressChart
                 data={dataChart}
                 width={Dimensions.get("window").width - 60}
@@ -129,44 +148,52 @@ const userId = user?.publicMetadata.dbPatientId as string
             <Text className="text-sm text-neutral-500">
               We encourage you to take care of your mental health and seek a
               session as soon as possible for meditation to help alleviate
-              anxiety and achieve mental relaxation. Remember that you are not
-              alone on this journey, and we are here at Baserah to assist you.
+              anxiety and achieve mental relaxation.
             </Text>
           </View>
 
-          <View className="flex-col rounded-xl bg-background py-4 px-4 ">
+          {/* Record List Preview */}
+          <View className="flex-col rounded-xl bg-background py-4 px-4">
             <View className="flex-row">
-              <Text className="text-lg font-semibold flex-1 ">Record</Text>
+              <Text className="text-lg font-semibold flex-1">Record</Text>
               <TouchableOpacity
-                onPress={() => setIsListActive(!isListActive)}
+                onPress={() => setIsListActive(true)}
                 className="flex-row items-center justify-center gap-1"
               >
-                <Text className="text-sm font-semibold text-primary-500 ">
+                <Text className="text-sm font-semibold text-primary-500">
                   View all
                 </Text>
                 <ArrowRight size="20" color={colors.primary[500]} />
               </TouchableOpacity>
             </View>
+
             <View className="flex-col h-full gap-2">
-              {RecordList.slice(0, 4).map((record, index) => (
-                <View key={record._id} className="flex-row gap-2 py-2">
-                  <View className="flex-1 gap-1">
-                    <Text className="text-base font-semibold leading-8">
-                      Anxiety Score: {record.score}
-                    </Text>
-                    <Text className="text-xs">Moderate Anxiety</Text>
+              {RecordList.length > 0 ? (
+                RecordList.slice(0, 4).map((record, index) => (
+                  <View key={record._id} className="flex-row gap-2 py-2">
+                    <View className="flex-1 gap-1">
+                      <Text className="text-base font-semibold leading-8">
+                        Anxiety Score: {record.score}
+                      </Text>
+                      <Text className="text-xs">Moderate Anxiety</Text>
+                    </View>
+                    <View className="w-1/4">
+                      <Text className="text-xs">
+                        {format(new Date(record.createdAt), "dd-MM-yyyy , p")}
+                      </Text>
+                    </View>
                   </View>
-                  <View className=" w-1/4">
-                    <Text className="text-xs">
-                      {format(new Date(record.createdAt), "dd-MM-yyyy , p")}
-                    </Text>
-                  </View>
-                </View>
-              ))}
+                ))
+              ) : (
+                <Text className="text-neutral-500 text-sm">
+                  No records found
+                </Text>
+              )}
             </View>
           </View>
         </ScrollView>
       ) : (
+        // Full Record List
         <FlatList
           data={RecordList}
           keyExtractor={(item) => item._id}

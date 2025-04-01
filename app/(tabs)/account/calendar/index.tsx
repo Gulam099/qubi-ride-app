@@ -5,9 +5,11 @@ import ScheduleCalendarCard from "@/features/account/components/ScheduleCalendar
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiNewUrl } from "@/const";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function AccountCalendarPage() {
-  const user: UserType = useSelector((state: any) => state.user); // Fetch user details from Redux state
+  const { user } = useUser();
+  const userId = user?.publicMetadata?.dbPatientId as string;
   const [markedDates, setMarkedDates] = useState({});
   const [scheduleData, setScheduleData] = useState([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -15,7 +17,7 @@ export default function AccountCalendarPage() {
   const fetchSchedulesForMonth = async (month: number, year: number) => {
     try {
       const response = await fetch(
-        `${apiNewUrl}/booking/calendar?userId=${user._id}&month=${month}&year=${year}`
+        `${apiNewUrl}/booking/calendar?userId=${userId}&month=${month}&year=${year}`
       );
       const result = await response.json();
 

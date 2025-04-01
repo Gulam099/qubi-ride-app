@@ -8,8 +8,11 @@ import { moodOptions } from "@/features/scale/constScale";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { H3 } from "@/components/ui/Typography";
 import { cn } from "@/lib/utils";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function QualityOfLifeScaleRecord() {
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
   const chartConfig1 = {
     backgroundColor: "#fff",
     backgroundGradientFrom: "#fff",

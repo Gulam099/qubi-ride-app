@@ -9,6 +9,7 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
+import { useUser } from "@clerk/clerk-expo";
 
 // Demo questions
 const defaultQuestions = [
@@ -114,7 +115,9 @@ export default function DepressionScale() {
   const [answers, setAnswers] = useState<any[]>([]);
   const [score, setScore] = useState(0);
   const router = useRouter();
-  const user: UserType = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
+
 
   const handleStartQuiz = () => {
     setCurrentStep("quiz");
@@ -146,7 +149,7 @@ export default function DepressionScale() {
   const handleSubmit = async (finalAnswers: any[]) => {
     try {
       const payload = {
-        userId: user._id,
+        userId: userId,
         answers: finalAnswers,
       };
 
@@ -164,7 +167,7 @@ export default function DepressionScale() {
         console.log("Submission successful:", result);
         if (result.response) {
           router.push(
-            "/p/account/scale/record/depression-scale-record"
+            "/account/scale/record/depression-scale-record"
           );
         }
       } else {

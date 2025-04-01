@@ -9,11 +9,12 @@ import { apiNewUrl } from "@/const";
 import { useSelector } from "react-redux";
 import { toast } from "sonner-native";
 import { useUser } from "@clerk/clerk-expo";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function AccountAppointmentsPage() {
   const router = useRouter();
   const { user } = useUser();
-  const userDbId = user?.publicMetadata?.dbUserId;
+  const userId = user?.publicMetadata?.dbPatientId;
   const [activeTab, setActiveTab] = useState("My Sessions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [appointments, setAppointments] = useState<AppointmentCardType[]>([]);
@@ -22,7 +23,7 @@ export default function AccountAppointmentsPage() {
   // Fetch data based on active tab and category
   useEffect(() => {
     const fetchAppointments = async () => {
-      if (!userDbId) {
+      if (!userId) {
         toast.error("User Id is not found.");
         return;
       }
@@ -30,12 +31,12 @@ export default function AccountAppointmentsPage() {
       setLoading(true);
       try {
         const response = await fetch(
-          `${apiNewUrl}/booking/list?userId=${userDbId}&type=${activeTab}&category=${activeCategory}`
+          `${apiBaseUrl}/api/bookings/user/${userId}?type=${activeTab}&category=${activeCategory}`
         );
         const result = await response.json();
 
-        if (response.ok && result.success) {
-          setAppointments(result.data);
+        if (response.ok && result.bookings.length !== 0) {
+          setAppointments(result.bookings);
         } else {
           toast.error("Failed to fetch appointments.");
         }

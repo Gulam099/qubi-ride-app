@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import { Button } from "@/components/ui/Button";
 import Drawer from "@/components/ui/Drawer";
@@ -12,9 +12,15 @@ import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { useUser } from "@clerk/clerk-expo";
+import BottomSheet, { BottomSheetScrollView, BottomSheetView } from "@gorhom/bottom-sheet";
+import { X } from "lucide-react-native";
 
 export default function MoodScale() {
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const moodScaleBottomSheetRef = useRef<BottomSheet>(null);
+  const handelOpenPress = () => moodScaleBottomSheetRef.current?.expand();
+  const handelClosePress = () => moodScaleBottomSheetRef.current?.close();
+
   const [selectedMood, setSelectedMood] = useState("");
   const [selectedReason, setSelectedReason] = useState<string[]>([]);
   const [description, setDescription] = useState("");
@@ -24,7 +30,8 @@ export default function MoodScale() {
   );
 
   const router = useRouter();
-  const user: UserType = useSelector((state: any) => state.user);
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
 
   const handleReasonSelect = (label: string) => {
     setSelectedReason((prev) =>
@@ -41,7 +48,7 @@ export default function MoodScale() {
     }
 
     const payload = {
-      userId: user._id,
+      userId: userId,
       mood: toCapitalizeFirstLetter(selectedMood),
       reasons: selectedReason,
       description,
@@ -59,9 +66,12 @@ export default function MoodScale() {
 
       const result = await response.json();
       if (response.ok) {
-        router.push("/p/account/scale/record/mood-scale-record");
+        router.push("/account/scale/record/mood-scale-record");
       } else {
-        console.error("Error submitting mood scale:", result.message || "Unknown error");
+        console.error(
+          "Error submitting mood scale:",
+          result.message || "Unknown error"
+        );
       }
     } catch (error) {
       console.error("Error submitting mood scale:", error);
@@ -81,7 +91,7 @@ export default function MoodScale() {
             key={label}
             onPress={() => {
               setSelectedMood(label);
-              setIsDrawerVisible(true);
+              handelOpenPress()
             }}
             className="flex-col items-center gap-3"
           >
@@ -93,76 +103,91 @@ export default function MoodScale() {
         ))}
       </View>
 
-      <Drawer
-        visible={isDrawerVisible}
-        onClose={() => setIsDrawerVisible(false)}
-        title="What are the reasons for the current feeling"
-        height="90%"
-        className="max-h-[90%]"
+      <BottomSheet
+        ref={moodScaleBottomSheetRef}
+        index={-1} // Start fully hidden
+        enablePanDownToClose={true}
       >
-        <View className="flex flex-col flex-1 justify-start items-center w-full gap-4 px-4">
-          <Text className="text-neutral-700 font-bold text-2xl text-center">
-            What are the reasons for the current feeling
-          </Text>
-          <Text className="text-neutral-600 text-sm text-center">
-            {format(new Date(dateTimeOnSelectMood), "EEEE , dd MMM yyyy , hh:mm a")}
-          </Text>
+        <BottomSheetScrollView className="w-full flex-1 bg-white ">
+          <View className="flex flex-col flex-1 justify-start items-center w-full gap-4 px-4 pt-12">
+          <Button
+              size={"icon"}
+              variant={"ghost"}
+              className="absolute top-2 right-2 rounded-full p-0 text-neutral-800"
+              onPress={handelClosePress}
+            >
+              <X size={20} color={"#262626"} />
+            </Button>
+            <Text className="text-neutral-700 font-bold text-2xl text-center">
+              What are the reasons for the current feeling
+            </Text>
+            <Text className="text-neutral-600 text-sm text-center">
+              {format(
+                new Date(dateTimeOnSelectMood),
+                "EEEE , dd MMM yyyy , hh:mm a"
+              )}
+            </Text>
 
-          <View className="flex-row flex-wrap gap-8">
-            {reasonOptions.map(({ label, Icon }) => {
-              const isSelected = selectedReason.includes(label);
-              return (
-                <TouchableOpacity
-                  key={label}
-                  onPress={() => handleReasonSelect(label)}
-                  className={cn("flex-col items-center gap-3 rounded-xl pb-3")}
-                >
-                  <Icon height={60} width={60} />
-                  <Text
+            <View className="flex-row flex-wrap gap-8">
+              {reasonOptions.map(({ label, Icon }) => {
+                const isSelected = selectedReason.includes(label);
+                return (
+                  <TouchableOpacity
+                    key={label}
+                    onPress={() => handleReasonSelect(label)}
                     className={cn(
-                      "font-medium text-sm ",
-                      `${isSelected ? "text-primary-500" : "text-neutral-600"}`
+                      "flex-col items-center gap-3 rounded-xl pb-3"
                     )}
                   >
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <TextInput
-            className="border border-gray-300 rounded-lg p-4 w-full"
-            placeholder="Describe what happened"
-            value={description}
-            onChangeText={setDescription}
-          />
-
-          <View className="flex-row items-center justify-between gap-2 w-full">
-            <View className="flex-1 py-3">
-              <Label
-                nativeID="share-record"
-                onPress={() => setChecked((prev) => !prev)}
-              >
-                Share the record with my specialist
-              </Label>
-              <Text className="text-sm text-neutral-500">
-                Share the record with the specialists with whom you will book
-                consultation sessions
-              </Text>
+                    <Icon height={60} width={60} />
+                    <Text
+                      className={cn(
+                        "font-medium text-sm ",
+                        `${
+                          isSelected ? "text-primary-500" : "text-neutral-600"
+                        }`
+                      )}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            <Switch
-              checked={checked}
-              onCheckedChange={setChecked}
-              nativeID="share-record"
-            />
-          </View>
 
-          <Button onPress={handleSubmit} className="w-full bg-purple-500">
-            <Text className="text-white font-medium">Save Feeling</Text>
-          </Button>
-        </View>
-      </Drawer>
+            <TextInput
+              className="border border-gray-300 rounded-lg p-4 w-full"
+              placeholder="Describe what happened"
+              value={description}
+              onChangeText={setDescription}
+            />
+
+            <View className="flex-row items-center justify-between gap-2 w-full">
+              <View className="flex-1 py-3">
+                <Label
+                  nativeID="share-record"
+                  onPress={() => setChecked((prev) => !prev)}
+                >
+                  Share the record with my specialist
+                </Label>
+                <Text className="text-sm text-neutral-500">
+                  Share the record with the specialists with whom you will book
+                  consultation sessions
+                </Text>
+              </View>
+              <Switch
+                checked={checked}
+                onCheckedChange={setChecked}
+                nativeID="share-record"
+              />
+            </View>
+
+            <Button onPress={handleSubmit} className="w-full bg-purple-500">
+              <Text className="text-white font-medium">Save Feeling</Text>
+            </Button>
+          </View>
+        </BottomSheetScrollView>
+      </BottomSheet>
     </View>
   );
 }

@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { useUser } from "@clerk/clerk-expo";
 
 // Demo questions
 const defaultQuestions = [
@@ -93,7 +94,8 @@ export default function GeneralizedAnxietyDisorderScale() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [answers, setAnswers] = useState<any[]>([]);
   const router = useRouter();
-  const user: UserType = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
 
   const handleStartQuiz = () => {
     setCurrentStep("quiz");
@@ -125,7 +127,7 @@ export default function GeneralizedAnxietyDisorderScale() {
   const handleSubmit = async (finalAnswers: any[]) => {
     try {
       const payload = {
-        userId: user._id, // Replace with dynamic user ID if available
+        userId: userId, // Replace with dynamic user ID if available
         answers: finalAnswers,
       };
       console.log(payload);
@@ -144,7 +146,7 @@ export default function GeneralizedAnxietyDisorderScale() {
       if (response.ok) {
         if (result.response) {
           router.push(
-            "/p/account/scale/record/generalized-anxiety-disorder-scale-record"
+            "/account/scale/record/generalized-anxiety-disorder-scale-record"
           );
         } else {
           console.log("Submission successful, but no response data.");

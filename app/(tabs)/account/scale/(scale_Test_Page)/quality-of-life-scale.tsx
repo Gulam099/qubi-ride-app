@@ -7,6 +7,7 @@ import { moodOptions } from "@/features/scale/constScale";
 import { UserType } from "@/features/user/types/user.type";
 import { cn } from "@/lib/utils";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
+import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View, FlatList, TouchableOpacity, ScrollView } from "react-native";
@@ -31,7 +32,8 @@ type ReasonType = {
 
 export default function QualityOfLifeScale() {
   const router = useRouter(); // Initialize router
-  const user: UserType = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
   const [currentScreen, setCurrentScreen] = useState("OptionSelectorScreen");
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [selectedReasons, setSelectedReasons] = useState<ReasonType[]>([]);
@@ -171,7 +173,7 @@ export default function QualityOfLifeScale() {
     const payload = {
       mood: selectedMoods,
       activity: selectedReasons,
-      userId: user._id,
+      userId: userId,
     };
 
     try {
@@ -189,7 +191,7 @@ export default function QualityOfLifeScale() {
       if (response.ok) {
         console.log("Final Submission:", payload);
         toast.success("Data submitted successfully!");
-        router.push("/p/account/scale/record/quality-of-life-scale-record"); // Navigate to the next page
+        router.push("/account/scale/record/quality-of-life-scale-record"); // Navigate to the next page
       } else {
         const errorData = await response.json();
         console.error("Error submitting data:", errorData);

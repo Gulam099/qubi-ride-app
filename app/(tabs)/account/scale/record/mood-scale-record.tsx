@@ -16,8 +16,7 @@ import {
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { moodOptions } from "@/features/scale/constScale";
-import { useSelector } from "react-redux";
-import { UserType } from "@/features/user/types/user.type";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function MoodScaleRecord() {
   const [LastMoodOption, setLastMoodOption] = useState(null);
@@ -28,8 +27,8 @@ export default function MoodScaleRecord() {
   const [selectedDate, setSelectedDate] = useState("");
   const [moodRecords, setMoodRecords] = useState([]);
   const [chartData, setChartData] = useState({ weekly: [], monthly: [] });
-  const user: UserType = useSelector((state: any) => state.user);
-  const userId = user._id;
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
 
   const chartConfig = {
     backgroundColor: "#fff",
@@ -70,7 +69,7 @@ export default function MoodScaleRecord() {
 
         // Generate markedDates for the calendar
         const marks = {};
-        data.responses.forEach((record) => {
+        data.responses.forEach((record:any) => {
           const date = record.createdAt.split("T")[0];
           marks[date] = { marked: true };
         });
