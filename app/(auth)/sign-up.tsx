@@ -81,8 +81,10 @@ export default function Page() {
         <View className="flex justify-center items-center w-screen">
           <Logo size={150} />
         </View>
-        <View className="bg-background h-full pt-12 rounded-t-[50px] px-4 gap-4">
-          <Text className="text-xl font-medium text-center">Sign Up</Text>
+        <View className="bg-background h-full pt-16 rounded-t-[50px] px-4 gap-6">
+          <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
+            Create account
+          </Text>
           {!verifying ? (
             <>
               <PhoneInput
@@ -102,7 +104,7 @@ export default function Page() {
             </>
           ) : (
             <>
-              <View className="w-full">
+              
                 <Text className="text-lg font-semibold">
                   Enter Verification Code
                 </Text>
@@ -135,12 +137,12 @@ export default function Page() {
           >
             <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
           </Button> */}
-              </View>
+              
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">
             <Text>Already have an account?</Text>
-            <Link href="/sign-up">
+            <Link href="/sign-in">
               <Text className="text-primary-500">Sign in</Text>
             </Link>
           </View>
