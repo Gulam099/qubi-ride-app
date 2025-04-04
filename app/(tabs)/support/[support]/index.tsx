@@ -28,10 +28,13 @@ import {
 } from "@/components/ui/Accordion";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { apiNewUrl } from "@/const";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function SupportDetailPage() {
   const { support } = useLocalSearchParams(); // Get groupId from route params
-  const user: UserType = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string
+
   const [groupDetails, setGroupDetails] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDateTime, setSelectedDateTime] = useState("");
@@ -75,7 +78,7 @@ export default function SupportDetailPage() {
 
     const payload = {
       groupId: groupDetails._id,
-      userId: user._id,
+      userId: userId,
       dateTime: selectedDateTime,
     };
 

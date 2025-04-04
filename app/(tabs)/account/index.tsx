@@ -35,6 +35,7 @@ import { CustomImages } from "@/const";
 
 export default function AccountPage() {
   const { user } = useUser();
+  const userId = user?.publicMetadata?.dbPatientId as string;
   const router = useRouter();
 
   const contactUsBottomSheetRef = useRef<BottomSheet>(null);
@@ -126,16 +127,12 @@ export default function AccountPage() {
                 {user?.fullName ?? "User"}
               </Text>
               <CopyToClipboard
-                data={
-                  (user?.publicMetadata?.dbPatientId as string) ??
-                  "User id not found"
-                }
+                data={userId ?? "User id not found"}
                 variant={"ghost"}
                 className="flex-row gap-2 justify-start items-start p-0"
               >
                 <Text className="text-base  text-gray-200 ">
-                  {(user?.publicMetadata?.dbPatientId as string) ??
-                    "User id not found"}
+                  {userId ?? "User id not found"}
                 </Text>
                 <Copy size="16" color={colors.gray[200]} />
               </CopyToClipboard>

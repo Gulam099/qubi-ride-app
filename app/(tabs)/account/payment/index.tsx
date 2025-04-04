@@ -24,6 +24,7 @@ import { UserType } from "@/features/user/types/user.type";
 import { CustomIcons } from "@/const";
 import { H3 } from "@/components/ui/Typography";
 import { useRouter } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 const styles = StyleSheet.create({
   cardView: {
@@ -49,8 +50,8 @@ export default function AccountPage() {
   const [currentStep, setCurrentStep] = useState("main"); // "main" or "addCard"
   const [formData, setFormData] = useState<CreditCardFormData | null>(null);
 
-  const user: UserType = useSelector((state: any) => state.user);
-  const phoneNumber = user.phoneNumber; // Mock user phone number
+  const {user} = useUser();
+  const phoneNumber = user?.phoneNumbers[0].phoneNumber; // Mock user phone number
 
   const { control, handleSubmit, setValue } = useForm({
     defaultValues: {
@@ -121,7 +122,7 @@ export default function AccountPage() {
   const renderMainScreen = () => (
     <View>
       <TouchableOpacity
-        onPress={() => router.push("/p/account/payment/wallet")}
+        onPress={() => router.push("/account/payment/wallet")}
       >
         <View className="bg-white p-4 rounded-2xl mb-4 flex-row gap-2">
           <View>

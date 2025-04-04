@@ -1,5 +1,5 @@
 import { ScrollView, View } from "react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Text } from "@/components/ui/Text";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Label } from "@/components/ui/Label";
@@ -20,6 +20,8 @@ import { AppStateType } from "@/features/setting/types/setting.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { toast } from "sonner-native";
 import { SetPasscode } from "@/features/account/utils/passCode";
+import { useUser } from "@clerk/clerk-expo";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -27,14 +29,17 @@ export default function SettingsPage() {
   const dispatch = useDispatch();
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
-  const user: UserType = useSelector((state: any) => state.user);
+  const { user } = useUser();
+  const showPassCodeBottomSheetRef = useRef<BottomSheet>(null);
 
   const [language, setLanguage] = useState(appState.language);
   const [accessibility, setAccessibility] = useState(appState.accessibility);
   const [activateCamera, setActivateCamera] = useState(appState.activateCamera);
   const [accessStudio, setAccessStudio] = useState(appState.accessStudio);
   const [notifications, setNotifications] = useState(appState.notifications);
-  const [profilePasscode, setProfilePasscode] = useState(user.passcode);
+  const [profilePasscode, setProfilePasscode] = useState<string>(
+    user?.unsafeMetadata.passcode as string
+  );
 
   const [isPassCodeDrawer, setIsPassCodeDrawer] = useState(false);
   const [tempPasscode, setTempPasscode] = useState("");
@@ -71,7 +76,7 @@ export default function SettingsPage() {
   function PassCodeToggle(value: boolean) {
     if (value) {
       if (!profilePasscode) {
-        setIsPassCodeDrawer(true);
+        showPassCodeBottomSheetRef.current?.expand();
       } else {
         handleSetPasscode(null); // Call API to set passcode
       }
@@ -83,7 +88,7 @@ export default function SettingsPage() {
   function handlePasscodeSubmit() {
     if (tempPasscode.trim().length === 4) {
       handleSetPasscode(tempPasscode); // Call API to set passcode
-      setIsPassCodeDrawer(false);
+      showPassCodeBottomSheetRef.current?.close();
       setTempPasscode("");
     } else {
       alert("Passcode must be 4 digits.");
@@ -93,15 +98,13 @@ export default function SettingsPage() {
   // Helper function to set or clear passcode using API
   async function handleSetPasscode(passcode: string | null) {
     try {
-      const result = await SetPasscode(user.phoneNumber, passcode);
-
-      if (result.success) {
-        toast.success("Passcode updated successfully");
-        dispatch(updateUserState({})); // Update Redux state
-        setProfilePasscode(passcode);
-      } else {
-        toast.error("Failed to update passcode");
-      }
+      await user?.update({
+        unsafeMetadata: {
+          ...user?.unsafeMetadata,
+          passcode: passcode,
+        },
+      });
+      toast.success("Passcode updated successfully");
     } catch (error) {
       console.error("Error setting passcode:", error);
       toast.error("Error setting passcode");
@@ -215,10 +218,10 @@ export default function SettingsPage() {
 
         {/* Profile Passcode */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">Profile Passcode</Text>
+          <Text className="text-lg font-semibold mb-3">Profile Passcode </Text>
           <SwitchWithLabel
             label="Enable Passcode"
-            value={!!profilePasscode}
+            value={profilePasscode !== null}
             onValueChange={(value: boolean) => PassCodeToggle(value)}
           />
         </View>
@@ -239,53 +242,51 @@ export default function SettingsPage() {
           <Text className="text-neutral-700  font-semibold ">Help Center</Text>
         </Button>
       </View>
-      <View className="flex-1 justify-center items-center">
-        <Drawer
-          visible={isPassCodeDrawer}
-          onClose={() => setIsPassCodeDrawer(false)}
-          title="Set Passcode"
-          className="max-h-[50%]"
-          height="70%"
-        >
-          <View className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-            <H3 className="border-none ">Enter your Passcode</H3>
-            <OtpInput
-              numberOfDigits={4}
-              focusColor={colors.primary[500]}
-              onTextChange={setTempPasscode}
-              theme={{
-                containerStyle: {},
-                inputsContainerStyle: {
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  gap: "10px",
-                },
-                pinCodeContainerStyle: {
-                  aspectRatio: 1 / 1,
-                  width: 60,
-                  marginHorizontal: 10,
-                  backgroundColor: "white",
-                },
-                pinCodeTextStyle: {
-                  fontSize: 40,
-                  textAlignVertical: "center",
-                },
-              }}
-            />
-            <Button onPress={handlePasscodeSubmit} className="w-full">
-              <Text className="text-white font-semibold">Save Passcode</Text>
-            </Button>
-            <Button
-              onPress={() => setIsPassCodeDrawer(false)}
-              variant={"ghost"}
-              className="w-full"
-            >
-              <Text className="text-neutral-500 font-semibold">Cancel</Text>
-            </Button>
-          </View>
-        </Drawer>
-      </View>
+      <BottomSheet
+        ref={showPassCodeBottomSheetRef}
+        index={-1} // Start fully hidden
+        enablePanDownToClose={true}
+        snapPoints={["100"]}
+      >
+        <BottomSheetView className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
+          <H3 className="border-none ">Enter your Passcode</H3>
+          <OtpInput
+            numberOfDigits={4}
+            focusColor={colors.primary[500]}
+            autoFocus={false}
+            onTextChange={setTempPasscode}
+            theme={{
+              containerStyle: {},
+              inputsContainerStyle: {
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: "10px",
+              },
+              pinCodeContainerStyle: {
+                aspectRatio: 1 / 1,
+                width: 60,
+                marginHorizontal: 10,
+                backgroundColor: "white",
+              },
+              pinCodeTextStyle: {
+                fontSize: 40,
+                textAlignVertical: "center",
+              },
+            }}
+          />
+          <Button onPress={handlePasscodeSubmit} className="w-full">
+            <Text className="text-white font-semibold">Save Passcode</Text>
+          </Button>
+          <Button
+            onPress={() => setIsPassCodeDrawer(false)}
+            variant={"ghost"}
+            className="w-full"
+          >
+            <Text className="text-neutral-500 font-semibold">Cancel</Text>
+          </Button>
+        </BottomSheetView>
+      </BottomSheet>
     </ScrollView>
   );
 }

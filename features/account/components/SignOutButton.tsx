@@ -11,7 +11,7 @@ import { View } from "react-native";
 export const SignOutButton = () => {
   const { signOut } = useClerk();
   const signoutbottomSheetRef = useRef<BottomSheet>(null);
-  
+
   const handelOpenPress = () => signoutbottomSheetRef.current?.expand();
   const handelClosePress = () => signoutbottomSheetRef.current?.close();
   const handleSignOut = async () => {
@@ -25,7 +25,11 @@ export const SignOutButton = () => {
 
   return (
     <>
-      <Button variant={"default"} className="w-full my-2 z-0" onPress={handelOpenPress}>
+      <Button
+        variant={"default"}
+        className="w-full my-2 z-0"
+        onPress={handelOpenPress}
+      >
         <Text>Sign out</Text>
       </Button>
 

@@ -59,6 +59,7 @@ export default function ProfilePage() {
       });
 
       toast.success("Profile updated successfully!");
+      router.replace("/(tabs)");
     } catch (error) {
       console.error("Profile update error:", error);
       toast.error("Profile update failed!");

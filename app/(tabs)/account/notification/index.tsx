@@ -3,15 +3,15 @@ import React, { useState, useEffect } from "react";
 import NotificationCard from "@/features/account/components/NotificationCard";
 import { useSelector } from "react-redux";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function AccountNotificationPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Get the phone number from Redux
-  const user = useSelector((state: any) => state.user);
-  const phoneNumber = user.phoneNumber.trim();
+  const {user} = useUser();
+  const phoneNumber = user?.phoneNumbers[0]?.phoneNumber;
 
   useEffect(() => {
     const fetchNotifications = async () => {

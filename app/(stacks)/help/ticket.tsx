@@ -12,9 +12,11 @@ import { toast } from "sonner-native";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiNewUrl } from "@/const";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function TicketPage() {
-  const user: UserType = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
   const [tickets, setTickets] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function TicketPage() {
         topic: data.topic,
         type: data.type,
         details: data.details,
-        userId: user._id,
+        userId: userId,
       };
 
       const response = await fetch(`${apiNewUrl}/ticket/list`, {

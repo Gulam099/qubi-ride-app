@@ -37,6 +37,7 @@ import BottomSheet, {
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function PatientPage() {
   const instantBookingBottomSheetRef = useRef<BottomSheet>(null);
@@ -48,7 +49,9 @@ export default function PatientPage() {
     left: 12,
     right: 12,
   };
-  const user = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string
+
   const {
     control,
     handleSubmit,
@@ -75,7 +78,7 @@ export default function PatientPage() {
         },
         body: JSON.stringify({
           ...data,
-          userId: user._id,
+          userId: userId,
         }),
       });
 

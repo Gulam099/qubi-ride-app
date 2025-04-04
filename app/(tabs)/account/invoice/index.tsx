@@ -40,7 +40,7 @@ const InvoiceCard = ({ invoice }: any) => {
     if (invoice.status === "Paid") {
       // Redirect to invoice details page
       console.log(`Redirect to /${invoice.id}/index`);
-      router.push(`/p/account/invoice/${invoice.id}`);
+      router.push(`/account/invoice/${invoice.id}`);
     } else if (invoice.status === "Payment Pending") {
       // Redirect to payment page
       console.log(`Redirect to payment/${invoice.id}/index`);

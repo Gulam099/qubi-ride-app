@@ -80,7 +80,7 @@ export default function HelpCenterPage() {
               ].map((e, i) => (
                 <Button
                   onPress={() => {
-                    router.push(`/p/account/chat/support_chat`);
+                    router.push(`/(stacks)/chat/${e}`);
                     setIsDrawerVisible(false);
                   }}
                   key={i}

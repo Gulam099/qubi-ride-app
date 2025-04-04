@@ -16,9 +16,10 @@ import { UserType } from "@/features/user/types/user.type";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { apiNewUrl } from "@/const";
 import { toast } from "sonner-native";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function SessionConsultPage() {
-  const user: UserType = useSelector((state: any) => state.user);
+  const { user } = useUser();
   const router = useRouter();
   const { specialist_Id } = useLocalSearchParams();
   const [specialistData, setSpecialistData] = useState<any>(null);
@@ -104,9 +105,9 @@ export default function SessionConsultPage() {
     const payload = {
       ...data,
       availableDate: selectedDateTime,
-      userId: user._id,
+      userId: user?.publicMetadata.dbPatientId as string,
       specialistId: specialist_Id,
-      phoneNumber: user.phoneNumber,
+      phoneNumber: user?.phoneNumbers[0]?.phoneNumber,
     };
 
     try {
@@ -126,7 +127,7 @@ export default function SessionConsultPage() {
       if (result.success) {
         toast.success("Appointment booked successfully!");
         console.log("Booking successful:", result);
-        router.push("/(Routes)/(patient)/(nt)/payment/1234");
+        router.push("/(stacks)/payment/1234");
       } else {
         throw new Error(result.message || "Booking failed.");
       }

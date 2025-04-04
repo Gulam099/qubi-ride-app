@@ -17,6 +17,7 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import FavLibraryCard from "@/features/favorite/components/FavLibraryCard";
 import { UserType } from "@/features/user/types/user.type";
 import { useSelector } from "react-redux";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function AccountFavoritePage() {
   const tabs = [
@@ -30,9 +31,9 @@ export default function AccountFavoritePage() {
     },
   ];
 
-  const user: UserType = useSelector((state: any) => state.user);
+  const {user} = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
 
-  const userId = user._id; // Replace this with dynamic userId from Redux or Context
   const [activeTab, setActiveTab] = useState(tabs[0].type);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

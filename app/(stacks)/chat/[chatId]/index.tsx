@@ -13,6 +13,8 @@ import {
   Image as ImageIcon,
 } from "iconsax-react-native";
 import { Bubble, GiftedChat, Send } from "react-native-gifted-chat";
+import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
+import BackButton from "@/features/Home/Components/BackButton";
 
 interface Reply {
   title: string;
@@ -30,7 +32,7 @@ export interface IMessage {
   _id: string | number;
   text: string;
   createdAt: Date | number;
-  user: User;
+  user: any;
   image?: string;
   video?: string;
   audio?: string;
@@ -173,6 +175,13 @@ export default function ChatIdMessagePage() {
     <>
       <Stack.Screen
         options={{
+          headerShown: true,
+          headerShadowVisible: false,
+          headerRight: () => <NotificationIconButton className="mr-4" />,
+          headerStyle: {
+            backgroundColor: "white",
+          },
+          headerLeft: () => <BackButton />,
           headerTitle: () => (
             <View className="flex-row gap-2 items-center ">
               <ProfileImage
@@ -212,7 +221,6 @@ export default function ChatIdMessagePage() {
         )}
         alwaysShowSend
         renderSend={renderSend}
-        scrollToBottom
         scrollToBottomComponent={() => (
           <ArrowCircleDown2 size="32" color="#FF8A65" />
         )}

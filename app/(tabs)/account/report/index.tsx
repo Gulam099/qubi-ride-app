@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { AppStateType } from "@/features/setting/types/setting.type";
+import { useUser } from "@clerk/clerk-expo";
 
 type ReportProps = {
   _id: string;
@@ -74,37 +75,24 @@ const mockReportData = {
 };
 
 export default function AccountReportPage() {
-  const user: UserType = useSelector((state: any) => state.user);
-  const appState: AppStateType = useSelector((state: any) => state.appState);
-  const [showReports, setShowReports] = useState(
-    user.passcode === null ? true : false
+  const { user } = useUser();
+  const [showReports, setShowReports] = useState<boolean>(
+    (user?.unsafeMetadata.passcode as string) === null ? true : false
   );
   const [activeTab, setActiveTab] = useState("My Prescriptions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [reports, setReports] = useState<ReportProps[]>([]);
 
   async function handleSubmit(text: string): Promise<void> {
-    const payload = {
-      phoneNumber: user.phoneNumber,
-      passcode: text,
-    };
-
     try {
-      const response = await fetch(`${apiBaseUrl}/api/verify-passcode`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const passcode = user?.unsafeMetadata?.passcode as string;
+      const isPassCodeVerified = passcode.toString() === text;
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (isPassCodeVerified) {
         toast.success("Passcode verified successfully!");
         setShowReports(true); // Show reports or proceed with the next step
       } else {
-        toast.error(result.message || "Invalid passcode. Please try again.");
+        toast.error("Invalid passcode. Please try again.");
         setShowReports(false);
       }
     } catch (error) {
