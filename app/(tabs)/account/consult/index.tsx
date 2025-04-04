@@ -97,8 +97,8 @@ export default function ConsultPage() {
                 key={item._id}
                 name={item.full_name}
                 title={item.specialization}
-                price={56}
-                likes={89}
+                price={item.fees}
+                likes={item.likes}
                 imageUrl={item.profile_picture}
                 shareLink={`${item._id}`}
                 onPress={() =>

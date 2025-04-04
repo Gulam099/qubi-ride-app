@@ -56,7 +56,7 @@ export default function SpecialistCard({
         {/* Price and Duration */}
         <View className="flex-row items-center gap-1">
           <Text className="text-gray-800 font-bold mr-2">
-            {currencyFormatter(price)}
+            {currencyFormatter(price ?? 0)}
           </Text>
           <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8  flex justify-center items-center">
             <EmptyWalletTick size="16" color={colors.primary[900]} />

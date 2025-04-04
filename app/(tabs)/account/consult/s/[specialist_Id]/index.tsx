@@ -93,7 +93,7 @@ export default function SpecialistConsultantPage() {
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
           <View className="absolute w-full h-24 bg-blue-900"></View>
           <ProfileImage
-            imageUrl={specialistData.profile_picture || ""}
+            imageUrl={specialistData.profile_picture ?? ""}
             name={specialistData.full_name}
             className="size-32"
           />
@@ -110,17 +110,17 @@ export default function SpecialistConsultantPage() {
               {[
                 {
                   title: "Rating",
-                  value: specialistData.rating || "N/A",
+                  value: specialistData.rating ?? "0",
                   icon: Star1,
                 },
                 {
                   title: "Experience",
-                  value: specialistData.experience || "N/A",
+                  value: specialistData.experience ?? "0",
                   icon: IdCard,
                 },
                 {
                   title: "Session Type",
-                  value: specialistData.sessionType || "N/A",
+                  value: specialistData.sessionType ?? "0",
                   icon: HeartSearch,
                 },
               ].map((item) => (
@@ -143,7 +143,7 @@ export default function SpecialistConsultantPage() {
               <View>
                 <Text className="text-sm text-gray-600">Response time</Text>
                 <Text className="text-sm font-bold">
-                  {specialistData.responseTime || "N/A"}
+                  {specialistData.responseTime ?? "N/A"}
                 </Text>
               </View>
             </View>
@@ -232,7 +232,7 @@ export default function SpecialistConsultantPage() {
           }
         >
           <Text className="text-white font-bold">
-            Book now {currencyFormatter(specialistData.fees || 0)}
+            Book now {currencyFormatter(specialistData.fees ?? 0)}
           </Text>
         </Button>
       </ScrollView>
