@@ -232,7 +232,10 @@ export default function SpecialistConsultantPage() {
           }
         >
           <Text className="text-white font-bold">
-            Book now {currencyFormatter(specialistData.fees ?? 0)}
+            Book now{" "}
+            {specialistData.fees != 0
+              ? currencyFormatter(specialistData.fees ?? 0)
+              : "for free"}
           </Text>
         </Button>
       </ScrollView>

@@ -19,6 +19,7 @@ import {
   Profile2User,
   Receipt,
   Setting2,
+  Video,
 } from "iconsax-react-native";
 import colors from "@/utils/colors";
 import AccountCard from "@/features/account/components/AccountCard";
@@ -53,6 +54,7 @@ export default function AccountPage() {
         { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
         { link: "/account/scale", label: "Metrics", icon: Clipboard },
         { link: "/account/chat", label: "My conversations", icon: Message },
+        { link: "/(stacks)/call/1234/videocall", label: "Video Call", icon: Video },
       ],
     },
   ]);
