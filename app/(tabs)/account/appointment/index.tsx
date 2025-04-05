@@ -115,7 +115,7 @@ export default function AccountAppointmentsPage() {
                 _id={item._id}
                 specialist_Id={item.specialist_Id}
                 doctorName={item.doctorName}
-                sessionDateTime={item.sessionDateTime}
+                sessionDateTime={item.sessionDateTime?? new Date()}
                 image={item.image}
                 type={item.type}
                 category={item.category}

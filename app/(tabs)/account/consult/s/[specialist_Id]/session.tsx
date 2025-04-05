@@ -1,5 +1,5 @@
-import { View, Text, ScrollView } from "react-native";
-import React, { useMemo, useState } from "react";
+import { View, Text, ScrollView, Pressable, Platform } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,13 +9,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/Accordion";
-import ScheduleSelector from "@/features/Home/Components/ScheduleSelector";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ApiUrl, apiNewUrl } from "@/const";
 import { toast } from "sonner-native";
 import { useUser } from "@clerk/clerk-expo";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
@@ -23,10 +23,16 @@ export default function SessionConsultPage() {
   const { specialist_Id } = useLocalSearchParams();
   const [selectedDateTime, setSelectedDateTime] = useState("");
 
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [pickedDate, setPickedDate] = useState<Date | null>(null);
+  const [pickedTime, setPickedTime] = useState<Date | null>(null);
+
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
-
-    const response = await fetch(`${ApiUrl}/api/doctor/get-doctor/${specialist_Id}`);
+    const response = await fetch(
+      `${ApiUrl}/api/doctor/get-doctor/${specialist_Id}`
+    );
     if (!response.ok) throw new Error("Failed to fetch specialist data");
     const result = await response.json();
     return result;
@@ -85,73 +91,126 @@ export default function SessionConsultPage() {
     },
   });
 
-  const availableTimes = useMemo(() => {
-    const scheduleMeta = specialistData?.user?.unsafeMetadata?.schedules || {};
-    const holidays = specialistData?.user?.unsafeMetadata?.holidays || {};
-    const slots: string[] = [];
+  const handleDateChange = (event: any, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) setPickedDate(date);
+  };
 
-    Object.entries(scheduleMeta).forEach(([date, { startTime, endTime }]: any) => {
-      if (holidays[date]?.isHoliday) return;
+  const handleTimeChange = (event: any, time?: Date) => {
+    setShowTimePicker(false);
+    if (time) setPickedTime(time);
+  };
 
-      const start = dayjs(`${date}T${startTime}`);
-      const end = dayjs(`${date}T${endTime}`);
+  useEffect(() => {
+    if (pickedDate && pickedTime) {
+      const combined = new Date(
+        pickedDate.getFullYear(),
+        pickedDate.getMonth(),
+        pickedDate.getDate(),
+        pickedTime.getHours(),
+        pickedTime.getMinutes()
+      );
+      setSelectedDateTime(combined.toISOString());
+    }
+  }, [pickedDate, pickedTime]);
 
-      let current = start;
-      while (current.isBefore(end)) {
-        slots.push(current.toISOString());
-        current = current.add(30, "minute");
+  const { mutate: bookSession, isPending: isSubmitting } = useMutation({
+    mutationFn: async (data: any) => {
+      const dateFormatted = dayjs(pickedDate).format("YYYY-MM-DD");
+      const timeFormatted = dayjs(pickedTime).format("hh:mm A");
+      const userId = user?.publicMetadata.dbPatientId as string;
+      const doctorId = specialist_Id as string;
+      const bookingPayload = {
+        userId,
+        doctorId,
+        date: dateFormatted,
+        timeSlot: timeFormatted,
+        duration: `${data.sessionDuration} min`,
+        sessionCount: parseInt(data.numberOfSessions),
+        complaint: data.natureOfComplaint.description || "Routine checkup",
+      };
+
+      const bookingResponse = await fetch(
+        "https://monkfish-app-6ahnd.ondigitalocean.app/api/bookings/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookingPayload),
+        }
+      );
+
+      const bookingResult = await bookingResponse.json();
+      if (!bookingResponse.ok)
+        throw new Error(bookingResult?.message || "Booking failed");
+
+      // 2. Create room
+      const roomPayload = {
+        type: "video",
+        doctorId,
+        patientId: userId,
+      };
+
+      const roomResponse = await fetch(
+        "https://monkfish-app-6ahnd.ondigitalocean.app/api/room/create-room",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(roomPayload),
+        }
+      );
+
+      const roomResult = await roomResponse.json();
+      if (!roomResponse.ok)
+        throw new Error(roomResult?.message || "Room creation failed");
+
+      // All done 🎉
+      return { booking: bookingResult.booking, room: roomResult };
+    },
+    onSuccess: ({ booking }) => {
+      toast.success("Booking & Room created successfully!");
+      const bookingId = booking?._id;
+      if (bookingId) {
+        router.push(`/account/appointment`);
+        // router.push(`/(stacks)/payment/${bookingId}`);
+      } else {
+        toast.error("Booking ID not found.");
       }
-    });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Something went wrong. Please try again.");
+    },
+  });
 
-    return slots;
-  }, [specialistData]);
-
-  const onSubmit = async (data: any) => {
-    if (!selectedDateTime) {
-      alert("Please select a date and time.");
+  const onSubmit = (data: any) => {
+    if (!pickedDate || !pickedTime) {
+      toast.error("Please select a date and time.");
       return;
     }
 
-    const payload = {
-      ...data,
-      availableDate: selectedDateTime,
-      userId: user?.publicMetadata.dbPatientId as string,
-      specialistId: specialist_Id,
-      phoneNumber: user?.phoneNumbers[0]?.phoneNumber,
-    };
-
-    try {
-      const response = await fetch(`${apiNewUrl}/booking/session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Appointment booked successfully!");
-        router.push("/(stacks)/payment/1234");
-      } else {
-        throw new Error(result.message || "Booking failed.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error submitting booking. Please try again.");
-    }
+    bookSession(data);
   };
 
   if (isLoading) {
-    return <View className="flex-1 justify-center items-center"><Text>Loading...</Text></View>;
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   if (error || !specialistData) {
-    return <View className="flex-1 justify-center items-center"><Text className="text-red-500">{error?.message || "Specialist not found."}</Text></View>;
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">
+          {error?.message || "Specialist not found."}
+        </Text>
+      </View>
+    );
   }
 
   return (
     <ScrollView className="flex-1 bg-blue-50/10">
       <View className="px-4 py-8 gap-2">
-        {/* Sessions Selection */}
         <Text className="text-lg font-bold mb-4">Number of sessions</Text>
         <View className="flex-row gap-2 mb-4">
           {numberOfSessionsOptions.map(({ label, value }) => (
@@ -162,10 +221,16 @@ export default function SessionConsultPage() {
               rules={{ required: "Number of sessions is required" }}
               render={({ field: { onChange, value: selectedValue } }) => (
                 <Button
-                  className={`flex-1 ${selectedValue === value ? "bg-blue-500" : "bg-gray-200"}`}
+                  className={`flex-1 ${
+                    selectedValue === value ? "bg-blue-500" : "bg-gray-200"
+                  }`}
                   onPress={() => onChange(value)}
                 >
-                  <Text className={selectedValue === value ? "text-white" : "text-gray-800"}>
+                  <Text
+                    className={
+                      selectedValue === value ? "text-white" : "text-gray-800"
+                    }
+                  >
                     {label}
                   </Text>
                 </Button>
@@ -173,7 +238,11 @@ export default function SessionConsultPage() {
             />
           ))}
         </View>
-        {errors.numberOfSessions && <Text className="text-red-500">{errors.numberOfSessions.message}</Text>}
+        {errors.numberOfSessions && (
+          <Text className="text-red-500">
+            {errors.numberOfSessions.message}
+          </Text>
+        )}
 
         <Text className="text-lg font-bold mb-4">Duration sessions</Text>
         <View className="flex-row gap-2 mb-4">
@@ -185,10 +254,16 @@ export default function SessionConsultPage() {
               rules={{ required: "Session duration is required" }}
               render={({ field: { onChange, value: selectedValue } }) => (
                 <Button
-                  className={`flex-1 ${selectedValue === value ? "bg-blue-500" : "bg-gray-200"}`}
+                  className={`flex-1 ${
+                    selectedValue === value ? "bg-blue-500" : "bg-gray-200"
+                  }`}
                   onPress={() => onChange(value)}
                 >
-                  <Text className={selectedValue === value ? "text-white" : "text-gray-800"}>
+                  <Text
+                    className={
+                      selectedValue === value ? "text-white" : "text-gray-800"
+                    }
+                  >
                     {label}
                   </Text>
                 </Button>
@@ -196,20 +271,27 @@ export default function SessionConsultPage() {
             />
           ))}
         </View>
-        {errors.sessionDuration && <Text className="text-red-500">{errors.sessionDuration.message}</Text>}
+        {errors.sessionDuration && (
+          <Text className="text-red-500">{errors.sessionDuration.message}</Text>
+        )}
 
-        {/* Accordion Sections */}
         <Accordion type="multiple" className="mb-4">
-          {/* Personal Info */}
           <AccordionItem value="personalInformation">
-            <AccordionTrigger><Text className="text-lg font-bold">Personal Information</Text></AccordionTrigger>
+            <AccordionTrigger>
+              <Text className="text-lg font-bold">Personal Information</Text>
+            </AccordionTrigger>
             <AccordionContent>
               <Controller
                 control={control}
                 name="personalInformation.name"
                 rules={{ required: "Name is required" }}
                 render={({ field: { onChange, value } }) => (
-                  <Input className="mb-4" placeholder="Name" value={value} onChangeText={onChange} />
+                  <Input
+                    className="mb-4"
+                    placeholder="Name"
+                    value={value}
+                    onChangeText={onChange}
+                  />
                 )}
               />
               <Controller
@@ -217,70 +299,143 @@ export default function SessionConsultPage() {
                 name="personalInformation.age"
                 rules={{ required: "Age is required" }}
                 render={({ field: { onChange, value } }) => (
-                  <Input className="mb-4" placeholder="Age" keyboardType="numeric" value={value} onChangeText={onChange} />
+                  <Input
+                    className="mb-4"
+                    placeholder="Age"
+                    keyboardType="numeric"
+                    value={value}
+                    onChangeText={onChange}
+                  />
                 )}
               />
             </AccordionContent>
           </AccordionItem>
 
-          {/* Family Composition */}
           <AccordionItem value="familyComposition">
-            <AccordionTrigger><Text className="text-lg font-bold">Family Composition</Text></AccordionTrigger>
+            <AccordionTrigger>
+              <Text className="text-lg font-bold">Family Composition</Text>
+            </AccordionTrigger>
             <AccordionContent>
               <Controller
                 control={control}
                 name="familyComposition.members"
                 rules={{ required: "Number of family members is required" }}
                 render={({ field: { onChange, value } }) => (
-                  <Input className="mb-4" placeholder="Number of family members" value={value} onChangeText={onChange} />
+                  <Input
+                    className="mb-4"
+                    placeholder="Number of family members"
+                    value={value}
+                    onChangeText={onChange}
+                  />
                 )}
               />
             </AccordionContent>
           </AccordionItem>
 
-          {/* History */}
           <AccordionItem value="history">
-            <AccordionTrigger><Text className="text-lg font-bold">The History is Healthy</Text></AccordionTrigger>
+            <AccordionTrigger>
+              <Text className="text-lg font-bold">The History is Healthy</Text>
+            </AccordionTrigger>
             <AccordionContent>
               <Controller
                 control={control}
                 name="history.healthConditions"
                 rules={{ required: "Health conditions are required" }}
                 render={({ field: { onChange, value } }) => (
-                  <Input className="mb-4" placeholder="Health conditions" value={value} onChangeText={onChange} />
+                  <Input
+                    className="mb-4"
+                    placeholder="Health conditions"
+                    value={value}
+                    onChangeText={onChange}
+                  />
                 )}
               />
             </AccordionContent>
           </AccordionItem>
 
-          {/* Complaint */}
           <AccordionItem value="natureOfComplaint">
-            <AccordionTrigger><Text className="text-lg font-bold">The Nature of the Complaint</Text></AccordionTrigger>
+            <AccordionTrigger>
+              <Text className="text-lg font-bold">
+                The Nature of the Complaint
+              </Text>
+            </AccordionTrigger>
             <AccordionContent>
               <Controller
                 control={control}
                 name="natureOfComplaint.description"
                 rules={{ required: "Complaint description is required" }}
                 render={({ field: { onChange, value } }) => (
-                  <Input className="mb-4" placeholder="Complaint description" value={value} onChangeText={onChange} />
+                  <Input
+                    className="mb-4"
+                    placeholder="Complaint description"
+                    value={value}
+                    onChangeText={onChange}
+                  />
                 )}
               />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
 
-        {/* 🗓 Schedule Selector */}
-        <ScheduleSelector
-          selectedDateTime={selectedDateTime}
-          setSelectedDateTime={setSelectedDateTime}
-          availableTimes={availableTimes}
-          CalenderHeading="Available Dates"
-          TimeSliderHeading="Available Times"
-        />
-        {!selectedDateTime && <Text className="text-red-500">Please select a date and time.</Text>}
+        {/* Date and Time Picker UI */}
+        <View className="mb-6">
+          <Text className="text-lg font-bold mb-2">
+            Select Appointment Date
+          </Text>
+          <Pressable
+            onPress={() => setShowDatePicker(true)}
+            className="bg-white p-3 rounded border mb-2"
+          >
+            <Text>
+              {pickedDate ? pickedDate.toDateString() : "Choose a date"}
+            </Text>
+          </Pressable>
+          {showDatePicker && (
+            <DateTimePicker
+              value={pickedDate || new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "inline" : "default"}
+              onChange={handleDateChange}
+            />
+          )}
 
-        <Button onPress={handleSubmit(onSubmit)} className="mt-4">
-          <Text className="text-white font-medium">Submit</Text>
+          <Text className="text-lg font-bold mb-2">
+            Select Appointment Time
+          </Text>
+          <Pressable
+            onPress={() => setShowTimePicker(true)}
+            className="bg-white p-3 rounded border"
+          >
+            <Text>
+              {pickedTime
+                ? dayjs(pickedTime).format("hh:mm A")
+                : "Choose a time"}
+            </Text>
+          </Pressable>
+          {showTimePicker && (
+            <DateTimePicker
+              value={pickedTime || new Date()}
+              mode="time"
+              is24Hour={false}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleTimeChange}
+            />
+          )}
+          {!selectedDateTime && (
+            <Text className="text-red-500 mt-2">
+              Please select a date and time.
+            </Text>
+          )}
+        </View>
+
+        <Button
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+          className="mt-4"
+        >
+          <Text className="text-white font-medium">
+            {isSubmitting ? "Submitting..." : "Submit"}
+          </Text>
         </Button>
       </View>
     </ScrollView>
