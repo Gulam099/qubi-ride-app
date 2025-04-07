@@ -31,7 +31,7 @@ import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
 import { SignOutButton } from "@/features/account/components/SignOutButton";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { X } from "lucide-react-native";
+import { DoorOpen, X } from "lucide-react-native";
 import { CustomImages } from "@/const";
 
 export default function AccountPage() {
@@ -55,6 +55,7 @@ export default function AccountPage() {
         { link: "/account/scale", label: "Metrics", icon: Clipboard },
         { link: "/account/chat", label: "My conversations", icon: Message },
         { link: "/(stacks)/call/1234/videocall", label: "Video Call", icon: Video },
+        { link: "/(stacks)/joinroom/1234", label: "Join Room with Id", icon: DoorOpen },
       ],
     },
   ]);
