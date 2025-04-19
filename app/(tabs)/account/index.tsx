@@ -64,7 +64,6 @@ export default function AccountPage() {
           label: "Join Room with Id",
           icon: DoorOpen,
         },
-        { link: "/(stacks)/moyasar", label: "Payment", icon: DoorOpen },
         { link: "/(stacks)/payment/1234", label: "Payment", icon: DoorOpen },
       ],
     },

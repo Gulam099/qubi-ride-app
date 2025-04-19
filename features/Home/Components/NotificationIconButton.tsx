@@ -10,7 +10,7 @@ export default function NotificationIconButton(props: { className?: string }) {
   const router = useRouter();
   return (
     <Button
-      onPress={() => router.push("/account/notification")}
+      onPress={() => router.push("/(stacks)/notification")}
       variant={"secondary"}
       className={cn(
         props.className,

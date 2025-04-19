@@ -170,8 +170,8 @@ export default function SessionConsultPage() {
       toast.success("Booking & Room created successfully!");
       const bookingId = booking?._id;
       if (bookingId) {
-        router.push(`/account/appointment`);
-        // router.push(`/(stacks)/payment/${bookingId}`);
+        // router.push(`/account/appointment`);
+        router.push(`/(stacks)/payment/${bookingId}`);
       } else {
         toast.error("Booking ID not found.");
       }

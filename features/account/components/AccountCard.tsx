@@ -11,7 +11,7 @@ export default function AccountCard(props: {
   iconColor: string;
   iconSize?: number;
   shadowColor?: string;
-  backgroundColor?:string;
+  backgroundColor?: string;
   icon: IconType;
   label: string;
 }) {
@@ -31,9 +31,8 @@ export default function AccountCard(props: {
       className={cn(
         className,
         " rounded-2xl  flex justify-center items-center w-[30%] aspect-[5/4] relative overflow-hidden h-full p-5 "
-      )
-    }
-    style={{backgroundColor:backgroundColor ?? "white"}}
+      )}
+      style={{ backgroundColor: backgroundColor ?? "white" }}
     >
       <Link
         className={" flex flex-1 justify-center items-center"}
@@ -42,7 +41,10 @@ export default function AccountCard(props: {
         {/* Render the passed Icon component */}
         <View className="relative z-10 flex justify-center items-center gap-2">
           <Icon size={iconSize ?? 32} color={iconColor} className="z-10" />
-          <Text className="z-10 text-sm font-medium text-inherit text-center flex flex-col gap-2" style={{color:iconColor}}>
+          <Text
+            className="z-10 text-[10px] font-medium text-inherit text-center flex flex-col gap-2"
+            style={{ color: iconColor }}
+          >
             {label}
           </Text>
         </View>
