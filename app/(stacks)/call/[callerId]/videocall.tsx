@@ -22,7 +22,6 @@
 //   );
 // }
 
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -33,24 +32,25 @@ import {
   ActivityIndicator,
   StyleSheet,
   Image,
-  Platform
+  Platform,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { Camera } from "expo-camera";
 import { Audio } from "expo-av";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
 // Add this type declaration at the top of your file
 type WebViewPermissionRequest = {
-  resources: ('camera' | 'microphone' | 'geolocation' | 'midi')[];
+  resources: ("camera" | "microphone" | "geolocation" | "midi")[];
   grant: () => void;
   deny: () => void;
   origin: string;
 };
 
-
 const VideoCallPage = () => {
   // Add default image URL
-  const defaultAvatar = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+  const defaultAvatar =
+    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
   const recordingRef = useRef<Audio.Recording | null>(null);
 
   const [isInCall, setIsInCall] = useState(false);
@@ -61,8 +61,9 @@ const VideoCallPage = () => {
   const [rooms, setRooms] = useState([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const webViewRef = useRef(null);
+  const { user } = useUser();
 
-  const patientId = "67f007eebb0b7fdfb6bd9b42";
+  const patientId = user?.publicMetadata?.dbPatientId as string;
 
   useEffect(() => {
     const initialize = async () => {
@@ -74,7 +75,8 @@ const VideoCallPage = () => {
 
   const requestPermissions = async () => {
     try {
-      const { status: cameraStatus } = await Camera.requestCameraPermissionsAsync();
+      const { status: cameraStatus } =
+        await Camera.requestCameraPermissionsAsync();
       const { status: audioStatus } = await Audio.requestPermissionsAsync();
 
       if (cameraStatus === "granted" && audioStatus === "granted") {
@@ -97,11 +99,11 @@ const VideoCallPage = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await fetch(                                                                                                                                                                     
+      const response = await fetch(
         `https://monkfish-app-6ahnd.ondigitalocean.app/api/doctors/${patientId}/patientrooms`
       );
       const data = await response.json();
-      
+
       if (data.success) {
         setRooms(data.data);
       } else {
@@ -123,20 +125,23 @@ const VideoCallPage = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("https://monkfish-app-6ahnd.ondigitalocean.app/api/room/create-room", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type,
-          doctorId,
-          patientId,
-        }),
-      });
+      const response = await fetch(
+        "https://monkfish-app-6ahnd.ondigitalocean.app/api/room/create-room",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type,
+            doctorId,
+            patientId,
+          }),
+        }
+      );
 
       const data = await response.json();
-      console.log("data is",data)
+      console.log("data is", data);
       if (response.ok && data?.url) {
         joinRoom(data.url);
       } else {
@@ -159,61 +164,64 @@ const VideoCallPage = () => {
   };
 
   // Modified toggleMute function for Android
-const toggleMute = async () => {
-  try {
-    // For iOS and general audio control
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: !isMuted,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-    });
+  const toggleMute = async () => {
+    try {
+      // For iOS and general audio control
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: !isMuted,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+      });
 
-    // Android-specific microphone control
-    if (Platform.OS === 'android') {
-      if (isMuted) {
-        // Start a dummy recording to enable microphone
-        const { recording } = await Audio.Recording.createAsync(
-          Audio.RecordingOptionsPresets.HIGH_QUALITY
-        );
-        recordingRef.current = recording;
-      } else {
-        // Stop and cleanup existing recording
+      // Android-specific microphone control
+      if (Platform.OS === "android") {
+        if (isMuted) {
+          // Start a dummy recording to enable microphone
+          const { recording } = await Audio.Recording.createAsync(
+            Audio.RecordingOptionsPresets.HIGH_QUALITY
+          );
+          recordingRef.current = recording;
+        } else {
+          // Stop and cleanup existing recording
+          if (recordingRef.current) {
+            await recordingRef.current.stopAndUnloadAsync();
+            recordingRef.current = null;
+          }
+        }
+      }
+
+      setIsMuted(!isMuted);
+    } catch (error) {
+      console.error("Error toggling mic:", error);
+    }
+  };
+
+  // Updated cleanup effect
+  useEffect(() => {
+    return () => {
+      const cleanup = async () => {
         if (recordingRef.current) {
           await recordingRef.current.stopAndUnloadAsync();
           recordingRef.current = null;
         }
-      }
-    }
-
-    setIsMuted(!isMuted);
-  } catch (error) {
-    console.error('Error toggling mic:', error);
-  }
-};
-
-// Updated cleanup effect
-useEffect(() => {
-  return () => {
-    const cleanup = async () => {
-      if (recordingRef.current) {
-        await recordingRef.current.stopAndUnloadAsync();
-        recordingRef.current = null;
-      }
+      };
+      cleanup();
     };
-    cleanup();
-  };
-}, []);
+  }, []);
   return (
     <View style={styles.container}>
       {!isInCall ? (
         <View style={styles.listContainer}>
           <Text style={styles.title}>Video Calls </Text>
           {isLoadingRooms ? (
-            <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
+            <ActivityIndicator
+              size="large"
+              color="#3498db"
+              style={styles.loader}
+            />
           ) : rooms.length === 0 ? (
             <Text style={styles.noRecords}>No upcoming appointments found</Text>
           ) : (
-
             <FlatList
               data={rooms}
               keyExtractor={(item, index) => index.toString()}
@@ -225,9 +233,11 @@ useEffect(() => {
                       source={{ uri: item.doctor?.imageUrl || defaultAvatar }}
                     />
                     <View style={styles.textContainer}>
-                      <Text style={styles.customerName}>{item.doctor.name}</Text>
+                      <Text style={styles.customerName}>
+                        {item.doctor.name}
+                      </Text>
                       <Text style={styles.scheduledTime}>
-                        {item.scheduledAt 
+                        {item.scheduledAt
                           ? new Date(item.scheduledAt).toLocaleString()
                           : "No schedule time"}
                       </Text>
@@ -237,13 +247,21 @@ useEffect(() => {
                         style={styles.voiceIcon}
                         onPress={() => createRoom("voice", item.doctorId)}
                       >
-                        <Ionicons name="call-outline" size={26} color="#2ecc71" />
+                        <Ionicons
+                          name="call-outline"
+                          size={26}
+                          color="#2ecc71"
+                        />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.videoIcon}
                         onPress={() => createRoom("video", item.doctorId)}
                       >
-                        <Ionicons name="videocam-outline" size={26} color="#e74c3c" />
+                        <Ionicons
+                          name="videocam-outline"
+                          size={26}
+                          color="#e74c3c"
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -255,32 +273,34 @@ useEffect(() => {
         </View>
       ) : (
         <View style={styles.webviewContainer}>
-         <WebView
-  ref={webViewRef}
-  source={{ uri: callUrl }}
-  style={styles.webview}
-  allowsInlineMediaPlayback
-  mediaPlaybackRequiresUserAction={false}
-  onPermissionRequest={(request: WebViewPermissionRequest) => {
-    if (
-      request.resources.includes('camera') ||
-      request.resources.includes('microphone')
-    ) {
-      request.grant();
-    }
-  }}
-  userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-  javaScriptEnabled
-  mediaCapturePermissionGrantType="grant"
-/>
+          <WebView
+            ref={webViewRef}
+            source={{ uri: callUrl }}
+            style={styles.webview}
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            onPermissionRequest={(request: WebViewPermissionRequest) => {
+              if (
+                request.resources.includes("camera") ||
+                request.resources.includes("microphone")
+              ) {
+                request.grant();
+              }
+            }}
+            userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+            javaScriptEnabled
+            mediaCapturePermissionGrantType="grant"
+          />
           <View style={styles.controls}>
             <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>
-              <Ionicons 
-                name={isMuted ? "mic-off-outline" : "mic-outline"} 
-                size={24} 
-                color="white" 
+              <Ionicons
+                name={isMuted ? "mic-off-outline" : "mic-outline"}
+                size={24}
+                color="white"
               />
-              <Text style={styles.controlText}>{isMuted ? "Unmute" : "Mute"}</Text>
+              <Text style={styles.controlText}>
+                {isMuted ? "Unmute" : "Mute"}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.endCallButton}
@@ -326,8 +346,8 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   customerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 15,
   },
   avatar: {
@@ -335,7 +355,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   textContainer: {
     flex: 1,
@@ -349,11 +369,11 @@ const styles = StyleSheet.create({
   },
   scheduledTime: {
     fontSize: 12,
-    color: '#95a5a6',
+    color: "#95a5a6",
     marginTop: 4,
   },
   iconContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 15,
   },
   voiceIcon: {
@@ -364,8 +384,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: 50,
     height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   videoIcon: {
     backgroundColor: "rgba(231, 76, 60, 0.1)",
@@ -375,8 +395,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: 50,
     height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   webviewContainer: {
     flex: 1,
@@ -400,8 +420,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 25,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   endCallButton: {
@@ -409,8 +429,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 25,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   controlText: {
@@ -423,9 +443,9 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   noRecords: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
-    color: '#7f8c8d',
+    color: "#7f8c8d",
     marginTop: 20,
   },
 });

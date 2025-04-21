@@ -18,6 +18,7 @@ import { toast } from "sonner-native";
 import BottomSheet, {
   BottomSheetScrollView,
   BottomSheetTextInput,
+  BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
 import { useUser } from "@clerk/clerk-expo";
@@ -80,7 +81,7 @@ export function InstantBookingBottomSheet({
   };
 
   // variables
-  const snapPoints = useMemo(() => ["25%", "50%" , "85%"], []);
+  const snapPoints = useMemo(() => ["50%", "85%"], []);
 
   return (
     <BottomSheet
@@ -99,7 +100,7 @@ export function InstantBookingBottomSheet({
         >
           <X size={20} color={"#262626"} />
         </Button>
-        <BottomSheetScrollView className="w-full flex-1 bg-white p-2 pb-12 gap-4">
+        <BottomSheetView className="w-full flex-1 bg-white p-2 pb-12 gap-4">
           <View className="flex-1 flex-col gap-4 ">
             {/* Sex Selection */}
             <Text className="font-semibold">Sex</Text>
@@ -308,7 +309,7 @@ export function InstantBookingBottomSheet({
               <Text className="text-white font-semibold">Book now</Text>
             </Button>
           </View>
-        </BottomSheetScrollView>
+        </BottomSheetView>
       </View>
     </BottomSheet>
   );

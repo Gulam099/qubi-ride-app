@@ -1,29 +1,16 @@
-import Logo from "@/features/Home/Components/Logo";
-import { TabButton } from "@/features/Home/Components/TabButton";
 import { Text } from "@/components/ui/Text";
-import { Link, Redirect, Stack, Tabs, useRouter } from "expo-router";
-// import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
+import { Link, Tabs } from "expo-router";
 import {
-  ArrowLeft,
-  ArrowLeft2,
-  DocumentLike,
   DocumentText1,
   Home,
-  NoteFavorite,
   Notepad,
   Profile2User,
-  ProfileCircle,
   ShieldTick,
-  UserOctagon,
 } from "iconsax-react-native";
-import { useSelector } from "react-redux";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import colors from "@/utils/colors";
 import { cn } from "@/lib/utils";
 import { View } from "react-native";
-import { Button } from "@/components/ui/Button";
-import BackButton from "@/features/Home/Components/BackButton";
-import { useEffect } from "react";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
 
@@ -161,32 +148,5 @@ export default function PatientLayout() {
         }}
       />
     </Tabs>
-    //   <Tabs>
-    //   {/* Tab Slot: Place for rendering tabs */}
-    //   <TabSlot>
-    //     <View>
-    //       <Text>Tab Content Goes Here</Text>
-    //     </View>
-    //   </TabSlot>
-
-    //   {/* Tab List: Define Tab Triggers */}
-    //   <TabList>
-    //     <TabTrigger name="home" href="/p" className="flex flex-col gap-2">
-    //     <TabButton icon={Home}  />
-    //     </TabTrigger>
-    //     <TabTrigger name="support" href="/p/support">
-    //       <Text>Group Support</Text>
-    //     </TabTrigger>
-    //     <TabTrigger name="program" href="/p/program">
-    //       <Text>Programs</Text>
-    //     </TabTrigger>
-    //     <TabTrigger name="library" href="/p/library">
-    //       <Text>Cultural Library</Text>
-    //     </TabTrigger>
-    //     <TabTrigger name="account" href="/p/account">
-    //       <Text>Baserti</Text>
-    //     </TabTrigger>
-    //   </TabList>
-    // </Tabs>
   );
 }

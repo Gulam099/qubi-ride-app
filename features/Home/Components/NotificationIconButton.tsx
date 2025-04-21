@@ -1,16 +1,14 @@
-import { View, Text } from "react-native";
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { Notification } from "iconsax-react-native";
-import { Badge } from "@/components/ui/Badge";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { cn } from "@/lib/utils";
 
 export default function NotificationIconButton(props: { className?: string }) {
   const router = useRouter();
   return (
     <Button
-      onPress={() => router.push("/(stacks)/notification")}
+      onPress={() => router.push("/(tabs)/account/notification")}
       variant={"secondary"}
       className={cn(
         props.className,

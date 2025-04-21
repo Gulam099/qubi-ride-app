@@ -1,7 +1,4 @@
 import { View, Text, FlatList } from "react-native";
-import React, { useState, useEffect } from "react";
-import NotificationCard from "@/features/account/components/NotificationCard";
-import { useSelector } from "react-redux";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
@@ -74,13 +71,16 @@ export default function AccountNotificationPage() {
           title: "Notifications",
         }}
       />
-      <View className="p-4">
+      <View className="p-4 bg-red-500 flex-1">
         <Text className="font-semibold text-xl">My Notifications</Text>
         <FlatList
           data={notifications}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <NotificationCard date={item.date} message={item.message} />
+            <View className="shadow-sm bg-background rounded-xl p-3 my-4 ">
+              <Text className="text-blue-600 font-semibold">{item.date}</Text>
+              <Text className="text-neutral-700 text-base">{item.message}</Text>
+            </View>
           )}
         />
       </View>

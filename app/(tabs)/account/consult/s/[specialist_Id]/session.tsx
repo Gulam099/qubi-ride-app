@@ -16,6 +16,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
@@ -120,28 +121,32 @@ export default function SessionConsultPage() {
       const timeFormatted = dayjs(pickedTime).format("hh:mm A");
       const userId = user?.publicMetadata.dbPatientId as string;
       const doctorId = specialist_Id as string;
-      const bookingPayload = {
+      const paymentPayload = {
         userId,
         doctorId,
         date: dateFormatted,
         timeSlot: timeFormatted,
         duration: `${data.sessionDuration} min`,
         sessionCount: parseInt(data.numberOfSessions),
-        complaint: data.natureOfComplaint.description || "Routine checkup",
+        description: data.natureOfComplaint.description || "Routine checkup",
+        amount: 1000,
+        currency: "SAR",
+        source: {},
+        callback_url: "https://your-domain.com/callback",
       };
 
-      const bookingResponse = await fetch(
-        "https://monkfish-app-6ahnd.ondigitalocean.app/api/bookings/create",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bookingPayload),
-        }
-      );
+      const paymentResponse = await fetch(`${apiBaseUrl}/payments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
+        },
+        body: JSON.stringify(paymentPayload),
+      });
 
-      const bookingResult = await bookingResponse.json();
-      if (!bookingResponse.ok)
-        throw new Error(bookingResult?.message || "Booking failed");
+      const paymentResult = await paymentResponse.json();
+      if (!paymentResponse.ok)
+        throw new Error(paymentResult?.message || "Booking failed");
 
       // 2. Create room
       const roomPayload = {

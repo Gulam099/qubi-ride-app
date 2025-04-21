@@ -27,17 +27,12 @@ export default function SpecialistCard({
   onPress,
 }: SpecialistCardProps) {
   return (
-    <View className="flex-row items-center bg-white  rounded-lg overflow-hidden relative ">
+    <View className="flex-row items-center bg-white  rounded-lg overflow-hidden relative w-full h-36">
       {/* Specialist Image */}
       <TouchableOpacity onPress={onPress} className="size-42">
-        {/* <Image
-          source={{ uri: imageUrl }}
-          className="w-36 h-36 "
-          resizeMode="cover"
-        /> */}
         <ProfileImage
           imageUrl={imageUrl}
-          name={"name"}
+          name={name ?? "No name Found"}
           className="rounded-none size-36 border-none border-transparent "
         />
       </TouchableOpacity>

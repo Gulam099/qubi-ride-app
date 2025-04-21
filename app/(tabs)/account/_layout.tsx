@@ -25,6 +25,12 @@ export default function AccountLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="notification/index"
+        options={{
+          title: "Notifications",
+        }}
+      />
       
       <Stack.Screen
         name="calendar/index"

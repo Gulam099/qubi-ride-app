@@ -4,9 +4,7 @@ import { documentDirectory, EncodingType } from "expo-file-system";
 import { createExpoFileSystemStorage } from "redux-persist-expo-file-system-storage";
 
 import AppStateReducer from "./appState/appState"
-import UserReducer from "./user/user";
 import { persistReducer } from "redux-persist";
-console.log("Document Directory:", documentDirectory);
 export const expoFileSystemStorage = createExpoFileSystemStorage({
   storagePath: `${documentDirectory}Baserti/`,
   encoding: EncodingType.UTF8,
@@ -33,7 +31,6 @@ const combinePersistReducers = (keys) =>
 const reducers = combineReducers({
   ...combinePersistReducers({
     appState : AppStateReducer,
-    user: UserReducer,
   }),
 });
 

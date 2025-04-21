@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { IconType } from "@/features/Home/types/home.type";
 import { cn } from "@/lib/utils";
 import { Link, RelativePathString } from "expo-router";
+import { LucideIcon } from "lucide-react-native";
 
 export default function AccountCard(props: {
   className?: string;
@@ -12,7 +13,7 @@ export default function AccountCard(props: {
   iconSize?: number;
   shadowColor?: string;
   backgroundColor?: string;
-  icon: IconType;
+  icon: IconType | LucideIcon;
   label: string;
 }) {
   const {
@@ -42,7 +43,7 @@ export default function AccountCard(props: {
         <View className="relative z-10 flex justify-center items-center gap-2">
           <Icon size={iconSize ?? 32} color={iconColor} className="z-10" />
           <Text
-            className="z-10 text-[10px] font-medium text-inherit text-center flex flex-col gap-2"
+            className="z-10 text-[11px] text-nowrap truncate font-medium text-inherit text-center flex flex-col gap-2"
             style={{ color: iconColor }}
           >
             {label}

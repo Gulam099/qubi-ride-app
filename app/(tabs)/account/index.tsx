@@ -41,9 +41,6 @@ export default function AccountPage() {
 
   const contactUsBottomSheetRef = useRef<BottomSheet>(null);
 
-  const [isContactUsDrawerVisible, setIsContactUsDrawerVisible] =
-    useState(false);
-
   const [Interests, setInterests] = useState([
     {
       title: "My Interests",
@@ -53,7 +50,7 @@ export default function AccountPage() {
       items: [
         { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
         { link: "/account/scale", label: "Metrics", icon: Clipboard },
-        { link: "/account/chat", label: "My conversations", icon: Message },
+        { link: "/account/chat", label: "My chats", icon: Message },
         {
           link: "/(stacks)/call/1234/videocall",
           label: "Video Call",
@@ -96,7 +93,7 @@ export default function AccountPage() {
       items: [
         { link: "/account/payment", label: "Payment", icon: EmptyWalletTime },
         { link: "/account/favorite", label: "My favorites", icon: Like1 },
-        { link: "/account/chat", label: "My conversations", icon: Message },
+        { link: "/account/chat", label: "My chats", icon: Message },
         { link: "/account/invoice", label: "My bills", icon: Receipt },
         { link: "/account/family", label: "My family", icon: Profile2User },
         { link: "/account/setting", label: "My settings", icon: Setting2 },
@@ -271,7 +268,7 @@ export default function AccountPage() {
 
                     <Button
                       onPress={() => {
-                        setIsContactUsDrawerVisible(false);
+                        contactUsBottomSheetRef.current?.close();
                         router.push("/help/ticket");
                       }}
                       className="w-full"
@@ -283,7 +280,7 @@ export default function AccountPage() {
                     <Text className="text-base text-neutral-500">or</Text>
                     <Button
                       onPress={() => {
-                        setIsContactUsDrawerVisible(false);
+                        contactUsBottomSheetRef.current?.close();
                         router.push("/account/chat/support");
                       }}
                       className="w-full"
