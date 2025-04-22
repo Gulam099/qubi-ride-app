@@ -48,14 +48,14 @@
   }
   /* Set default font for all elements */
   * {
-    font-family: "NotoKufiArabic_500Medium", sans-serif;
+    /* font-family: "NotoKufiArabic_500Medium", sans-serif; */
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
 
   /* Custom font classes */
-  .font-thin {
+  /* .font-thin {
     font-family: "NotoKufiArabic_100Thin", sans-serif;
   }
 
@@ -89,5 +89,5 @@
 
   .font-black {
     font-family: "NotoKufiArabic_900Black", sans-serif;
-  }
+  } */
 }

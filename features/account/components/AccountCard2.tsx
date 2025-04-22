@@ -1,9 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { Button } from "@/components/ui/Button";
 import { IconType } from "@/features/Home/types/home.type";
 import { cn } from "@/lib/utils";
-import { Link, RelativePathString } from "expo-router";
 
 export default function AccountCard(props: {
   className?: string;
@@ -39,7 +37,7 @@ export default function AccountCard(props: {
         <View className="relative z-10 flex justify-center items-center gap-2">
           <Icon size={iconSize ?? 32} color={iconColor} className="z-10" />
           <Text
-            className="z-10 text-sm font-medium text-inherit text-center flex flex-col gap-2"
+            className="z-10 text-[9px] font-medium text-center flex flex-col gap-2"
             style={{ color: iconColor }}
           >
             {label}

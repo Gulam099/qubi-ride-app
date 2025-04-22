@@ -1,7 +1,7 @@
-import { Redirect, Stack, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
@@ -35,12 +35,10 @@ import {
   ClerkLoaded,
   useAuth,
   ClerkLoading,
-  useSession,
   useUser,
 } from "@clerk/clerk-expo";
 import { Text } from "@/components/ui/Text";
 import { tokenCache } from "@/lib/cache";
-import { use } from "i18next";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -48,8 +46,8 @@ import { queryClient } from "@/lib/queryClient";
 import messaging from "@react-native-firebase/messaging";
 import  firebase  from '@react-native-firebase/app';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
-import { Linking } from 'react-native'; // Add this import at the top of your file
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiBaseUrl } from "@/features/Home/constHome";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -93,7 +91,6 @@ const InitialLayout = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const language = useSelector((state: any) => state.appState.language);
   const isRTL = language === "ar";
-  console.log(isRTL);
 
     // Add this loading spinner component
 // Android 13+ Notification Permission Helper (unchanged)
@@ -121,9 +118,9 @@ const requestNotificationPermission = async () => {
 // Helper: Send token to backend
 const sendTokenToBackend = async (token: string) => {
   try {
-    const patientId = "67f007eebb0b7fdfb6bd9b42";
+    const patientId = user?.publicMetadata.dbPatientId as string;
     const response = await fetch(
-      `https://monkfish-app-6ahnd.ondigitalocean.app/api/room/patients/${patientId}/fcmtoken`,
+      `${apiBaseUrl}/api/room/patients/${patientId}/fcmtoken`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -321,6 +318,7 @@ useEffect(() => {
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
+              <Stack.Screen name="(modals)" options={{ headerShown: false }} />
             </Stack>
           </SafeAreaProvider>
           <Toaster position="top-center" />

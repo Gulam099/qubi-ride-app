@@ -26,13 +26,19 @@ import AccountCard from "@/features/account/components/AccountCard";
 import { useRouter } from "expo-router";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 import AccountCard2 from "@/features/account/components/AccountCard2";
-import AccountDeleteButton from "@/features/account/components/AccountDeleteButton";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
-import { SignOutButton } from "@/features/account/components/SignOutButton";
+import {
+  SignOutButton,
+  SignOutSheet,
+} from "@/features/account/components/SignOutButton";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { DoorOpen, X } from "lucide-react-native";
 import { CustomImages } from "@/const";
+import {
+  DeleteAccountButton,
+  DeleteAccountSheet,
+} from "@/features/account/components/AccountDeleteButton";
 
 export default function AccountPage() {
   const { user } = useUser();
@@ -40,6 +46,8 @@ export default function AccountPage() {
   const router = useRouter();
 
   const contactUsBottomSheetRef = useRef<BottomSheet>(null);
+  const signOutRef = useRef(null);
+  const deleteAccountRef = useRef(null);
 
   const [Interests, setInterests] = useState([
     {
@@ -238,8 +246,10 @@ export default function AccountPage() {
               </TouchableOpacity>
             </View>
 
-            <SignOutButton />
-            <AccountDeleteButton />
+            <SignOutButton sheetRef={signOutRef} />
+            <DeleteAccountButton sheetRef={deleteAccountRef} />
+            <SignOutSheet ref={signOutRef} />
+            <DeleteAccountSheet ref={deleteAccountRef} />
 
             <BottomSheet
               ref={contactUsBottomSheetRef}

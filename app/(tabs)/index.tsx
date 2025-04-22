@@ -1,9 +1,4 @@
-import {
-  View,
-  TouchableOpacity,
-} from "react-native";
-import React, { useRef } from "react";
-
+import { View, TouchableOpacity } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
 import { H3 } from "@/components/ui/Typography";
@@ -14,13 +9,9 @@ import {
 import { Image } from "react-native";
 import { cn } from "@/lib/utils";
 import { Text } from "@/components/ui/Text";
-import {InstantBookingBottomSheet, InstantBookingBottomSheetTrigger} from "@/features/Home/Components/InstantBookingBottomSheet";
-import BottomSheet from "@gorhom/bottom-sheet";
 
 export default function PatientPage() {
   const router = useRouter();
-const instantBookingBottomSheetRef = useRef<BottomSheet>(null);
-
 
   return (
     <View className="flex-1 flex gap-6 flex-col h-full">
@@ -31,7 +22,9 @@ const instantBookingBottomSheetRef = useRef<BottomSheet>(null);
       <View className="flex gap-6 flex-col px-4">
         <H3 className="text-center">What type of consultation do you need?</H3>
 
-        <InstantBookingBottomSheetTrigger  refProp={instantBookingBottomSheetRef}>
+        <TouchableOpacity
+          onPress={() => router.push("/(modals)/instant-booking")}
+        >
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">
@@ -47,7 +40,7 @@ const instantBookingBottomSheetRef = useRef<BottomSheet>(null);
               />
             </View>
           </View>
-        </InstantBookingBottomSheetTrigger>
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/account/consult")}>
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
@@ -70,7 +63,6 @@ const instantBookingBottomSheetRef = useRef<BottomSheet>(null);
           </Text>
         </Button>
       </View>
-      <InstantBookingBottomSheet refProp={instantBookingBottomSheetRef} />
     </View>
   );
 }

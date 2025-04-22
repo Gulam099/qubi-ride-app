@@ -13,7 +13,7 @@ module.exports = {
     extend: {
       fontFamily: {
         // Add your custom font here
-        noto: ["NotoKufiArabic_500Medium"], // Base font
+        //noto: ["NotoKufiArabic_500Medium"], // Base font
       },
       fontWeight: {
         thin: "100",

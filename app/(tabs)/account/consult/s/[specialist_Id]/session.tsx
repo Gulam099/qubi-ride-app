@@ -70,7 +70,7 @@ export default function SessionConsultPage() {
       numberOfSessions: "",
       sessionDuration: "",
       personalInformation: {
-        name: user?.fullName,
+        name: user?.fullName ?? "user",
         age: "",
         academicLevel: "",
         employmentStatus: "",
@@ -169,7 +169,7 @@ export default function SessionConsultPage() {
         throw new Error(roomResult?.message || "Room creation failed");
 
       // All done 🎉
-      return { booking: bookingResult.booking, room: roomResult };
+      return { booking: paymentResult.booking, room: roomResult };
     },
     onSuccess: ({ booking }) => {
       toast.success("Booking & Room created successfully!");
@@ -216,7 +216,7 @@ export default function SessionConsultPage() {
   return (
     <ScrollView className="flex-1 bg-blue-50/10">
       <View className="px-4 py-8 gap-2">
-        <Text className="text-lg font-bold mb-4">Number of sessions</Text>
+        <Text className="text-lg font-medium mb-4">Number of sessions</Text>
         <View className="flex-row gap-2 mb-4">
           {numberOfSessionsOptions.map(({ label, value }) => (
             <Controller
@@ -226,14 +226,15 @@ export default function SessionConsultPage() {
               rules={{ required: "Number of sessions is required" }}
               render={({ field: { onChange, value: selectedValue } }) => (
                 <Button
-                  className={`flex-1 ${
-                    selectedValue === value ? "bg-blue-500" : "bg-gray-200"
-                  }`}
+                  className={`flex-1 `}
+                  variant={selectedValue === value ? "default" : "outline"}
                   onPress={() => onChange(value)}
                 >
                   <Text
                     className={
-                      selectedValue === value ? "text-white" : "text-gray-800"
+                      selectedValue === value
+                        ? "text-white"
+                        : "text-neutral-800"
                     }
                   >
                     {label}
@@ -249,7 +250,7 @@ export default function SessionConsultPage() {
           </Text>
         )}
 
-        <Text className="text-lg font-bold mb-4">Duration sessions</Text>
+        <Text className="text-lg font-medium mb-4">Duration sessions</Text>
         <View className="flex-row gap-2 mb-4">
           {sessionDurations.map(({ label, value }) => (
             <Controller
@@ -259,14 +260,15 @@ export default function SessionConsultPage() {
               rules={{ required: "Session duration is required" }}
               render={({ field: { onChange, value: selectedValue } }) => (
                 <Button
-                  className={`flex-1 ${
-                    selectedValue === value ? "bg-blue-500" : "bg-gray-200"
-                  }`}
+                  className={`flex-1 `}
+                  variant={selectedValue === value ? "default" : "outline"}
                   onPress={() => onChange(value)}
                 >
                   <Text
                     className={
-                      selectedValue === value ? "text-white" : "text-gray-800"
+                      selectedValue === value
+                        ? "text-white"
+                        : "text-neutral-800"
                     }
                   >
                     {label}
@@ -283,7 +285,7 @@ export default function SessionConsultPage() {
         <Accordion type="multiple" className="mb-4">
           <AccordionItem value="personalInformation">
             <AccordionTrigger>
-              <Text className="text-lg font-bold">Personal Information</Text>
+              <Text className="text-lg font-medium">Personal Information</Text>
             </AccordionTrigger>
             <AccordionContent>
               <Controller
@@ -318,7 +320,7 @@ export default function SessionConsultPage() {
 
           <AccordionItem value="familyComposition">
             <AccordionTrigger>
-              <Text className="text-lg font-bold">Family Composition</Text>
+              <Text className="text-lg font-medium">Family Composition</Text>
             </AccordionTrigger>
             <AccordionContent>
               <Controller
@@ -339,7 +341,7 @@ export default function SessionConsultPage() {
 
           <AccordionItem value="history">
             <AccordionTrigger>
-              <Text className="text-lg font-bold">The History is Healthy</Text>
+              <Text className="text-lg font-medium">The History is Healthy</Text>
             </AccordionTrigger>
             <AccordionContent>
               <Controller
@@ -360,7 +362,7 @@ export default function SessionConsultPage() {
 
           <AccordionItem value="natureOfComplaint">
             <AccordionTrigger>
-              <Text className="text-lg font-bold">
+              <Text className="text-lg font-medium">
                 The Nature of the Complaint
               </Text>
             </AccordionTrigger>
@@ -384,7 +386,7 @@ export default function SessionConsultPage() {
 
         {/* Date and Time Picker UI */}
         <View className="mb-6">
-          <Text className="text-lg font-bold mb-2">
+          <Text className="text-lg font-medium mb-2">
             Select Appointment Date
           </Text>
           <Pressable
@@ -404,7 +406,7 @@ export default function SessionConsultPage() {
             />
           )}
 
-          <Text className="text-lg font-bold mb-2">
+          <Text className="text-lg font-medium mb-2">
             Select Appointment Time
           </Text>
           <Pressable
