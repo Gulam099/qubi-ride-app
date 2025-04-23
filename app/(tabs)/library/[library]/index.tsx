@@ -4,35 +4,61 @@ import {
   Text,
   ScrollView,
   Image,
-  FlatList,
-  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { Button } from "@/components/ui/Button";
-import { H3, H2 } from "@/components/ui/Typography";
-import { libraryContent } from "@/features/culturalLibrary/constLibrary";
 import BackButton from "@/features/Home/Components/BackButton";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
-import { useVideoPlayer, VideoView } from "expo-video";
+import { useVideoPlayer } from "expo-video";
+import { useQuery } from "@tanstack/react-query";
+import VideoPlayer from "@/features/Home/Components/VideoPlayer";
+import AudioPlayer from "@/features/Home/Components/AudioPlayer";
 
 export default function LibraryPage() {
-  const { library } = useLocalSearchParams();
+  const { library  } = useLocalSearchParams();
 
-  const videoSource =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  const fetchLibraryContent = async () => {
+    const res = await fetch(
+      `https://www.baserah.sa/api/content/library?content_id=${library}`
+    );
+    const data = await res.json();
+  
+    if (!res.ok) {
+      throw new Error(data.message || "Error fetching content");
+    }
+  
+    return {
+      data: data.data,
+    };
+  };
 
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = true;
-    player.play();
-  });
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["libraryContent", library],
+    queryFn: fetchLibraryContent,
+  })
+
+  
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#6B21A8" />
+        <Text className="text-gray-500 mt-2">Loading Content...</Text>
+      </View>
+    );
+  }
 
   // Find the library item based on the `library` parameter
-  const libraryItem = libraryContent.find((item) => item.id === library);
+  const libraryItem = data?.data || null;
 
-  if (!libraryItem) {
+  if (!libraryItem || isError) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text className="text-gray-500">Library content not found</Text>
@@ -45,69 +71,29 @@ export default function LibraryPage() {
     switch (libraryItem.type.toLowerCase()) {
       case "video":
         return (
-          <View className="flex flex-col gap-4">
-            {/* <Image
-              source={{ uri: libraryItem.thumbnail }}
-              className="w-full h-56 rounded-lg"
-              resizeMode="cover"
-            /> */}
-            <View className="flex-1 p-4 items-center justify-center">
-              <VideoView
-                player={player}
-                allowsFullscreen
-                allowsPictureInPicture
-                className="w-full h-32 aspect-video "
-              />
-            </View>
-            <View className="flex flex-row justify-between items-center">
-              <Text className="text-gray-500">{libraryItem.duration}</Text>
-              <Text className="text-gray-500">{libraryItem.rating} ★</Text>
-            </View>
-            <Button
-              className="w-full bg-purple-600 py-3 rounded-md"
-              onPress={() =>
-                console.log(`Playing video: ${libraryItem.mediaUrl}`)
-              }
-            >
-              <Text className="text-white font-semibold">Play Video</Text>
-            </Button>
+          <View className="flex flex-col gap-4 py-4">
+            <VideoPlayer VideoUri={libraryItem.mediaUrl} />
           </View>
         );
       case "audio":
         return (
-          <View className="flex flex-col gap-4">
-            <Image
-              source={{ uri: libraryItem.thumbnail }}
-              className="w-full h-56 rounded-lg"
-              resizeMode="cover"
+          <View className="flex flex-col gap-4 py-4">
+            <AudioPlayer
+              AudioUri={libraryItem.mediaUrl}
+              thumbnail={{ url: libraryItem.thumbnail, type: "full" }}
             />
-            <View className="flex flex-row justify-between items-center">
-              <Text className="text-gray-500">{libraryItem.duration}</Text>
-              <Text className="text-gray-500">{libraryItem.rating} ★</Text>
-            </View>
-            <Button
-              className="w-full bg-purple-600 py-3 rounded-md"
-              onPress={() =>
-                console.log(`Playing audio: ${libraryItem.mediaUrl}`)
-              }
-            >
-              <Text className="text-white font-semibold">Play Audio</Text>
-            </Button>
           </View>
         );
       case "article":
         return (
-          <View className="flex flex-col gap-4">
-            <Text className="text-lg font-semibold text-gray-700">
-              {libraryItem.title}
-            </Text>
-            <Text className="text-gray-500">{libraryItem.publishedDate}</Text>
+          <View className="flex flex-col gap-4 py-4">
             <Image
               source={{ uri: libraryItem.thumbnail }}
-              className="w-full h-56 rounded-lg"
+              className="w-full aspect-video rounded-lg"
               resizeMode="cover"
             />
             <Text className="text-gray-700">{libraryItem.content}</Text>
+            <Text className="text-gray-500">{libraryItem.publishedDate}</Text>
           </View>
         );
       default:
@@ -140,18 +126,6 @@ export default function LibraryPage() {
             {libraryItem.category}
           </Text>
           <Text className="text-gray-600 mt-4">{libraryItem.description}</Text>
-
-          {/* Subjects */}
-          {libraryItem.subjects && libraryItem.subjects.length > 0 && (
-            <View className="mb-6">
-              <Text className="font-semibold text-xl">Subjects</Text>
-              {libraryItem.subjects.map((subject, index) => (
-                <Text key={index} className="text-gray-700">
-                  • {subject.title} ({subject.time})
-                </Text>
-              ))}
-            </View>
-          )}
 
           {/* Author */}
           {libraryItem.author && (

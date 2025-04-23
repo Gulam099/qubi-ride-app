@@ -26,7 +26,7 @@ export default function ProgramLayout() {
         }}
       />
 
-      <Stack.Screen name="[library]/index" options={{ headerShown: false }} />
+      {/* <Stack.Screen name="[library]/index" options={{ headerShown: false }} /> */}
     </Stack>
   );
 }

@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Pressable, Platform } from "react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -17,6 +17,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import {
+  SchedulePickerButton,
+  SchedulePickerSheet,
+} from "@/features/Home/Components/SchedulePicker";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
@@ -28,6 +32,7 @@ export default function SessionConsultPage() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [pickedDate, setPickedDate] = useState<Date | null>(null);
   const [pickedTime, setPickedTime] = useState<Date | null>(null);
+  const SchedulePickerRef = useRef(null);
 
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
@@ -214,178 +219,185 @@ export default function SessionConsultPage() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-blue-50/10">
-      <View className="px-4 py-8 gap-2">
-        <Text className="text-lg font-medium mb-4">Number of sessions</Text>
-        <View className="flex-row gap-2 mb-4">
-          {numberOfSessionsOptions.map(({ label, value }) => (
-            <Controller
-              key={value}
-              control={control}
-              name="numberOfSessions"
-              rules={{ required: "Number of sessions is required" }}
-              render={({ field: { onChange, value: selectedValue } }) => (
-                <Button
-                  className={`flex-1 `}
-                  variant={selectedValue === value ? "default" : "outline"}
-                  onPress={() => onChange(value)}
-                >
-                  <Text
-                    className={
-                      selectedValue === value
-                        ? "text-white"
-                        : "text-neutral-800"
-                    }
+    <>
+      <ScrollView className="flex-1 bg-blue-50/10">
+        <View className="px-4 py-8 gap-2 h-full flex-1">
+          <Text className="text-lg font-medium mb-4">Number of sessions</Text>
+          <View className="flex-row gap-2 mb-4">
+            {numberOfSessionsOptions.map(({ label, value }) => (
+              <Controller
+                key={value}
+                control={control}
+                name="numberOfSessions"
+                rules={{ required: "Number of sessions is required" }}
+                render={({ field: { onChange, value: selectedValue } }) => (
+                  <Button
+                    className={`flex-1 `}
+                    variant={selectedValue === value ? "default" : "outline"}
+                    onPress={() => onChange(value)}
                   >
-                    {label}
-                  </Text>
-                </Button>
-              )}
-            />
-          ))}
-        </View>
-        {errors.numberOfSessions && (
-          <Text className="text-red-500">
-            {errors.numberOfSessions.message}
-          </Text>
-        )}
+                    <Text
+                      className={
+                        selectedValue === value
+                          ? "text-white"
+                          : "text-neutral-800"
+                      }
+                    >
+                      {label}
+                    </Text>
+                  </Button>
+                )}
+              />
+            ))}
+          </View>
+          {errors.numberOfSessions && (
+            <Text className="text-red-500">
+              {errors.numberOfSessions.message}
+            </Text>
+          )}
 
-        <Text className="text-lg font-medium mb-4">Duration sessions</Text>
-        <View className="flex-row gap-2 mb-4">
-          {sessionDurations.map(({ label, value }) => (
-            <Controller
-              key={value}
-              control={control}
-              name="sessionDuration"
-              rules={{ required: "Session duration is required" }}
-              render={({ field: { onChange, value: selectedValue } }) => (
-                <Button
-                  className={`flex-1 `}
-                  variant={selectedValue === value ? "default" : "outline"}
-                  onPress={() => onChange(value)}
-                >
-                  <Text
-                    className={
-                      selectedValue === value
-                        ? "text-white"
-                        : "text-neutral-800"
-                    }
+          <Text className="text-lg font-medium mb-4">Duration sessions</Text>
+          <View className="flex-row gap-2 mb-4">
+            {sessionDurations.map(({ label, value }) => (
+              <Controller
+                key={value}
+                control={control}
+                name="sessionDuration"
+                rules={{ required: "Session duration is required" }}
+                render={({ field: { onChange, value: selectedValue } }) => (
+                  <Button
+                    className={`flex-1 `}
+                    variant={selectedValue === value ? "default" : "outline"}
+                    onPress={() => onChange(value)}
                   >
-                    {label}
-                  </Text>
-                </Button>
-              )}
-            />
-          ))}
-        </View>
-        {errors.sessionDuration && (
-          <Text className="text-red-500">{errors.sessionDuration.message}</Text>
-        )}
-
-        <Accordion type="multiple" className="mb-4">
-          <AccordionItem value="personalInformation">
-            <AccordionTrigger>
-              <Text className="text-lg font-medium">Personal Information</Text>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Controller
-                control={control}
-                name="personalInformation.name"
-                rules={{ required: "Name is required" }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    className="mb-4"
-                    placeholder="Name"
-                    value={value}
-                    onChangeText={onChange}
-                  />
+                    <Text
+                      className={
+                        selectedValue === value
+                          ? "text-white"
+                          : "text-neutral-800"
+                      }
+                    >
+                      {label}
+                    </Text>
+                  </Button>
                 )}
               />
-              <Controller
-                control={control}
-                name="personalInformation.age"
-                rules={{ required: "Age is required" }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    className="mb-4"
-                    placeholder="Age"
-                    keyboardType="numeric"
-                    value={value}
-                    onChangeText={onChange}
-                  />
-                )}
-              />
-            </AccordionContent>
-          </AccordionItem>
+            ))}
+          </View>
+          {errors.sessionDuration && (
+            <Text className="text-red-500">
+              {errors.sessionDuration.message}
+            </Text>
+          )}
 
-          <AccordionItem value="familyComposition">
-            <AccordionTrigger>
-              <Text className="text-lg font-medium">Family Composition</Text>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Controller
-                control={control}
-                name="familyComposition.members"
-                rules={{ required: "Number of family members is required" }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    className="mb-4"
-                    placeholder="Number of family members"
-                    value={value}
-                    onChangeText={onChange}
-                  />
-                )}
-              />
-            </AccordionContent>
-          </AccordionItem>
+          <Accordion type="multiple" className="mb-4">
+            <AccordionItem value="personalInformation">
+              <AccordionTrigger>
+                <Text className="text-lg font-medium">
+                  Personal Information
+                </Text>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Controller
+                  control={control}
+                  name="personalInformation.name"
+                  rules={{ required: "Name is required" }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      className="mb-4"
+                      placeholder="Name"
+                      value={value}
+                      onChangeText={onChange}
+                    />
+                  )}
+                />
+                <Controller
+                  control={control}
+                  name="personalInformation.age"
+                  rules={{ required: "Age is required" }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      className="mb-4"
+                      placeholder="Age"
+                      keyboardType="numeric"
+                      value={value}
+                      onChangeText={onChange}
+                    />
+                  )}
+                />
+              </AccordionContent>
+            </AccordionItem>
 
-          <AccordionItem value="history">
-            <AccordionTrigger>
-              <Text className="text-lg font-medium">The History is Healthy</Text>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Controller
-                control={control}
-                name="history.healthConditions"
-                rules={{ required: "Health conditions are required" }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    className="mb-4"
-                    placeholder="Health conditions"
-                    value={value}
-                    onChangeText={onChange}
-                  />
-                )}
-              />
-            </AccordionContent>
-          </AccordionItem>
+            <AccordionItem value="familyComposition">
+              <AccordionTrigger>
+                <Text className="text-lg font-medium">Family Composition</Text>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Controller
+                  control={control}
+                  name="familyComposition.members"
+                  rules={{ required: "Number of family members is required" }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      className="mb-4"
+                      placeholder="Number of family members"
+                      value={value}
+                      onChangeText={onChange}
+                    />
+                  )}
+                />
+              </AccordionContent>
+            </AccordionItem>
 
-          <AccordionItem value="natureOfComplaint">
-            <AccordionTrigger>
-              <Text className="text-lg font-medium">
-                The Nature of the Complaint
-              </Text>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Controller
-                control={control}
-                name="natureOfComplaint.description"
-                rules={{ required: "Complaint description is required" }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    className="mb-4"
-                    placeholder="Complaint description"
-                    value={value}
-                    onChangeText={onChange}
-                  />
-                )}
-              />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+            <AccordionItem value="history">
+              <AccordionTrigger>
+                <Text className="text-lg font-medium">
+                  The History is Healthy
+                </Text>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Controller
+                  control={control}
+                  name="history.healthConditions"
+                  rules={{ required: "Health conditions are required" }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      className="mb-4"
+                      placeholder="Health conditions"
+                      value={value}
+                      onChangeText={onChange}
+                    />
+                  )}
+                />
+              </AccordionContent>
+            </AccordionItem>
 
-        {/* Date and Time Picker UI */}
-        <View className="mb-6">
+            <AccordionItem value="natureOfComplaint">
+              <AccordionTrigger>
+                <Text className="text-lg font-medium">
+                  The Nature of the Complaint
+                </Text>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Controller
+                  control={control}
+                  name="natureOfComplaint.description"
+                  rules={{ required: "Complaint description is required" }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      className="mb-4"
+                      placeholder="Complaint description"
+                      value={value}
+                      onChangeText={onChange}
+                    />
+                  )}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          {/* Date and Time Picker UI */}
+          {/* <View className="mb-6">
           <Text className="text-lg font-medium mb-2">
             Select Appointment Date
           </Text>
@@ -433,18 +445,33 @@ export default function SessionConsultPage() {
               Please select a date and time.
             </Text>
           )}
+        </View> */}
+          <SchedulePickerButton
+            selectedDateTime={selectedDateTime}
+            setSelectedDateTime={setSelectedDateTime}
+            sheetRef={SchedulePickerRef}
+          />
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+            className="mt-4"
+          >
+            <Text className="text-white font-medium">
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Text>
+          </Button>
         </View>
-
-        <Button
-          onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
-          className="mt-4"
-        >
-          <Text className="text-white font-medium">
-            {isSubmitting ? "Submitting..." : "Submit"}
-          </Text>
-        </Button>
-      </View>
-    </ScrollView>
+      </ScrollView>
+      <SchedulePickerSheet
+        selectedDateTime={selectedDateTime}
+        setSelectedDateTime={setSelectedDateTime}
+        effectiveFrom={specialistData.schedule.effective_from}
+        effectiveTo={specialistData.schedule.effective_to}
+        startTime={specialistData.schedule.start_time}
+        endTime={specialistData.schedule.end_time}
+        days_of_week={specialistData.schedule.days_of_week}
+        ref={SchedulePickerRef}
+      />
+    </>
   );
 }

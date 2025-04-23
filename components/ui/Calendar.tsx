@@ -22,6 +22,7 @@ function Calendar({
       key={`${id}`}
       //   theme={getTheme(isDarkColorScheme, theme)}
       className="rounded-2xl"
+      hideExtraDays
       theme={{
         backgroundColor: "#fff",
         calendarBackground: "#ffffff",
@@ -36,8 +37,17 @@ function Calendar({
         arrowColor: colors.gray[500],
         stylesheet: {
           calendar: {
-            main: {},
-            header: {},
+            main: {
+              
+            },
+            header: {
+              dayTextAtIndex0: {
+                color: "red",
+              },
+              dayTextAtIndex6: {
+                color: "blue",
+              },
+            },
           },
           day: {
             basic: {},
@@ -49,7 +59,7 @@ function Calendar({
       style={{
         borderRadius: 10,
         // height: 350,
-        padding:10,
+        padding: 10,
         display: "flex",
         justifyContent: "center",
       }}

@@ -1,64 +1,100 @@
-import { View, Text, FlatList, ScrollView } from "react-native";
-import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import React, { useState } from "react";
 import { H3 } from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import LibraryCard from "@/features/culturalLibrary/components/LibraryCard";
 import { toast } from "sonner-native";
-import { apiNewUrl } from "@/const";
+import { useInfiniteQuery } from "@tanstack/react-query";
+
+const PAGE_SIZE = 10;
+
+const fetchLibrary = async ({ pageParam = 1 }) => {
+  const res = await fetch(
+    `https://www.baserah.sa/api/content/library?page=${pageParam}&limit=${PAGE_SIZE}`
+  );
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Error fetching content");
+  }
+
+  return {
+    data: data.data || [],
+    hasNext: data.hasNext,
+    nextPage: pageParam + 1,
+  };
+};
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState("All");
-  const [libraryContent, setLibraryContent] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchLibraryContent = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `${apiNewUrl}/doctors/library/cultural`
-        );
-        const result = await response.json();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+  } = useInfiniteQuery({
+    queryKey: ["library"],
+    queryFn: fetchLibrary,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.nextPage : undefined,
+  });
 
-        if (response.ok && result.data) {
-          const approvedContent = result.data.filter(
-            (item: any) => item.status === "Approveds"
-          );
-          setLibraryContent(approvedContent);
-        } else {
-          throw new Error(result.message || "Failed to fetch library content.");
-        }
-      } catch (error) {
-        console.error("Error fetching library content:", error);
-        toast.error("Error loading library content.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const allContent = data?.pages.flatMap((page) => page.data) ?? [];
 
-    fetchLibraryContent();
-  }, []);
-
-  // Filter content based on the active tab
   const filteredContent =
     activeTab === "All"
-      ? libraryContent
-      : libraryContent.filter(
-          (item) => item.type.toLowerCase() === activeTab.toLowerCase()
+      ? allContent
+      : allContent.filter(
+          (item) => item.type?.toLowerCase() === activeTab.toLowerCase()
         );
 
-  if (loading) {
+  const loadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const renderFooter = () =>
+    isFetchingNextPage ? (
+      <View className="py-4">
+        <ActivityIndicator size="small" />
+      </View>
+    ) : null;
+
+  if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <ActivityIndicator />
+        <Text className="text-gray-500 mt-2">Loading...</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    toast.error("Failed to load content.");
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-gray-500">Something went wrong.</Text>
       </View>
     );
   }
 
   return (
+    <>
+    
     <View className="p-4 pb-0 bg-blue-50/10 h-full flex flex-col gap-4">
-      <H3>Cultural Libraries</H3>
+      {/* <H3>Cultural Libraries</H3> */}
 
       {/* Tabs for filtering */}
       <ScrollView
@@ -91,20 +127,22 @@ export default function LibraryPage() {
       {/* List of Library Content */}
       <FlatList
         data={filteredContent}
-        showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <LibraryCard
             title={item.title}
             category={item.category}
-            image={item.resources[0] || "https://placehold.co/200"}
-            link={`/p/library/${item._id}`}
+            image={item.thumbnail || "https://placehold.co/200"}
+            link={`/library/${item._id}`}
             type={item.type}
             seenCount={item.favorites || 0}
             rating={item.rating || 0}
           />
         )}
-        contentContainerClassName="gap-4 "
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        contentContainerClassName="gap-4 pb-8"
         ListEmptyComponent={() => (
           <Text className="text-gray-500 text-center">
             No content available.
@@ -112,5 +150,6 @@ export default function LibraryPage() {
         )}
       />
     </View>
+    </>
   );
 }
