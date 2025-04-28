@@ -134,3 +134,12 @@ export const CustomImages = {
 export const AppLogo = require("@/assets/images/icon.png");
 export const apiNewUrl = "https://159.65.158.38";
 export const ApiUrl = "https://api.baserah.sa"
+
+export type ApiResponseType<T = any> = {
+  success: boolean;
+  message: string;
+  data?: T;
+  hasNext?: boolean;
+  total?: number;
+  currentPage?: number;
+}

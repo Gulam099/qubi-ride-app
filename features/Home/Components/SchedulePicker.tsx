@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Calendar } from "@/components/ui/Calendar";
 import { format, addMinutes, isBefore, set } from "date-fns";
 import { Button } from "@/components/ui/Button";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetView , BottomSheetScrollView  } from "@gorhom/bottom-sheet";
 
 type SchedulePickerSheetRef = {
   open: () => void;
@@ -38,7 +38,7 @@ export const SchedulePickerButton = ({
       variant={"outline"}
       className="w-full my-2"
     >
-      <Text className="text-neutral-600">{selectedDateTime === "" ? "Please Select Date time" :format(new Date(selectedDateTime) , "EEEE  , dd mmm yyyy , hh : mm a")}</Text>
+      <Text className="text-neutral-600">{selectedDateTime === "" ? "Please Select Date time" :format(new Date(selectedDateTime) , "EEEE  , dd MMMM yyyy , hh : mm a")}</Text>
     </Button>
   );
 };
@@ -77,7 +77,7 @@ export const SchedulePickerSheet = forwardRef<SchedulePickerSheetRef, Omit<Sched
   const maxDate = format(new Date(effectiveTo), "yyyy-MM-dd");
 
   const formattedDateTime = selectedDateTime
-    ? format(new Date(selectedDateTime), "d MMMM yyyy | h:mm a")
+    ? format(new Date(selectedDateTime), "EEEE  , dd MMMM yyyy , hh : mm a")
     : "";
 
   // ✅ Mark selected date
@@ -135,20 +135,20 @@ export const SchedulePickerSheet = forwardRef<SchedulePickerSheetRef, Omit<Sched
   }, [selectedDate, startTime, endTime]);
 
   return (
-    <BottomSheet ref={internalSheetRef} index={-1} enablePanDownToClose snapPoints={['%100']}>
-      <BottomSheetView className="w-full flex-1 bg-white p-2">
+    <BottomSheet ref={internalSheetRef} index={-1} enableDynamicSizing={false} snapPoints={['100%']}>
+      <BottomSheetView className="w-full flex-1 bg-white p-4">
         <View className="gap-4">
           <Text className="text-lg font-medium">
             {CalenderHeading ?? "Available Dates"}
           </Text>
 
-          <View className="bg-background rounded-lg px-4 py-2 flex justify-center items-start">
+          <View className="bg-background rounded-lg  py-2 flex justify-center items-start">
             {selectedDateTime ? (
-              <Text className=" font-xl text-blue-600">
+              <Text className=" text-xl bg-neutral-100 text-primary-600 p-4 rounded-xl text-center w-full">
                 {formattedDateTime}
               </Text>
             ) : (
-              <Text className=" text-gray-600">
+              <Text className=" text-gray-600 text-xl bg-neutral-100  p-4 rounded-xl text-center w-full">
                 Please select a date and time.
               </Text>
             )}
@@ -215,7 +215,7 @@ export const SchedulePickerSheet = forwardRef<SchedulePickerSheetRef, Omit<Sched
               <Text className="font-semibold mb-2">
                 {TimeSliderHeading ?? "Available Times"}
               </Text>
-              <ScrollView horizontal>
+              <BottomSheetScrollView  horizontal>
                 {timesForSelectedDate.map((iso) => {
                   const time = format(new Date(iso), "h:mm a");
                   return (
@@ -237,10 +237,22 @@ export const SchedulePickerSheet = forwardRef<SchedulePickerSheetRef, Omit<Sched
                     </Button>
                   );
                 })}
-              </ScrollView>
+              </BottomSheetScrollView>
             </View>
           )}
         </View>
+        <Button
+          onPress={() => {
+            internalSheetRef.current?.close();
+          }}
+          className="mt-4"
+          disabled={!selectedDateTime}
+        >
+          <Text className="text-background">
+            Done
+          </Text>
+
+        </Button>
       </BottomSheetView>
     </BottomSheet>
   );

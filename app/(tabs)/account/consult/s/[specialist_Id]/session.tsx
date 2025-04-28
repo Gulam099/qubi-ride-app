@@ -27,11 +27,6 @@ export default function SessionConsultPage() {
   const router = useRouter();
   const { specialist_Id } = useLocalSearchParams();
   const [selectedDateTime, setSelectedDateTime] = useState("");
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [pickedDate, setPickedDate] = useState<Date | null>(null);
-  const [pickedTime, setPickedTime] = useState<Date | null>(null);
   const SchedulePickerRef = useRef(null);
 
   const fetchSpecialistData = async () => {
@@ -56,14 +51,14 @@ export default function SessionConsultPage() {
   });
 
   const numberOfSessionsOptions = [
-    { label: "1 session", value: "1" },
-    { label: "2 sessions", value: "2" },
-    { label: "3 sessions", value: "3" },
+    { label: "1 session", value: 1 },
+    { label: "2 sessions", value: 2 },
+    { label: "3 sessions", value: 3 },
   ];
   const sessionDurations = [
-    { label: "30 min", value: "30" },
-    { label: "45 min", value: "45" },
-    { label: "60 min", value: "60" },
+    { label: "30 min", value: 30 },
+    { label: "45 min", value: 45 },
+    { label: "60 min", value: 60 },
   ];
 
   const {
@@ -72,8 +67,8 @@ export default function SessionConsultPage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      numberOfSessions: "",
-      sessionDuration: "",
+      numberOfSessions: 1,
+      sessionDuration: 30,
       personalInformation: {
         name: user?.fullName ?? "user",
         age: "",
@@ -97,106 +92,84 @@ export default function SessionConsultPage() {
     },
   });
 
-  const handleDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(false);
-    if (date) setPickedDate(date);
-  };
-
-  const handleTimeChange = (event: any, time?: Date) => {
-    setShowTimePicker(false);
-    if (time) setPickedTime(time);
-  };
-
-  useEffect(() => {
-    if (pickedDate && pickedTime) {
-      const combined = new Date(
-        pickedDate.getFullYear(),
-        pickedDate.getMonth(),
-        pickedDate.getDate(),
-        pickedTime.getHours(),
-        pickedTime.getMinutes()
-      );
-      setSelectedDateTime(combined.toISOString());
-    }
-  }, [pickedDate, pickedTime]);
-
   const { mutate: bookSession, isPending: isSubmitting } = useMutation({
     mutationFn: async (data: any) => {
-      const dateFormatted = dayjs(pickedDate).format("YYYY-MM-DD");
-      const timeFormatted = dayjs(pickedTime).format("hh:mm A");
       const userId = user?.publicMetadata.dbPatientId as string;
       const doctorId = specialist_Id as string;
+
+      // 1. Create Payment first
       const paymentPayload = {
-        userId,
-        doctorId,
-        date: dateFormatted,
-        timeSlot: timeFormatted,
-        duration: `${data.sessionDuration} min`,
-        sessionCount: parseInt(data.numberOfSessions),
-        description: data.natureOfComplaint.description || "Routine checkup",
-        amount: 1000,
-        currency: "SAR",
-        source: {},
-        callback_url: "https://your-domain.com/callback",
-      };
-
-      const paymentResponse = await fetch(`${apiBaseUrl}/payments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
-        },
-        body: JSON.stringify(paymentPayload),
-      });
-
-      const paymentResult = await paymentResponse.json();
-      if (!paymentResponse.ok)
-        throw new Error(paymentResult?.message || "Booking failed");
-
-      // 2. Create room
-      const roomPayload = {
-        type: "video",
-        doctorId,
         patientId: userId,
+        doctorId: doctorId,
+        amount: 1000, // You can calculate based on sessionDuration if needed
+        currency: "SAR",
+        description: data.natureOfComplaint.description || "Routine checkup",
       };
 
-      const roomResponse = await fetch(
-        "https://monkfish-app-6ahnd.ondigitalocean.app/api/room/create-room",
+      const paymentResponse = await fetch(
+        `https://www.baserah.sa/api/payment`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(roomPayload),
+          headers: {
+            "Content-Type": "application/json",
+            // Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
+          },
+          body: JSON.stringify(paymentPayload),
         }
       );
 
-      const roomResult = await roomResponse.json();
-      if (!roomResponse.ok)
-        throw new Error(roomResult?.message || "Room creation failed");
+      const paymentResult = await paymentResponse.json();
+      if (!paymentResponse.ok)
+        throw new Error(paymentResult?.message || "Payment creation failed.");
 
-      // All done 🎉
-      return { booking: paymentResult.booking, room: roomResult };
+      const paymentId = paymentResult?.data?.payment?._id;
+      if (!paymentId) throw new Error("Payment ID missing.");
+
+      // 2. Create Booking now
+      const bookingPayload = {
+        patientId: userId,
+        doctorId: doctorId,
+        bookingSchedule: selectedDateTime, // ⚡ You selected using your calendar
+        duration: data.sessionDuration, // in minutes
+        numberOfSessions: data.numberOfSessions,
+        complaint: data.natureOfComplaint.description || "Routine checkup",
+        paymentId: paymentId,
+        paymentStatus: "pending", // Because payment not completed yet
+        metadata: {
+          personalInformation: data.personalInformation,
+          familyComposition: data.familyComposition,
+          history: data.history,
+          additionalInfo: data.additionalInfo,
+        },
+      };
+
+      const bookingResponse = await fetch(`https://www.baserah.sa/api/booking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      const bookingResult = await bookingResponse.json();
+      if (!bookingResponse.ok)
+        throw new Error(bookingResult?.message || "Booking creation failed.");
+
+      return { paymentId };
     },
-    onSuccess: ({ booking }) => {
-      toast.success("Booking & Room created successfully!");
-      const bookingId = booking?._id;
-      if (bookingId) {
-        // router.push(`/account/appointment`);
-        router.push(`/(stacks)/payment/${bookingId}`);
+    onSuccess: ({ paymentId }) => {
+      toast.success("Booking created successfully!");
+      if (paymentId) {
+        router.push(`/(stacks)/payment/${paymentId}`);
       } else {
-        toast.error("Booking ID not found.");
+        toast.error("Payment ID not found.");
       }
     },
     onError: (err: any) => {
       toast.error(err.message || "Something went wrong. Please try again.");
+      console.log("Error booking session:", err);
     },
   });
 
   const onSubmit = (data: any) => {
-    if (!pickedDate || !pickedTime) {
-      toast.error("Please select a date and time.");
-      return;
-    }
-
     bookSession(data);
   };
 
@@ -395,57 +368,6 @@ export default function SessionConsultPage() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-
-          {/* Date and Time Picker UI */}
-          {/* <View className="mb-6">
-          <Text className="text-lg font-medium mb-2">
-            Select Appointment Date
-          </Text>
-          <Pressable
-            onPress={() => setShowDatePicker(true)}
-            className="bg-white p-3 rounded border mb-2"
-          >
-            <Text>
-              {pickedDate ? pickedDate.toDateString() : "Choose a date"}
-            </Text>
-          </Pressable>
-          {showDatePicker && (
-            <DateTimePicker
-              value={pickedDate || new Date()}
-              mode="date"
-              display={Platform.OS === "ios" ? "inline" : "default"}
-              onChange={handleDateChange}
-            />
-          )}
-
-          <Text className="text-lg font-medium mb-2">
-            Select Appointment Time
-          </Text>
-          <Pressable
-            onPress={() => setShowTimePicker(true)}
-            className="bg-white p-3 rounded border"
-          >
-            <Text>
-              {pickedTime
-                ? dayjs(pickedTime).format("hh:mm A")
-                : "Choose a time"}
-            </Text>
-          </Pressable>
-          {showTimePicker && (
-            <DateTimePicker
-              value={pickedTime || new Date()}
-              mode="time"
-              is24Hour={false}
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={handleTimeChange}
-            />
-          )}
-          {!selectedDateTime && (
-            <Text className="text-red-500 mt-2">
-              Please select a date and time.
-            </Text>
-          )}
-        </View> */}
           <SchedulePickerButton
             selectedDateTime={selectedDateTime}
             setSelectedDateTime={setSelectedDateTime}

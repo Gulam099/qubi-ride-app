@@ -43,7 +43,7 @@ export default function AccountCard(props: {
         <View className="relative z-10 flex justify-center items-center gap-2">
           <Icon size={iconSize ?? 32} color={iconColor} className="z-10" />
           <Text
-            className="z-10 text-[11px] text-nowrap truncate font-medium text-inherit text-center flex flex-col gap-2"
+            className="z-10 text-[10px] text-nowrap truncate font-medium text-inherit text-center flex flex-col gap-2"
             style={{ color: iconColor }}
           >
             {label}

@@ -7,7 +7,7 @@ import BackButton from "@/features/Home/Components/BackButton";
 import { Text } from "@/components/ui/Text";
 
 const PaymentPage = () => {
-  const { bookingId } = useLocalSearchParams();
+  const { paymentId } = useLocalSearchParams();
 
   // You could also pass bookingId to your backend if needed to generate a custom payment link
 
@@ -29,7 +29,7 @@ const PaymentPage = () => {
       />
       <View style={styles.container}>
         <WebView
-          source={{ uri: "https://www.baserah.sa/payment" }}
+          source={{ uri: `https://www.baserah.sa/payment/${paymentId}` }}
           startInLoadingState
           renderLoading={() => (
             <ActivityIndicator
