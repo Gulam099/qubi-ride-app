@@ -2,82 +2,77 @@ import React, { useEffect, useState } from "react";
 import { View, Text, FlatList } from "react-native";
 import { Calendar } from "@/components/ui/Calendar";
 import ScheduleCalendarCard from "@/features/account/components/ScheduleCalendarCard";
-import { useSelector } from "react-redux";
-import { UserType } from "@/features/user/types/user.type";
-import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 
 export default function AccountCalendarPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
-  const [markedDates, setMarkedDates] = useState({});
-  const [scheduleData, setScheduleData] = useState([]);
+
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [markedDates, setMarkedDates] = useState({});
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const fetchSchedulesForMonth = async (month: number, year: number) => {
-    try {
-      const response = await fetch(
-        `${apiNewUrl}/booking/calendar?userId=${userId}&month=${month}&year=${year}`
-      );
-      const result = await response.json();
+  const formatDate = (date: Date) => dayjs(date).format("DD-MM-YYYY");
 
-      if (response.ok && result.success) {
-        return result.data;
-      } else {
-        // console.error("Failed to fetch schedules:", result.message);
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching schedules:", error);
-      return [];
+  const getMonthRange = (date: Date) => {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return {
+      from: formatDate(start),
+      to: formatDate(end),
+    };
+  };
+
+  const fetchSchedule = async ({ queryKey }: any) => {
+    const [_key, userId, date] = queryKey;
+    const { from, to } = getMonthRange(date);
+    const res = await axios.get(`https://www.baserah.sa/api/schedule`, {
+      params: {
+        patientId: userId,
+        from,
+        to,
+      },
+    });
+
+    if (res.data.success && res.data.schedule?.except) {
+      return res.data.schedule.except.map((iso: string, i: number) => ({
+        id: `${i}`,
+        time: iso,
+        title: "Session",
+        description: "Scheduled session",
+      }));
     }
+
+    return [];
   };
 
-  const handleMonthChange = async (date: { month: number; year: number }) => {
-    const { month, year } = date;
+  const { data: scheduleData = [], refetch } = useQuery({
+    queryKey: ["schedule", userId, currentMonth],
+    queryFn: fetchSchedule,
+    enabled: !!userId,
+  });
 
-    const data = await fetchSchedulesForMonth(month, year);
-
-    const marks = {};
-    data.forEach((item: any) => {
-      const date = item.time.split("T")[0]; // Extract date part from ISO string
-      if (!marks[date]) {
-        marks[date] = { marked: true };
-      }
-    });
-
-    setMarkedDates(marks);
-    setScheduleData(data);
-    setSelectedDate(""); // Clear selected date when the month changes
-  };
-
-  const handleDayPress = (date: { dateString: string }) => {
-    setSelectedDate(date.dateString);
-  };
-
-  const fetchCurrentMonthData = async () => {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // Get month as a number
-    const currentYear = currentDate.getFullYear();
-
-    const data = await fetchSchedulesForMonth(currentMonth, currentYear);
-
-    const marks = {};
-    data.forEach((item: any) => {
-      const date = item.time.split("T")[0]; // Extract date part from ISO string
-      if (!marks[date]) {
-        marks[date] = { marked: true };
-      }
-    });
-
-    setMarkedDates(marks);
-    setScheduleData(data);
-  };
-
-  // Fetch data for the current month on initial load
   useEffect(() => {
-    fetchCurrentMonthData();
-  }, []);
+    const marks: any = {};
+    scheduleData.forEach((item: any) => {
+      const date = item.time.split("T")[0];
+      marks[date] = { marked: true };
+    });
+    setMarkedDates(marks);
+  }, [scheduleData]);
+
+  const handleDayPress = (day: { dateString: string }) => {
+    setSelectedDate(day.dateString);
+  };
+
+  const handleMonthChange = (monthData: { timestamp: number }) => {
+    const newMonth = new Date(monthData.timestamp);
+    setCurrentMonth(newMonth);
+    setSelectedDate("");
+  };
 
   const filteredSchedules = selectedDate
     ? scheduleData.filter((item: any) => item.time.startsWith(selectedDate))
@@ -87,7 +82,6 @@ export default function AccountCalendarPage() {
     <View className="bg-blue-50/20 h-full w-full px-4 py-8 flex flex-col gap-4">
       <Text className="text-lg font-semibold">My Calendar</Text>
 
-      {/* Calendar Component */}
       <Calendar
         markedDates={{
           ...markedDates,

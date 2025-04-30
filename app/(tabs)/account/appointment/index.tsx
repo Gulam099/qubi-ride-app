@@ -24,7 +24,7 @@ async function fetchAppointments({
   );
 
   if (!res.ok) {
-    throw new Error("Failed to fetch appointments"); 
+    throw new Error("Failed to fetch appointments");
   }
 
   const result = await res.json();
@@ -35,7 +35,7 @@ async function fetchAppointments({
 export default function AccountAppointmentsPage() {
   const router = useRouter();
   const { user } = useUser();
-  const userId = user?.publicMetadata?.dbPatientId as string ;
+  const userId = user?.publicMetadata?.dbPatientId as string;
 
   const [activeTab, setActiveTab] = useState("session");
   const [activeCategory, setActiveCategory] = useState("pending");
@@ -58,16 +58,9 @@ export default function AccountAppointmentsPage() {
     staleTime: 1000 * 60 * 2, // 2 minutes cache
   });
 
-  console.log("appointments", appointment);
-  console.log(isError , error);
-  
-  
-
-
-
   return (
-    <View className="bg-blue-50/20 w-full h-full px-4 flex flex-col gap-2">
-      <View className="py-4 flex flex-col gap-4">
+    <View className="bg-blue-50/20 w-full h-full  flex flex-col gap-2">
+      <View className="p-4 pb-0 flex flex-col gap-4">
         <Text className="font-semibold ">My Appointments</Text>
         <View className="w-full flex flex-row gap-2">
           {["group", "program", "session"].map((tab) => {
@@ -93,7 +86,7 @@ export default function AccountAppointmentsPage() {
         </View>
       </View>
 
-      <View className="py-4 flex flex-col gap-4">
+      <View className="p-4 flex flex-col gap-4">
         <Text className="font-semibold ">Appointment Category</Text>
         <View className="w-full flex flex-row gap-2">
           {["cancelled", "completed", "pending"].map((category) => {
@@ -109,7 +102,11 @@ export default function AccountAppointmentsPage() {
                 onPress={() => setActiveCategory(category)}
               >
                 <Text
-                  className={cn(isActive ? "text-white" : "", "font-medium", "capitalize")}
+                  className={cn(
+                    isActive ? "text-white" : "",
+                    "font-medium",
+                    "capitalize"
+                  )}
                 >
                   {category}
                 </Text>
@@ -130,14 +127,15 @@ export default function AccountAppointmentsPage() {
           <FlatList
             data={appointment?.data}
             keyExtractor={(item) => item._id}
+            contentContainerClassName="gap-4 px-4 pb-18"
             renderItem={({ item }) => (
               <AppointmentCard
                 _id={item._id}
-                specialist_Id={item.specialist_Id}
-                doctorName={item.doctorName}
-                sessionDateTime={item.sessionDateTime ?? new Date()}
-                image={item.image}
-                type={item.type}
+                doctorId={item.doctorId._id}
+                doctorName={item.doctorId.full_name}
+                sessionDateTime={item.bookingSchedule}
+                image={item.doctorId.profile_picture}
+                type={item.status}
                 category={item.category}
               />
             )}

@@ -121,7 +121,7 @@ export default function AccountPage() {
 
   const renderMainScreen = () => (
     <View>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={() => router.push("/account/payment/wallet")}
       >
         <View className="bg-white p-4 rounded-2xl mb-4 flex-row gap-2">
@@ -137,10 +137,10 @@ export default function AccountPage() {
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <View>
-        <Text className="text-lg font-bold text-neutral-700 mb-2">
+        <Text className="text-lg font-bold text-neutral-700 mb-1">
           My Cards
         </Text>
         <FlatList

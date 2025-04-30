@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const AppointmentCardSchema = z.object({
   _id: z.string(),
-  specialist_Id: z.string(),
-  type: z.enum(["canceled", "completed", "current"]),
+  doctorId: z.string(),
+  type: z.enum(["cancelled", "completed", "pending"]),
   category: z.enum(["group", "session", "program"]),
   doctorName: z.string(),
   sessionDateTime: z

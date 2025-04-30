@@ -29,11 +29,11 @@ export default function ScheduleCalendarCard({
         <Text className="font-bold text-lg text-black">
           {format(time, "hh:mm a")}
         </Text>
-        <Text className="text-gray-500">{format(time, "dd-MM-yy")}</Text>
+        <Text className="text-neutral-500 text-sm">{format(time, "dd MMM yy")}</Text>
       </View>
 
       {/* Middle Divider */}
-      <View className="w-px h-full bg-gray-200 mx-2" />
+      <View className="w-px h-full bg-neutral-200 mx-2" />
 
       {/* Middle Section */}
       <View className="flex-1">

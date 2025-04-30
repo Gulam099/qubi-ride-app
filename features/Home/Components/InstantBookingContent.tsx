@@ -199,7 +199,7 @@ const InstantBookingContent = () => {
 
             return (
               <Select
-                value={selected}
+                defaultValue={selected}
                 onValueChange={(val) => onChange(val?.value)}
               >
                 <SelectTrigger className="w-full">

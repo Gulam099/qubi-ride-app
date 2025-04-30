@@ -112,7 +112,7 @@ export default function LibraryCard(props: LibraryCardProps) {
 
         {/* Join Button */}
         <Button onPress={onJoin} className="py-1 px-4 bg-blue-600">
-          <Text className="text-white font-medium text-sm leading-6">Join</Text>
+          <Text className="text-white font-medium text-sm leading-6">Read</Text>
         </Button>
       </CardFooter>
     </Card>

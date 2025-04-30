@@ -19,7 +19,7 @@ type Props = AppointmentCardType;
 export default function AppointmentCard({
   _id,
   type,
-  specialist_Id,
+  doctorId,
   doctorName,
   sessionDateTime,
   image,
@@ -65,7 +65,7 @@ export default function AppointmentCard({
   };
 
   return (
-    <View className="w-full p-4 bg-white rounded-xl shadow-md mb-4">
+    <View className="w-full p-4 bg-white rounded-xl shadow-md ">
       {/* Card Header */}
       <View className="flex-row items-start gap-3">
         <Avatar alt="avatar-with-image" className="w-14 h-14">
@@ -93,7 +93,7 @@ export default function AppointmentCard({
       {/* Card Footer */}
       <View className="flex-col gap-2 mt-4 ">
         <Separator />
-        {type === "current" ? (
+        {type === "pending" ? (
           <View className="flex-row justify-around  ">
             <Button
               onPress={() => setIsDrawerCancelVisible(true)}
@@ -114,7 +114,7 @@ export default function AppointmentCard({
             <Button
               className="flex-row items-center bg-blue-100/60  h-9"
               onPress={() => {
-                router.push(`/chat/${specialist_Id}`);
+                router.push(`/chat/${doctorId}`);
               }}
             >
               <MessageText size="20" color="#000" />

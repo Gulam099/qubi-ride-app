@@ -56,6 +56,8 @@ export default function Page() {
     } catch (err: any) {
       // console.error("Error:", JSON.stringify(err, null, 2));
       toast.error(err.message || "Failed to send OTP");
+      console.log(err.message);
+      
     }
   };
 

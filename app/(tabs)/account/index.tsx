@@ -59,11 +59,11 @@ export default function AccountPage() {
         { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
         { link: "/account/scale", label: "Metrics", icon: Clipboard },
         { link: "/account/chat", label: "My chats", icon: Message },
-        // {
-        //   link: "/(stacks)/call/1234/videocall",
-        //   label: "Video Call",
-        //   icon: Video,
-        // },
+        {
+          link: "/(stacks)/call/1234/videocall",
+          label: "Video Call",
+          icon: Video,
+        },
         // {
         //   link: "/(stacks)/joinroom/1234",
         //   label: "Join Room with Id",

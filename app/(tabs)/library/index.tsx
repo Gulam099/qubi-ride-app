@@ -92,64 +92,63 @@ export default function LibraryPage() {
 
   return (
     <>
-    
-    <View className="p-4 pb-0 bg-blue-50/10 h-full flex flex-col gap-4">
-      {/* <H3>Cultural Libraries</H3> */}
+      <View className="p-4 pb-0 bg-blue-50/10 h-full flex flex-col gap-4">
+        {/* <H3>Cultural Libraries</H3> */}
 
-      {/* Tabs for filtering */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
-      >
-        {["All", "Video", "Article", "Audio"].map((tab) => {
-          const isActiveTab = tab === activeTab;
-          return (
-            <Button
-              key={tab}
-              size={"sm"}
-              className={cn(
-                isActiveTab ? "bg-blue-900" : "bg-white",
-                "w-32 h-9 rounded-xl"
-              )}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text
-                className={cn(isActiveTab ? "text-white" : "", "font-medium")}
+        {/* Tabs for filtering */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
+        >
+          {["All", "Video", "Article", "Audio"].map((tab) => {
+            const isActiveTab = tab === activeTab;
+            return (
+              <Button
+                key={tab}
+                size={"sm"}
+                className={cn(
+                  isActiveTab ? "bg-blue-900" : "bg-white",
+                  "w-32 h-9 rounded-xl"
+                )}
+                onPress={() => setActiveTab(tab)}
               >
-                {tab}
-              </Text>
-            </Button>
-          );
-        })}
-      </ScrollView>
+                <Text
+                  className={cn(isActiveTab ? "text-white" : "", "font-medium")}
+                >
+                  {tab}
+                </Text>
+              </Button>
+            );
+          })}
+        </ScrollView>
 
-      {/* List of Library Content */}
-      <FlatList
-        data={filteredContent}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <LibraryCard
-            title={item.title}
-            category={item.category}
-            image={item.thumbnail || "https://placehold.co/200"}
-            link={`/library/${item._id}`}
-            type={item.type}
-            seenCount={item.favorites || 0}
-            rating={item.rating || 0}
-          />
-        )}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-        contentContainerClassName="gap-4 pb-8"
-        ListEmptyComponent={() => (
-          <Text className="text-gray-500 text-center">
-            No content available.
-          </Text>
-        )}
-      />
-    </View>
+        {/* List of Library Content */}
+        <FlatList
+          data={filteredContent}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <LibraryCard
+              title={item.title}
+              category={item.category}
+              image={item.thumbnail || "https://placehold.co/200"}
+              link={`/(tabs)/library/${item._id}`}
+              type={item.type}
+              seenCount={item.favorites || 0}
+              rating={item.rating || 0}
+            />
+          )}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          contentContainerClassName="gap-4 pb-8"
+          ListEmptyComponent={() => (
+            <Text className="text-gray-500 text-center">
+              No content available.
+            </Text>
+          )}
+        />
+      </View>
     </>
   );
 }
