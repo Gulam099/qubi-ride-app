@@ -19,7 +19,7 @@ export default function BackButton(props: {
       onPress={() =>
         !props.customBackLink
           ? router.back()
-          : router.push(props.customBackLink as RelativePathString)
+          : router.replace(props.customBackLink as RelativePathString)
       }
       variant={"ghost"}
     >

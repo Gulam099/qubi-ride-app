@@ -43,7 +43,7 @@ export default function ConsultPage() {
     queryKey: ["doctor"],
     queryFn: async () => {
       const response = await fetch(
-        `${ApiUrl}/api/doctor/get-doctors?page=1&pageSize=5`
+        `${ApiUrl}/api/doctors/getall`
       );
       const result = await response.json();
       if (!response.ok || !result.success) {

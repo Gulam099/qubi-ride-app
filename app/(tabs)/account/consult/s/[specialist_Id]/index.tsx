@@ -28,8 +28,9 @@ export default function SpecialistConsultantPage() {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
 
     const response = await fetch(
-      `${ApiUrl}/api/doctor/get-doctor/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctors/${specialist_Id}`
     );
+
     if (!response.ok) {
       const errorMessage = `Failed to fetch specialist data (ID: ${specialist_Id}).`;
       console.error(errorMessage);

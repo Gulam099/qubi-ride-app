@@ -5,6 +5,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
 import { Text } from "@/components/ui/Text";
+import { ApiUrl,  } from "@/const";
 
 const PaymentPage = () => {
   const { paymentId } = useLocalSearchParams();
@@ -29,7 +30,7 @@ const PaymentPage = () => {
       />
       <View style={styles.container}>
         <WebView
-          source={{ uri: `https://www.baserah.sa/payment/${paymentId}` }}
+          source={{ uri: `${ApiUrl}/api/payments/${paymentId}` }}
           startInLoadingState
           renderLoading={() => (
             <ActivityIndicator

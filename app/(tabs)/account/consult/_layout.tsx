@@ -18,7 +18,6 @@ export default function ConsultLayout() {
         name="index"
         options={{
           headerLeft: () => <BackButton customBackLink="/" className="" />,
-
           headerTitle: () => (
             <Text className="font-semibold text-lg ">Consultants</Text>
           ),
@@ -27,8 +26,7 @@ export default function ConsultLayout() {
       <Stack.Screen
         name="s/[specialist_Id]/session"
         options={{
-          headerLeft: () => <BackButton />,
-
+          headerLeft: () => <BackButton customBackLink="/" />,
           headerTitle: () => (
             <Text className="font-semibold text-lg ">Session Details</Text>
           ),

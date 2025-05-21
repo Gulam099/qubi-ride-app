@@ -21,6 +21,7 @@ import {
   SchedulePickerButton,
   SchedulePickerSheet,
 } from "@/features/Home/Components/SchedulePicker";
+import { Status } from "iconsax-react-native";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
@@ -32,7 +33,7 @@ export default function SessionConsultPage() {
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
     const response = await fetch(
-      `${ApiUrl}/api/doctor/get-doctor/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctors/${specialist_Id}`
     );
     if (!response.ok) throw new Error("Failed to fetch specialist data");
     const result = await response.json();
@@ -99,41 +100,40 @@ export default function SessionConsultPage() {
 
       // 1. Create Payment first
       const paymentPayload = {
-        patientId: userId,
+        userId: userId,
         doctorId: doctorId,
-        amount: 1000, // You can calculate based on sessionDuration if needed
+        amount: 1000, 
         currency: "SAR",
         description: data.natureOfComplaint.description || "Routine checkup",
+        status: "initiated",
       };
 
-      const paymentResponse = await fetch(
-        `https://www.baserah.sa/api/payment`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
-          },
-          body: JSON.stringify(paymentPayload),
-        }
-      );
+      const paymentResponse = await fetch(`${ApiUrl}/api/payments/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
+        },
+        body: JSON.stringify(paymentPayload),
+      });
 
       const paymentResult = await paymentResponse.json();
       if (!paymentResponse.ok)
         throw new Error(paymentResult?.message || "Payment creation failed.");
 
-      const paymentId = paymentResult?.data?.payment?._id;
+      const paymentId = paymentResult?.payment?.internalPaymentId;
       if (!paymentId) throw new Error("Payment ID missing.");
 
+      console.log('paymentId',paymentId)
       // 2. Create Booking now
       const bookingPayload = {
-        patientId: userId,
+        userId: userId,
         doctorId: doctorId,
-        bookingSchedule: selectedDateTime, // ⚡ You selected using your calendar
-        duration: data.sessionDuration, // in minutes
-        numberOfSessions: data.numberOfSessions,
+        date: selectedDateTime, 
+        duration: data.sessionDuration, 
+        sessionCount: data.numberOfSessions,
         complaint: data.natureOfComplaint.description || "Routine checkup",
-        paymentId: paymentId,
+        price: paymentId,
         paymentStatus: "pending", // Because payment not completed yet
         metadata: {
           personalInformation: data.personalInformation,
@@ -143,7 +143,7 @@ export default function SessionConsultPage() {
         },
       };
 
-      const bookingResponse = await fetch(`https://www.baserah.sa/api/booking`, {
+      const bookingResponse = await fetch(`${ApiUrl}/api/bookings/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingPayload),
@@ -158,7 +158,7 @@ export default function SessionConsultPage() {
     onSuccess: ({ paymentId }) => {
       toast.success("Booking created successfully!");
       if (paymentId) {
-        router.push(`/(stacks)/payment/${paymentId}`);
+        router.push(`/(stacks)/paymentpage`);
       } else {
         toast.error("Payment ID not found.");
       }
@@ -384,7 +384,7 @@ export default function SessionConsultPage() {
           </Button>
         </View>
       </ScrollView>
-      <SchedulePickerSheet
+      {/* <SchedulePickerSheet
         selectedDateTime={selectedDateTime}
         setSelectedDateTime={setSelectedDateTime}
         effectiveFrom={specialistData.schedule.effective_from}
@@ -393,7 +393,7 @@ export default function SessionConsultPage() {
         endTime={specialistData.schedule.end_time}
         days_of_week={specialistData.schedule.days_of_week}
         ref={SchedulePickerRef}
-      />
+      /> */}
     </>
   );
 }

@@ -54,14 +54,14 @@ export default function PatientPage() {
           </View>
         </TouchableOpacity>
 
-        <Button
+        {/* <Button
           className="bg-blue-50/30 backdrop-blur-md "
           onPress={() => router.push("/account/consult/help")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">
             Help me find the right consultant{" "}
           </Text>
-        </Button>
+        </Button> */}
       </View>
     </View>
   );

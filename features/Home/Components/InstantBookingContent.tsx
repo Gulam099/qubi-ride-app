@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import React from "react";
-import { apiNewUrl } from "@/const";
+import { ApiUrl } from "@/const";
 import { toast } from "sonner-native";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "expo-router";
@@ -40,7 +40,6 @@ const InstantBookingContent = () => {
 
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
-
   // specialization options
   const specializationOptions = [
     { value: "assistant_specialist", label: "Assistant Specialist" },
@@ -78,7 +77,7 @@ const InstantBookingContent = () => {
 
   const onSubmit = async (data: any) => {
     try {
-      const response = await fetch(`${apiNewUrl}/booking/instant`, {
+      const response = await fetch(`${ApiUrl}/api/instantbookings/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,6 +85,7 @@ const InstantBookingContent = () => {
         body: JSON.stringify({
           ...data,
           userId: userId,
+
         }),
       });
 
@@ -94,13 +94,13 @@ const InstantBookingContent = () => {
         reset();
         const result = await response.json();
         console.log("Booking result:", result);
-
-        router.push("/(stacks)/payment/1234");
+        router.push("/(stacks)/paymentpage");
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Booking failed. Please try again.");
       }
     } catch (error) {
+      console.log('error',error)
       console.error("Error during booking:", error);
       toast.error("An error occurred while booking. Please try again.");
     }
