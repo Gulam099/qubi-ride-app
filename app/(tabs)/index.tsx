@@ -23,7 +23,7 @@ export default function PatientPage() {
         <H3 className="text-center">What type of consultation do you need?</H3>
 
         <TouchableOpacity
-          onPress={() => router.push("/(modals)/instant-booking")}
+          onPress={() => router.push("/consult?type=instant")}
         >
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
@@ -42,7 +42,7 @@ export default function PatientPage() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/account/consult")}>
+        <TouchableOpacity onPress={() => router.push("/consult?type=schedule")}>
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">

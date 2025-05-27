@@ -28,7 +28,10 @@ export default function SessionConsultPage() {
   const router = useRouter();
   const { specialist_Id } = useLocalSearchParams();
   const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [doctorSchedule, setDoctorSchedule] = useState("");
   const SchedulePickerRef = useRef(null);
+
+  console.log('selectedDateTime',selectedDateTime)
 
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
@@ -51,6 +54,17 @@ export default function SessionConsultPage() {
     enabled: !!specialist_Id,
   });
 
+  const clerk_Id = specialistData?.data?.clerkId;
+  const getUserById = async (clerk_Id) => {
+    try {
+      const response = await fetch(`${ApiUrl}/user/${clerk_Id}`);
+      const data = await response.json();
+      setDoctorSchedule(data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  };
+
   const numberOfSessionsOptions = [
     { label: "1 session", value: 1 },
     { label: "2 sessions", value: 2 },
@@ -61,6 +75,10 @@ export default function SessionConsultPage() {
     { label: "45 min", value: 45 },
     { label: "60 min", value: 60 },
   ];
+
+  useEffect(() => {
+    getUserById(clerk_Id);
+  }, []);
 
   const {
     control,
@@ -102,7 +120,7 @@ export default function SessionConsultPage() {
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
-        amount: 1000, 
+        amount: 1000,
         currency: "SAR",
         description: data.natureOfComplaint.description || "Routine checkup",
         status: "initiated",
@@ -124,13 +142,12 @@ export default function SessionConsultPage() {
       const paymentId = paymentResult?.payment?.internalPaymentId;
       if (!paymentId) throw new Error("Payment ID missing.");
 
-      console.log('paymentId',paymentId)
       // 2. Create Booking now
       const bookingPayload = {
         userId: userId,
         doctorId: doctorId,
-        date: selectedDateTime, 
-        duration: data.sessionDuration, 
+        date: selectedDateTime,
+        duration: data.sessionDuration,
         sessionCount: data.numberOfSessions,
         complaint: data.natureOfComplaint.description || "Routine checkup",
         price: paymentId,
@@ -153,13 +170,33 @@ export default function SessionConsultPage() {
       if (!bookingResponse.ok)
         throw new Error(bookingResult?.message || "Booking creation failed.");
 
-      return { paymentId };
+      return {
+        paymentId,
+        bookingId: bookingResult?.booking?.id,
+        bookingData: {
+          userId,
+          doctorId,
+          selectedDateTime,
+          sessionDuration: data.sessionDuration,
+          numberOfSessions: data.numberOfSessions,
+          complaint: data.natureOfComplaint.description || "Routine checkup",
+        },
+      };
     },
-    onSuccess: ({ paymentId }) => {
+    onSuccess: ({ paymentId ,bookingId, bookingData }) => {
       toast.success("Booking created successfully!");
       if (paymentId) {
-        router.push(`/(stacks)/paymentpage/${paymentId}`);
-        console.log('route',`/(stacks)/paymentpage/${paymentId}`)
+        const queryParams = new URLSearchParams({
+          userId: bookingData.userId,
+          doctorId: bookingData.doctorId,
+          selectedDateTime: bookingData.selectedDateTime,
+          sessionDuration: bookingData.sessionDuration.toString(),
+          numberOfSessions: bookingData.numberOfSessions.toString(),
+          complaint: bookingData.complaint,
+          bookingId: bookingId || "",
+        }).toString();
+        router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
+        console.log("route", `/(stacks)/paymentpage/${paymentId}?${queryParams}`);
       } else {
         toast.error("Payment ID not found.");
       }
@@ -191,6 +228,16 @@ export default function SessionConsultPage() {
       </View>
     );
   }
+
+  // if (!doctorSchedule) {
+  //   return (
+  //     <View className="flex-1 justify-center items-center">
+  //       <Text className="text-red-500">
+  //         Schedule information is not available for this specialist.
+  //       </Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <>
@@ -385,16 +432,12 @@ export default function SessionConsultPage() {
           </Button>
         </View>
       </ScrollView>
-      {/* <SchedulePickerSheet
+      <SchedulePickerSheet
         selectedDateTime={selectedDateTime}
         setSelectedDateTime={setSelectedDateTime}
-        effectiveFrom={specialistData.schedule.effective_from}
-        effectiveTo={specialistData.schedule.effective_to}
-        startTime={specialistData.schedule.start_time}
-        endTime={specialistData.schedule.end_time}
-        days_of_week={specialistData.schedule.days_of_week}
+        doctorSchedule={doctorSchedule}
         ref={SchedulePickerRef}
-      /> */}
+      />
     </>
   );
 }

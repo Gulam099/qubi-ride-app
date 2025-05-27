@@ -20,7 +20,7 @@ const JoinRoom = () => {
         <View style={{ flex: 1 }}>
           <WebView
             source={{ uri: roomUrl }}
-            style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}
+            style={{ flex: 1, borderRadius: 12, overflow: 'scroll' }}
             startInLoadingState={true}
             renderLoading={() => (
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

@@ -7,12 +7,10 @@ export default function ModalsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerBackVisible: false,
-        headerShadowVisible: false,
+        headerBackVisible: true,
+        headerShadowVisible: true,
         headerBackButtonMenuEnabled: false,
-        headerLeft: () => <BackButton />,
-        presentation: "modal",
-        headerTitle: ({ children }) => <Text>{children}</Text>,
+       
       }}
     />
   );
