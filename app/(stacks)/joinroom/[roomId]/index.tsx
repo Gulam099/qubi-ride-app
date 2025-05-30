@@ -17,10 +17,10 @@ const JoinRoom = () => {
         }} 
       />
       <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, padding: 60 }}>
           <WebView
             source={{ uri: roomUrl }}
-            style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}
+            style={{ flex: 1, borderRadius: 12, overflow: 'scroll' }}
             startInLoadingState={true}
             renderLoading={() => (
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

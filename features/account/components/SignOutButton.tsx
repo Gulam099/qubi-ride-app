@@ -4,6 +4,7 @@ import { H3 } from "@/components/ui/Typography";
 import { CustomIcons } from "@/const";
 import { useClerk } from "@clerk/clerk-expo";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { router } from "expo-router";
 import { X } from "lucide-react-native";
 import React, { forwardRef, useRef, useImperativeHandle } from "react";
 import { View } from "react-native";
@@ -39,6 +40,7 @@ export const SignOutSheet = forwardRef<SignOutSheetRef>((_, ref) => {
     try {
       await signOut();
       internalSheetRef.current?.close();
+      router.push('/(auth)/sign-in');
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     }

@@ -21,19 +21,25 @@ import {
   SchedulePickerButton,
   SchedulePickerSheet,
 } from "@/features/Home/Components/SchedulePicker";
-import { Status } from "iconsax-react-native";
+import { InfoCircle, Status } from "iconsax-react-native";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
   const router = useRouter();
   const { specialist_Id } = useLocalSearchParams();
   const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [doctorSchedule, setDoctorSchedule] = useState("");
   const SchedulePickerRef = useRef(null);
 
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctors/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
     );
     if (!response.ok) throw new Error("Failed to fetch specialist data");
     const result = await response.json();
@@ -51,6 +57,35 @@ export default function SessionConsultPage() {
     enabled: !!specialist_Id,
   });
 
+  const clerk_Id = specialistData?.data?.clerkId;
+  const getUserById = async (clerk_Id) => {
+    try {
+      const response = await fetch(`${ApiUrl}/user/${clerk_Id}`);
+      const data = await response.json();
+      setDoctorSchedule(data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  };
+
+  // specialization options
+  const specializationOptions = [
+    { value: "assistant_specialist", label: "Assistant Specialist" },
+    { value: "specialist", label: "Specialist" },
+    { value: "first_specialist", label: "First Specialist" },
+    { value: "consultant", label: "Consultant" },
+    { value: "deputy_specialist_doctor", label: "Deputy Specialist Doctor" },
+    {
+      value: "first_deputy_specialist_doctor",
+      label: "First Deputy Specialist Doctor",
+    },
+    { value: "consultant_doctor", label: "Consultant Doctor" },
+    {
+      value: "first_consultant_doctor",
+      label: "First Consultant Doctor (Subspecialty)",
+    },
+  ];
+
   const numberOfSessionsOptions = [
     { label: "1 session", value: 1 },
     { label: "2 sessions", value: 2 },
@@ -62,34 +97,22 @@ export default function SessionConsultPage() {
     { label: "60 min", value: 60 },
   ];
 
+  useEffect(() => {
+    if (clerk_Id) {
+      getUserById(clerk_Id);
+    }
+  }, [clerk_Id]);
+
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      numberOfSessions: 1,
-      sessionDuration: 30,
-      personalInformation: {
-        name: user?.fullName ?? "user",
-        age: "",
-        academicLevel: "",
-        employmentStatus: "",
-      },
-      familyComposition: {
-        members: "",
-        dynamics: "",
-      },
-      history: {
-        healthConditions: "",
-        medications: "",
-      },
-      natureOfComplaint: {
-        description: "",
-        severity: "",
-      },
-      additionalInfo: "",
-      availableDate: "",
+      language: "",
+      numberOfSessions: "",
+      sessionDuration: "",
+      sex: ""
     },
   });
 
@@ -98,13 +121,18 @@ export default function SessionConsultPage() {
       const userId = user?.publicMetadata.dbPatientId as string;
       const doctorId = specialist_Id as string;
 
+      // Validation
+      if (!selectedDateTime) {
+        throw new Error("Please select a date and time");
+      }
+
       // 1. Create Payment first
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
-        amount: 1000, 
+        amount: 1000,
         currency: "SAR",
-        description: data.natureOfComplaint.description || "Routine checkup",
+        description: "Medical consultation session", // Fixed: removed undefined reference
         status: "initiated",
       };
 
@@ -124,23 +152,16 @@ export default function SessionConsultPage() {
       const paymentId = paymentResult?.payment?.internalPaymentId;
       if (!paymentId) throw new Error("Payment ID missing.");
 
-      console.log('paymentId',paymentId)
       // 2. Create Booking now
       const bookingPayload = {
         userId: userId,
         doctorId: doctorId,
-        date: selectedDateTime, 
-        duration: data.sessionDuration, 
+        date: selectedDateTime,
+        duration: data.sessionDuration,
         sessionCount: data.numberOfSessions,
-        complaint: data.natureOfComplaint.description || "Routine checkup",
-        price: paymentId,
-        paymentStatus: "pending", // Because payment not completed yet
-        metadata: {
-          personalInformation: data.personalInformation,
-          familyComposition: data.familyComposition,
-          history: data.history,
-          additionalInfo: data.additionalInfo,
-        },
+        language: data.language,
+        sex: data.sex, // Added sex field
+        paymentStatus: "pending", 
       };
 
       const bookingResponse = await fetch(`${ApiUrl}/api/bookings/create`, {
@@ -152,14 +173,31 @@ export default function SessionConsultPage() {
       const bookingResult = await bookingResponse.json();
       if (!bookingResponse.ok)
         throw new Error(bookingResult?.message || "Booking creation failed.");
-
-      return { paymentId };
+      
+      return {
+        paymentId,
+        bookingId: bookingResult?.booking?._id,
+        bookingData: {
+          userId,
+          doctorId,
+          selectedDateTime,
+          sessionDuration: data.sessionDuration,
+          numberOfSessions: data.numberOfSessions,
+        },
+      };
     },
-    onSuccess: ({ paymentId }) => {
+    onSuccess: ({ paymentId, bookingId, bookingData }) => {
       toast.success("Booking created successfully!");
       if (paymentId) {
-        router.push(`/(stacks)/paymentpage/${paymentId}`);
-        console.log('route',`/(stacks)/paymentpage/${paymentId}`)
+        const queryParams = new URLSearchParams({
+          userId: bookingData.userId,
+          doctorId: bookingData.doctorId,
+          selectedDateTime: bookingData.selectedDateTime,
+          sessionDuration: bookingData.sessionDuration.toString(),
+          numberOfSessions: bookingData.numberOfSessions.toString(),
+          bookingId: bookingId || "",
+        }).toString();
+        router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
       } else {
         toast.error("Payment ID not found.");
       }
@@ -171,6 +209,8 @@ export default function SessionConsultPage() {
   });
 
   const onSubmit = (data: any) => {
+    console.log("Form data:", data); // Debug log
+    console.log("Selected DateTime:", selectedDateTime); // Debug log
     bookSession(data);
   };
 
@@ -196,6 +236,41 @@ export default function SessionConsultPage() {
     <>
       <ScrollView className="flex-1 bg-blue-50/10">
         <View className="px-4 py-8 gap-2 h-full flex-1">
+          {/* Language Selection */}
+          <View>
+            <Text className="font-semibold mb-2">Language</Text>
+            <View className="flex-row gap-2">
+              {["French", "English", "Arabic"].map((language) => (
+                <Controller
+                  key={language}
+                  control={control}
+                  rules={{ required: "Language is required." }}
+                  name="language"
+                  render={({ field: { onChange, value } }) => (
+                    <Button
+                      className="flex-1"
+                      variant={value === language ? "default" : "outline"}
+                      onPress={() => onChange(language)}
+                    >
+                      <Text
+                        className={
+                          value === language ? "text-white" : "text-gray-800"
+                        }
+                      >
+                        {language}
+                      </Text>
+                    </Button>
+                  )}
+                />
+              ))}
+            </View>
+            {errors.language && (
+              <Text className="text-red-500 text-sm mt-1">
+                {errors.language.message}
+              </Text>
+            )}
+          </View>
+
           <Text className="text-lg font-medium mb-4">Number of sessions</Text>
           <View className="flex-row gap-2 mb-4">
             {numberOfSessionsOptions.map(({ label, value }) => (
@@ -264,116 +339,47 @@ export default function SessionConsultPage() {
             </Text>
           )}
 
-          <Accordion type="multiple" className="mb-4">
-            <AccordionItem value="personalInformation">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">
-                  Personal Information
-                </Text>
-              </AccordionTrigger>
-              <AccordionContent>
+          {/* Sex Selection */}
+          <View>
+            <Text className="font-semibold mb-2">Gender</Text>
+            <View className="flex-row gap-2">
+              {["Male", "Female", "Rather not say"].map((sex) => (
                 <Controller
+                  key={sex}
                   control={control}
-                  name="personalInformation.name"
-                  rules={{ required: "Name is required" }}
+                  rules={{ required: "Gender is required." }}
+                  name="sex"
                   render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Name"
-                      value={value}
-                      onChangeText={onChange}
-                    />
+                    <Button
+                      className="flex-1"
+                      variant={value === sex ? "default" : "outline"}
+                      onPress={() => onChange(sex)}
+                    >
+                      <Text
+                        className={
+                          value === sex ? "text-white" : "text-gray-800"
+                        }
+                      >
+                        {sex}
+                      </Text>
+                    </Button>
                   )}
                 />
-                <Controller
-                  control={control}
-                  name="personalInformation.age"
-                  rules={{ required: "Age is required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Age"
-                      keyboardType="numeric"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
+              ))}
+            </View>
+            {errors.sex && (
+              <Text className="text-red-500 text-sm mt-1">
+                {errors.sex.message}
+              </Text>
+            )}
+          </View>
 
-            <AccordionItem value="familyComposition">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">Family Composition</Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Controller
-                  control={control}
-                  name="familyComposition.members"
-                  rules={{ required: "Number of family members is required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Number of family members"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="history">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">
-                  The History is Healthy
-                </Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Controller
-                  control={control}
-                  name="history.healthConditions"
-                  rules={{ required: "Health conditions are required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Health conditions"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="natureOfComplaint">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">
-                  The Nature of the Complaint
-                </Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Controller
-                  control={control}
-                  name="natureOfComplaint.description"
-                  rules={{ required: "Complaint description is required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Complaint description"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
           <SchedulePickerButton
             selectedDateTime={selectedDateTime}
             setSelectedDateTime={setSelectedDateTime}
             sheetRef={SchedulePickerRef}
           />
+          
           <Button
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
@@ -385,16 +391,12 @@ export default function SessionConsultPage() {
           </Button>
         </View>
       </ScrollView>
-      {/* <SchedulePickerSheet
+      <SchedulePickerSheet
         selectedDateTime={selectedDateTime}
         setSelectedDateTime={setSelectedDateTime}
-        effectiveFrom={specialistData.schedule.effective_from}
-        effectiveTo={specialistData.schedule.effective_to}
-        startTime={specialistData.schedule.start_time}
-        endTime={specialistData.schedule.end_time}
-        days_of_week={specialistData.schedule.days_of_week}
+        doctorSchedule={doctorSchedule}
         ref={SchedulePickerRef}
-      /> */}
+      />
     </>
   );
 }

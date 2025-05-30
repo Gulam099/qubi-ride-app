@@ -259,6 +259,8 @@ useEffect(() => {
   // Unified notification handler
   const handleNotificationEvent = async ({ type, detail }: Event) => {
     const handleDeepLink = (link?: string) => {
+    console.log("initailixeeeee>>>deep")
+
       try {
         if (!link) {
           console.warn('Received empty deep link');
@@ -280,7 +282,7 @@ useEffect(() => {
           .replace('baserti://', '')
           .replace('joinroom/', 'joinroom/')
           .replace('other-route/', 'other/');
-
+console.log('link',link)
         router.push(`/${expoPath}` as import('expo-router').Href);
         console.log("deep link done");
       } catch (error) {

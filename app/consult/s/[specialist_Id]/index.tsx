@@ -28,7 +28,7 @@ export default function SpecialistConsultantPage() {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
 
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctors/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
     );
 
     if (!response.ok) {
@@ -57,7 +57,6 @@ export default function SpecialistConsultantPage() {
     queryFn: fetchSpecialistData,
     enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
   });
-
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -78,31 +77,30 @@ export default function SpecialistConsultantPage() {
 
   return (
     <>
-      <Stack.Screen
+      {/* <Stack.Screen
         options={{
-          headerLeft: () => <BackButton />,
           headerTitle: () => (
             <Text className="font-semibold text-lg ">
               {specialistData.full_name}
             </Text>
           ),
         }}
-      />
+      /> */}
 
       <ScrollView className="flex-1 bg-blue-50/10 px-2">
         {/* Header Section */}
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
           <View className="absolute w-full h-24 bg-blue-900"></View>
           <ProfileImage
-            imageUrl={specialistData.profile_picture ?? ""}
-            name={specialistData.full_name}
+            imageUrl={specialistData?.data?.profile_picture ?? ""}
+            name={specialistData?.data?.full_name}
             className="size-32"
           />
           <Text className="text-xl font-semibold ">
-            {specialistData.full_name ?? "No name found"}
+            {specialistData?.data?.full_name ?? "No name found"}
           </Text>
           <Text className="text-sm text-neutral-600 text-center font-normal w-2/3">
-            {specialistData.specialization ?? "Specialist"}
+            {specialistData?.data?.specialization ?? "Specialist"}
           </Text>
 
           {/* Details Section */}
@@ -111,17 +109,17 @@ export default function SpecialistConsultantPage() {
               {[
                 {
                   title: "Rating",
-                  value: specialistData.rating ?? "0",
+                  value: specialistData?.data?.rating ?? "0",
                   icon: Star1,
                 },
                 {
                   title: "Experience",
-                  value: specialistData.experience ?? "0",
+                  value: specialistData?.data?.experience ?? "0",
                   icon: IdCard,
                 },
                 {
                   title: "Session Type",
-                  value: specialistData.sessionType ?? "0",
+                  value: specialistData?.data?.sessionType ?? "0",
                   icon: HeartSearch,
                 },
               ].map((item) => (
@@ -229,7 +227,7 @@ export default function SpecialistConsultantPage() {
         <Button
           className="mt-4 bg-purple-600 mb-6"
           onPress={() =>
-            router.push(`/account/consult/s/${specialist_Id}/session`)
+            router.push(`/consult/s/${specialist_Id}/session`)
           }
         >
           <Text className="text-white font-bold">

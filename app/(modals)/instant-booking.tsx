@@ -5,7 +5,7 @@ import React from "react";
 import { Stack, useRouter } from "expo-router";
 import InstantBookingContent from "@/features/Home/Components/InstantBookingContent";
 import { Button } from "@/components/ui/Button";
-import { X } from "lucide-react-native";
+import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 
 export default function InstantBookingModal() {
   const router = useRouter();
@@ -14,15 +14,7 @@ export default function InstantBookingModal() {
       <Stack.Screen
         options={{
           title: "Instant Booking",
-          headerRight: () => (
-            <Button
-              size={"icon"}
-              variant={"ghost"}
-              onPress={() => router.back()}
-            >
-              <X size={20} color={"#262626"} />
-            </Button>
-          ),
+          headerRight: () => <NotificationIconButton className="mr-4" />,
         }}
       />
 

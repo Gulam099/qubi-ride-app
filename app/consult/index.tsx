@@ -104,8 +104,8 @@ export default function ConsultPage() {
                 shareLink={`${item._id}`}
                 onPress={() =>
                   router.push(
-                    `/account/consult/s/${item._id}` as RelativePathString
-                  )
+                    `/consult/s/${item._id}` as RelativePathString
+                  ) 
                 }
               />
             )}
