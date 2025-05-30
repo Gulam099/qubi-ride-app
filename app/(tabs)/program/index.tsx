@@ -1,4 +1,3 @@
-// screens/TreatmentsListScreen.js
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -10,10 +9,12 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Image,
 } from "react-native";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { ApiUrl } from "@/const";
+import { toast } from "sonner-native";
 
 const TreatmentsListScreen = () => {
   const { user } = useUser();
@@ -38,27 +39,68 @@ const TreatmentsListScreen = () => {
     }
   };
 
-  console.log('treatments', treatments);
 
   const openModal = (treatment) => {
-    setSelectedTreatment(treatment);
-    setModalVisible(true);
+    console.log("first,", treatment);
+    if (treatment?.bookingId?.paymentStatus === 'paid') {
+      setSelectedTreatment(treatment);
+      setModalVisible(true);
+    } else {
+      // Show toast message (use your existing toast)
+      toast.error(
+        'Please pay first to view treatment details.',
+      );
+    }
   };
+
 
   const closeModal = () => {
     setModalVisible(false);
     setSelectedTreatment(null);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.doctorName}>
-        Doctor: {item.doctorId?.full_name} ({item.doctorId?.specialization})
-      </Text>
+  // Group treatments by doctorId._id
+  const groupByDoctor = () => {
+    const grouped = treatments.reduce((acc, item) => {
+      const doctorId = item.doctorId?._id || "unknown";
+      if (!acc[doctorId]) {
+        acc[doctorId] = {
+          doctor: item.doctorId,
+          treatments: [],
+        };
+      }
+      acc[doctorId].treatments.push(item);
+      return acc;
+    }, {});
+    return Object.values(grouped);
+  };
 
-      <TouchableOpacity style={styles.button} onPress={() => openModal(item)}>
-        <Text style={styles.buttonText}>View Treatment</Text>
-      </TouchableOpacity>
+  const groupedTreatments = groupByDoctor();
+
+  const renderDoctorGroup = ({ item }) => (
+    <View style={styles.card}>
+      {/* Doctor Info */}
+      {item.doctor?.profile_picture && (
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: item.doctor.profile_picture }} style={styles.doctorImage} />
+        </View>
+      )}
+      <Text style={styles.doctorName}>Doctor: {item.doctor?.full_name || "Unknown"}</Text>
+      <Text style={styles.doctorDetail}>Specialization: {item.doctor?.specialization || "N/A"}</Text>
+      <Text style={styles.doctorDetail}>SubSpecialization: {item.doctor?.sub_specialization || "N/A"}</Text>
+      <Text style={styles.doctorDetail}>Experience: {item.doctor?.experience ? `${item.doctor.experience} years` : "N/A"}</Text>
+
+      {/* List Treatments for this Doctor */}
+      <Text style={styles.treatmentTitle}>Treatments:</Text>
+      {item.treatments.map((treatment) => (
+        <View key={treatment._id} style={styles.treatmentItem}>
+          <Text style={styles.itemName}>• {treatment.diagnosis || "N/A"}</Text>
+          <Text style={styles.itemDetail}>Status: {treatment.status || "N/A"}</Text>
+          <TouchableOpacity style={styles.button} onPress={() => openModal(treatment)}>
+            <Text style={styles.buttonText}>View Details</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
     </View>
   );
 
@@ -69,9 +111,9 @@ const TreatmentsListScreen = () => {
   return (
     <View style={{ flex: 1 }}>
       <FlatList
-        data={treatments}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
+        data={groupedTreatments}
+        keyExtractor={(item, index) => item.doctor?._id || `unknown-${index}`}
+        renderItem={renderDoctorGroup}
         contentContainerStyle={{ padding: 16 }}
       />
 
@@ -127,14 +169,53 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
   },
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  doctorImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    resizeMode: 'cover',
+  },
   doctorName: {
     fontSize: 16,
-    marginBottom: 8,
+    marginBottom: 4,
     fontWeight: "bold",
+  },
+  doctorDetail: {
+    fontSize: 14,
+    marginBottom: 4,
+    color: "#555",
+  },
+  treatmentTitle: {
+    marginTop: 10,
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  treatmentItem: {
+    backgroundColor: "#f8f9fa",
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#007bff",
+  },
+  itemName: {
+    fontWeight: "bold",
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  itemDetail: {
+    fontSize: 12,
+    color: "#555",
+    marginBottom: 2,
   },
   button: {
     backgroundColor: "#007bff",
-    padding: 10,
+    padding: 8,
+    marginTop: 4,
     borderRadius: 8,
     alignItems: "center",
   },
@@ -171,23 +252,5 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
-  },
-  treatmentItem: {
-    backgroundColor: "#f8f9fa",
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#007bff",
-  },
-  itemName: {
-    fontWeight: "bold",
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  itemDetail: {
-    fontSize: 12,
-    color: "#555",
-    marginBottom: 2,
   },
 });

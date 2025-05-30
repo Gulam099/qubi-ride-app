@@ -132,8 +132,8 @@ export const CustomImages = {
 };
 
 export const AppLogo = require("@/assets/images/icon.png");
-export const apiNewUrl = "http://192.168.1.6:4000";
-export const ApiUrl = "http://192.168.1.6:4000"
+export const apiNewUrl = "http://192.168.1.4:4000";
+export const ApiUrl = "http://192.168.1.4:4000"
 
 export type ApiResponseType<T = any> = {
   success: boolean;
