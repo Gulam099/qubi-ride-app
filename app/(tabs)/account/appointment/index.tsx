@@ -1,149 +1,221 @@
-import { View, Text, FlatList } from "react-native";
-import React, { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { useRouter } from "expo-router";
-import { cn } from "@/lib/utils";
-import AppointmentCard from "@/features/account/components/AppointmentCard";
-import { AppointmentCardType } from "@/features/account/types/account.types";
-import { toast } from "sonner-native";
+import React, { useEffect, useState } from "react";
+import {
+  FlatList,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
+import { Text } from "@/components/ui/Text";
+import { useSelector } from "react-redux";
+import { AppStateType } from "@/features/setting/types/setting.type";
 import { useUser } from "@clerk/clerk-expo";
-import { useQuery } from "@tanstack/react-query";
-import { ApiResponseType } from "@/const";
+import {
+  fetchAppointments,
+  fetchInstantAppointments,
+} from "@/features/util/constHome";
+import AppointmentCard from "@/features/account/components/AppointmentCard";
 
-async function fetchAppointments({
-  userId,
-  activeTab,
-  activeCategory,
-}: {
-  userId: string;
-  activeTab: string;
-  activeCategory: string;
-}) {
-  const res = await fetch(
-    `https://www.baserah.sa/api/booking?patientId=${userId}&type=${activeTab}&status=${activeCategory}`
-  );
+type TabType = "scheduled" | "instant";
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch appointments");
-  }
-
-  const result = await res.json();
-
-  return result; // If no bookings, return empty array
-}
-
-export default function AccountAppointmentsPage() {
-  const router = useRouter();
+export default function AppointmentUpcomingList() {
   const { user } = useUser();
-  const userId = user?.publicMetadata?.dbPatientId as string;
+  const userId = user?.publicMetadata.dbPatientId as string;
 
-  const [activeTab, setActiveTab] = useState("session");
-  const [activeCategory, setActiveCategory] = useState("pending");
+  const appState: AppStateType = useSelector((state: any) => state.appState);
 
-  const {
-    data: appointment,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery<ApiResponseType>({
-    queryKey: ["appointments", userId, activeTab, activeCategory],
-    queryFn: () => {
-      if (!userId) {
-        throw new Error("User Id is not found");
+  const [activeTab, setActiveTab] = useState<TabType>("scheduled");
+  const [scheduledAppointments, setScheduledAppointments] = useState<any[]>([]);
+  const [instantAppointments, setInstantAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Separate error states
+  const [scheduledError, setScheduledError] = useState("");
+  const [instantError, setInstantError] = useState("");
+
+  const applyFilters = (appointments: any[]) => {
+    let filteredAppointments = appointments;
+
+    if (appState.filter) {
+      const { name, startDate, endDate, sortBy } = appState.filter;
+
+      if (name) {
+        filteredAppointments = filteredAppointments.filter((appointment: any) =>
+          appointment.user?.name
+            ?.toLowerCase()
+            .includes(name.toLowerCase())
+        );
       }
-      return fetchAppointments({ userId, activeTab, activeCategory });
-    },
-    enabled: !!userId, // Only run query if userId exists
-    staleTime: 1000 * 60 * 2, // 2 minutes cache
-  });
+
+      if (startDate) {
+        filteredAppointments = filteredAppointments.filter(
+          (appointment: any) =>
+            new Date(appointment.createdAt) >= new Date(startDate)
+        );
+      }
+
+      if (endDate) {
+        filteredAppointments = filteredAppointments.filter(
+          (appointment: any) =>
+            new Date(appointment.createdAt) <= new Date(endDate)
+        );
+      }
+
+      if (sortBy) {
+        filteredAppointments = filteredAppointments.sort((a: any, b: any) =>
+          sortBy === "Recent"
+            ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+    }
+
+    return filteredAppointments;
+  };
+
+  const loadScheduledAppointments = async () => {
+    const response = await fetchAppointments({
+      userId: userId,
+      status: "pending",
+      page: 1,
+    });
+
+    if (response.success) {
+      const scheduledOnly = response.data.filter((appointment: any) =>
+        appointment.type === "scheduled" ||
+        appointment.appointmentType === "scheduled" ||
+        !appointment.isInstant ||
+        (!appointment.type && !appointment.appointmentType)
+      );
+
+      const filteredAppointments = applyFilters(scheduledOnly);
+      setScheduledAppointments(filteredAppointments);
+      setScheduledError("");
+    } else {
+      setScheduledError(response.message);
+    }
+  };
+
+  const loadInstantAppointments = async () => {
+    const response = await fetchInstantAppointments({
+      userId: userId,
+    });
+
+    if (response.success) {
+      const filteredAppointments = applyFilters(response.data);
+      setInstantAppointments(filteredAppointments);
+      setInstantError("");
+    } else {
+      setInstantError(response.message);
+    }
+  };
+
+  useEffect(() => {
+    async function loadAppointments() {
+      setLoading(true);
+      setScheduledError("");
+      setInstantError("");
+
+      try {
+        await Promise.all([
+          loadScheduledAppointments(),
+          loadInstantAppointments(),
+        ]);
+      } catch (err) {
+        setScheduledError("Failed to load scheduled appointments");
+        setInstantError("Failed to load instant appointments");
+      }
+
+      setLoading(false);
+    }
+
+    if (userId) {
+      loadAppointments();
+    }
+  }, [userId, appState.filter]);
+
+  const currentAppointments =
+    activeTab === "scheduled" ? scheduledAppointments : instantAppointments;
 
   return (
-    <View className="bg-blue-50/20 w-full h-full  flex flex-col gap-2">
-      <View className="p-4 pb-0 flex flex-col gap-4">
-        <Text className="font-semibold ">My Appointments</Text>
-        <View className="w-full flex flex-row gap-2">
-          {["group", "program", "session"].map((tab) => {
-            const isActive = tab === activeTab;
-            return (
-              <Button
-                key={tab}
-                size={"sm"}
-                className={cn(
-                  isActive ? "bg-blue-900" : "bg-white",
-                  "w-36 h-9 rounded-xl"
-                )}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text
-                  className={cn(isActive ? "text-white" : "", "font-medium")}
-                >
-                  {`My ${tab.charAt(0).toUpperCase() + tab.slice(1)}s`}
-                </Text>
-              </Button>
-            );
-          })}
-        </View>
-      </View>
-
-      <View className="p-4 flex flex-col gap-4">
-        <Text className="font-semibold ">Appointment Category</Text>
-        <View className="w-full flex flex-row gap-2">
-          {["cancelled", "completed", "pending"].map((category) => {
-            const isActive = category === activeCategory;
-            return (
-              <Button
-                key={category}
-                size={"sm"}
-                className={cn(
-                  isActive ? "bg-blue-900" : "bg-white",
-                  "w-36 h-9 rounded-xl"
-                )}
-                onPress={() => setActiveCategory(category)}
-              >
-                <Text
-                  className={cn(
-                    isActive ? "text-white" : "",
-                    "font-medium",
-                    "capitalize"
-                  )}
-                >
-                  {category}
-                </Text>
-              </Button>
-            );
-          })}
-        </View>
-      </View>
-
-      <View>
-        {isLoading ? (
-          <Text className="text-center text-gray-500 mt-4">Loading...</Text>
-        ) : isError ? (
-          <Text className="text-center text-red-500 mt-4">
-            Failed to load appointments.
+    <View className="bg-blue-50/20 flex-1">
+      {/* Tab Header */}
+      <View className="flex-row bg-white mx-4 mt-4 rounded-lg p-1 shadow-sm">
+        <TouchableOpacity
+          className={`flex-1 py-3 rounded-md ${
+            activeTab === "scheduled" ? "bg-blue-500" : "bg-transparent"
+          }`}
+          onPress={() => setActiveTab("scheduled")}
+        >
+          <Text
+            className={`text-center font-medium ${
+              activeTab === "scheduled" ? "text-white" : "text-gray-600"
+            }`}
+          >
+            Scheduled
           </Text>
-        ) : appointment?.data.length > 0 ? (
-          <FlatList
-            data={appointment?.data}
-            keyExtractor={(item) => item._id}
-            contentContainerClassName="gap-4 px-4 pb-18"
-            renderItem={({ item }) => (
-              <AppointmentCard
-                _id={item._id}
-                doctorId={item.doctorId._id}
-                doctorName={item.doctorId.full_name}
-                sessionDateTime={item.bookingSchedule}
-                image={item.doctorId.profile_picture}
-                type={item.status}
-                category={item.category}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className={`flex-1 py-3 rounded-md ${
+            activeTab === "instant" ? "bg-blue-500" : "bg-transparent"
+          }`}
+          onPress={() => setActiveTab("instant")}
+        >
+          <Text
+            className={`text-center font-medium ${
+              activeTab === "instant" ? "text-white" : "text-gray-600"
+            }`}
+          >
+            Instant
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content */}
+      <View className="flex-1 p-4">
+        {loading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#007BFF" />
+          </View>
+        ) : (
+          <>
+            {currentAppointments.length === 0 ? (
+              <Text className="text-center text-gray-500">
+                No {activeTab} appointments available.
+              </Text>
+            ) : (
+              <FlatList
+                data={currentAppointments}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                  <AppointmentCard
+                    appointment={item}
+                    type={
+                      (item.status?.toLowerCase?.() || "upcoming") as
+                        | "completed"
+                        | "delayed"
+                        | "ongoing"
+                        | "urgent"
+                        | "upcoming"
+                    }
+                  />
+                )}
+                contentContainerStyle={{ gap: 8 }}
+                showsVerticalScrollIndicator={false}
               />
             )}
-          />
-        ) : (
-          <Text className="text-center text-gray-500 mt-4">
-            No appointments available.
-          </Text>
+
+            {activeTab === "scheduled" && scheduledError && (
+              <Text className="text-red-500 text-center mt-4">
+                {scheduledError}
+              </Text>
+            )}
+            {activeTab === "instant" && instantError && (
+              <Text className="text-red-500 text-center mt-4">
+                {instantError}
+              </Text>
+            )}
+          </>
         )}
       </View>
     </View>

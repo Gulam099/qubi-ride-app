@@ -21,7 +21,12 @@ import {
   SchedulePickerButton,
   SchedulePickerSheet,
 } from "@/features/Home/Components/SchedulePicker";
-import { Status } from "iconsax-react-native";
+import { InfoCircle, Status } from "iconsax-react-native";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
@@ -31,12 +36,10 @@ export default function SessionConsultPage() {
   const [doctorSchedule, setDoctorSchedule] = useState("");
   const SchedulePickerRef = useRef(null);
 
-  console.log('selectedDateTime',selectedDateTime)
-
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctors/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
     );
     if (!response.ok) throw new Error("Failed to fetch specialist data");
     const result = await response.json();
@@ -65,6 +68,24 @@ export default function SessionConsultPage() {
     }
   };
 
+  // specialization options
+  const specializationOptions = [
+    { value: "assistant_specialist", label: "Assistant Specialist" },
+    { value: "specialist", label: "Specialist" },
+    { value: "first_specialist", label: "First Specialist" },
+    { value: "consultant", label: "Consultant" },
+    { value: "deputy_specialist_doctor", label: "Deputy Specialist Doctor" },
+    {
+      value: "first_deputy_specialist_doctor",
+      label: "First Deputy Specialist Doctor",
+    },
+    { value: "consultant_doctor", label: "Consultant Doctor" },
+    {
+      value: "first_consultant_doctor",
+      label: "First Consultant Doctor (Subspecialty)",
+    },
+  ];
+
   const numberOfSessionsOptions = [
     { label: "1 session", value: 1 },
     { label: "2 sessions", value: 2 },
@@ -77,8 +98,10 @@ export default function SessionConsultPage() {
   ];
 
   useEffect(() => {
-    getUserById(clerk_Id);
-  }, []);
+    if (clerk_Id) {
+      getUserById(clerk_Id);
+    }
+  }, [clerk_Id]);
 
   const {
     control,
@@ -86,28 +109,10 @@ export default function SessionConsultPage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      numberOfSessions: 1,
-      sessionDuration: 30,
-      personalInformation: {
-        name: user?.fullName ?? "user",
-        age: "",
-        academicLevel: "",
-        employmentStatus: "",
-      },
-      familyComposition: {
-        members: "",
-        dynamics: "",
-      },
-      history: {
-        healthConditions: "",
-        medications: "",
-      },
-      natureOfComplaint: {
-        description: "",
-        severity: "",
-      },
-      additionalInfo: "",
-      availableDate: "",
+      language: "",
+      numberOfSessions: "",
+      sessionDuration: "",
+      sex: ""
     },
   });
 
@@ -116,13 +121,18 @@ export default function SessionConsultPage() {
       const userId = user?.publicMetadata.dbPatientId as string;
       const doctorId = specialist_Id as string;
 
+      // Validation
+      if (!selectedDateTime) {
+        throw new Error("Please select a date and time");
+      }
+
       // 1. Create Payment first
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
         amount: 1000,
         currency: "SAR",
-        description: data.natureOfComplaint.description || "Routine checkup",
+        description: "Medical consultation session", // Fixed: removed undefined reference
         status: "initiated",
       };
 
@@ -149,15 +159,9 @@ export default function SessionConsultPage() {
         date: selectedDateTime,
         duration: data.sessionDuration,
         sessionCount: data.numberOfSessions,
-        complaint: data.natureOfComplaint.description || "Routine checkup",
-        price: paymentId,
-        paymentStatus: "pending", // Because payment not completed yet
-        metadata: {
-          personalInformation: data.personalInformation,
-          familyComposition: data.familyComposition,
-          history: data.history,
-          additionalInfo: data.additionalInfo,
-        },
+        language: data.language,
+        sex: data.sex, // Added sex field
+        paymentStatus: "pending", 
       };
 
       const bookingResponse = await fetch(`${ApiUrl}/api/bookings/create`, {
@@ -169,21 +173,20 @@ export default function SessionConsultPage() {
       const bookingResult = await bookingResponse.json();
       if (!bookingResponse.ok)
         throw new Error(bookingResult?.message || "Booking creation failed.");
-
+      
       return {
         paymentId,
-        bookingId: bookingResult?.booking?.id,
+        bookingId: bookingResult?.booking?._id,
         bookingData: {
           userId,
           doctorId,
           selectedDateTime,
           sessionDuration: data.sessionDuration,
           numberOfSessions: data.numberOfSessions,
-          complaint: data.natureOfComplaint.description || "Routine checkup",
         },
       };
     },
-    onSuccess: ({ paymentId ,bookingId, bookingData }) => {
+    onSuccess: ({ paymentId, bookingId, bookingData }) => {
       toast.success("Booking created successfully!");
       if (paymentId) {
         const queryParams = new URLSearchParams({
@@ -192,11 +195,9 @@ export default function SessionConsultPage() {
           selectedDateTime: bookingData.selectedDateTime,
           sessionDuration: bookingData.sessionDuration.toString(),
           numberOfSessions: bookingData.numberOfSessions.toString(),
-          complaint: bookingData.complaint,
           bookingId: bookingId || "",
         }).toString();
         router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
-        console.log("route", `/(stacks)/paymentpage/${paymentId}?${queryParams}`);
       } else {
         toast.error("Payment ID not found.");
       }
@@ -208,6 +209,8 @@ export default function SessionConsultPage() {
   });
 
   const onSubmit = (data: any) => {
+    console.log("Form data:", data); // Debug log
+    console.log("Selected DateTime:", selectedDateTime); // Debug log
     bookSession(data);
   };
 
@@ -229,20 +232,45 @@ export default function SessionConsultPage() {
     );
   }
 
-  // if (!doctorSchedule) {
-  //   return (
-  //     <View className="flex-1 justify-center items-center">
-  //       <Text className="text-red-500">
-  //         Schedule information is not available for this specialist.
-  //       </Text>
-  //     </View>
-  //   );
-  // }
-
   return (
     <>
       <ScrollView className="flex-1 bg-blue-50/10">
         <View className="px-4 py-8 gap-2 h-full flex-1">
+          {/* Language Selection */}
+          <View>
+            <Text className="font-semibold mb-2">Language</Text>
+            <View className="flex-row gap-2">
+              {["French", "English", "Arabic"].map((language) => (
+                <Controller
+                  key={language}
+                  control={control}
+                  rules={{ required: "Language is required." }}
+                  name="language"
+                  render={({ field: { onChange, value } }) => (
+                    <Button
+                      className="flex-1"
+                      variant={value === language ? "default" : "outline"}
+                      onPress={() => onChange(language)}
+                    >
+                      <Text
+                        className={
+                          value === language ? "text-white" : "text-gray-800"
+                        }
+                      >
+                        {language}
+                      </Text>
+                    </Button>
+                  )}
+                />
+              ))}
+            </View>
+            {errors.language && (
+              <Text className="text-red-500 text-sm mt-1">
+                {errors.language.message}
+              </Text>
+            )}
+          </View>
+
           <Text className="text-lg font-medium mb-4">Number of sessions</Text>
           <View className="flex-row gap-2 mb-4">
             {numberOfSessionsOptions.map(({ label, value }) => (
@@ -311,116 +339,47 @@ export default function SessionConsultPage() {
             </Text>
           )}
 
-          <Accordion type="multiple" className="mb-4">
-            <AccordionItem value="personalInformation">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">
-                  Personal Information
-                </Text>
-              </AccordionTrigger>
-              <AccordionContent>
+          {/* Sex Selection */}
+          <View>
+            <Text className="font-semibold mb-2">Gender</Text>
+            <View className="flex-row gap-2">
+              {["Male", "Female", "Rather not say"].map((sex) => (
                 <Controller
+                  key={sex}
                   control={control}
-                  name="personalInformation.name"
-                  rules={{ required: "Name is required" }}
+                  rules={{ required: "Gender is required." }}
+                  name="sex"
                   render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Name"
-                      value={value}
-                      onChangeText={onChange}
-                    />
+                    <Button
+                      className="flex-1"
+                      variant={value === sex ? "default" : "outline"}
+                      onPress={() => onChange(sex)}
+                    >
+                      <Text
+                        className={
+                          value === sex ? "text-white" : "text-gray-800"
+                        }
+                      >
+                        {sex}
+                      </Text>
+                    </Button>
                   )}
                 />
-                <Controller
-                  control={control}
-                  name="personalInformation.age"
-                  rules={{ required: "Age is required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Age"
-                      keyboardType="numeric"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
+              ))}
+            </View>
+            {errors.sex && (
+              <Text className="text-red-500 text-sm mt-1">
+                {errors.sex.message}
+              </Text>
+            )}
+          </View>
 
-            <AccordionItem value="familyComposition">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">Family Composition</Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Controller
-                  control={control}
-                  name="familyComposition.members"
-                  rules={{ required: "Number of family members is required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Number of family members"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="history">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">
-                  The History is Healthy
-                </Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Controller
-                  control={control}
-                  name="history.healthConditions"
-                  rules={{ required: "Health conditions are required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Health conditions"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="natureOfComplaint">
-              <AccordionTrigger>
-                <Text className="text-lg font-medium">
-                  The Nature of the Complaint
-                </Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Controller
-                  control={control}
-                  name="natureOfComplaint.description"
-                  rules={{ required: "Complaint description is required" }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      className="mb-4"
-                      placeholder="Complaint description"
-                      value={value}
-                      onChangeText={onChange}
-                    />
-                  )}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
           <SchedulePickerButton
             selectedDateTime={selectedDateTime}
             setSelectedDateTime={setSelectedDateTime}
             sheetRef={SchedulePickerRef}
           />
+          
           <Button
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}

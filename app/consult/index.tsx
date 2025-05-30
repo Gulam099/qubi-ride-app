@@ -1,92 +1,62 @@
 import { View, Text, FlatList } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   RelativePathString,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
 import SpecialistCard from "@/features/account/components/SpecialistCard";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner-native";
 import { ApiUrl } from "@/const";
+import { useQuery } from "@tanstack/react-query";
+import { SearchNormal1 } from "iconsax-react-native";
 
 type ConsultType = {
   _id: string;
   full_name: string;
   specialization: string;
   profile_picture: string;
-  fees: number;
-  likes: number;
 };
 
 export default function ConsultPage() {
   const router = useRouter();
-  const { type } = useLocalSearchParams();
+  const {
+    situation,
+    budget,
+    type,
+    language,
+    gender,
+    duration,
+    ClosestAppointment,
+  } = useLocalSearchParams();
 
   const [searchText, setSearchText] = useState("");
-  const [todayDoctors, setTodayDoctors] = useState<ConsultType[] | null>(null);
-  const [isLoadingToday, setIsLoadingToday] = useState(false);
-  const [todayError, setTodayError] = useState<string | null>(null);
 
-  // Fetch today's doctors manually if type === 'instant'
-  const fetchUsersToday = async () => {
-    setIsLoadingToday(true);
-    setTodayError(null);
-
-    try {
-      const response = await fetch(`${ApiUrl}/users/today`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch today's doctors");
-      }
-
-      setTodayDoctors(data.users || []);
-    } catch (err: any) {
-      setTodayError(err.message);
-    } finally {
-      setIsLoadingToday(false);
-    }
-  };
-
-  // Run this only if it's 'instant'
-  useEffect(() => {
-    if (type === "instant") {
-      fetchUsersToday();
-    }
-  }, [type]);
-
-  // Fetch all doctors (scheduled)
+  // Fetching consultants using `useQuery`
   const {
-    data: allDoctors,
-    isLoading: isLoadingAll,
-    isError: isErrorAll,
+    data: consultData,
+    isLoading,
+    isError,
   } = useQuery({
     queryKey: ["doctor"],
     queryFn: async () => {
-      const response = await fetch(`${ApiUrl}/api/doctors/getall`);
+      const response = await fetch(
+        `${ApiUrl}/api/doctors/getall`
+      );
       const result = await response.json();
       if (!response.ok || !result.success) {
         throw new Error("Failed to fetch consultants.");
       }
       return result.data;
     },
-    enabled: type === "schedule", // only run when type === 'schedule'
   });
 
-  // Choose correct data source based on type
-  const dataSource = type === "instant" ? todayDoctors : allDoctors;
-
-  const isLoading =
-    (type === "instant" && isLoadingToday) ||
-    (type === "schedule" && isLoadingAll);
-
-  const isError =
-    (type === "instant" && !!todayError) || (type === "schedule" && isErrorAll);
-
-  const filteredConsult = dataSource?.filter((consultant: ConsultType) => {
-    const name = consultant.full_name?.toLowerCase() || "";
-    const specialization = consultant.specialization?.toLowerCase() || "";
+  // Handle search filtering
+  const filteredConsult = consultData?.filter((consultant: ConsultType) => {
+    const name = consultant.full_name?.toLowerCase() || ""; // Default to an empty string
+    const specialization = consultant.specialization?.toLowerCase() || ""; // Default to an empty string
 
     return (
       name.includes(searchText.toLowerCase()) ||
@@ -105,11 +75,7 @@ export default function ConsultPage() {
   if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">
-          {type === "instant"
-            ? todayError || "Failed to fetch today's consultants."
-            : "Failed to fetch consultants."}
-        </Text>
+        <Text className="text-red-500">Failed to fetch consultants.</Text>
       </View>
     );
   }
@@ -136,8 +102,10 @@ export default function ConsultPage() {
                 likes={item.likes}
                 imageUrl={item.profile_picture}
                 shareLink={`${item._id}`}
-               onPress={() =>
-                  router.push(`/consult/s/${item._id}` as RelativePathString)
+                onPress={() =>
+                  router.push(
+                    `/consult/s/${item._id}` as RelativePathString
+                  ) 
                 }
               />
             )}

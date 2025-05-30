@@ -58,7 +58,7 @@ const { mutate: createVideoCall } = useMutation({
         doctorId: doctorId,
         type:'video',
         scheduledAt: selectedDateTime,
-        // duration: parseInt(sessionDuration),
+        duration: sessionDuration,
         // sessionCount: parseInt(numberOfSessions),
         // complaint: complaint,
         // Add any other video call specific data you need

@@ -1,117 +1,193 @@
-import { View, Text, FlatList, ScrollView } from "react-native";
-import React, { useState, useEffect } from "react";
-import { H3 } from "@/components/ui/Typography";
-import SupportGroupCard from "@/features/supportGroup/components/SupportGroupCard";
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner-native";
-import { apiNewUrl } from "@/const";
-import { apiBaseUrl } from "@/features/Home/constHome";
+// screens/TreatmentsListScreen.js
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Modal,
+  Pressable,
+  ScrollView,
+} from "react-native";
+import axios from "axios";
+import { useUser } from "@clerk/clerk-expo";
+import { ApiUrl } from "@/const";
 
-export default function SupportPage() {
-  const [activeTab, setActiveTab] = useState("All");
-  const [groups, setGroups] = useState<any[]>([]);
+const TreatmentsListScreen = () => {
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
+  const [treatments, setTreatments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTreatment, setSelectedTreatment] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${apiBaseUrl}/program/list`);
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          // Filter only "Approved" status groups
-          const approvedGroups = result.data.filter(
-            (group: any) => group.status === "Approved"
-          );
-          setGroups(approvedGroups);
-        } else {
-          toast.error("Failed to fetch support groups.");
-        }
-      } catch (error) {
-        console.error("Error fetching support groups:", error);
-        toast.error("An error occurred while fetching support groups.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGroups();
+    fetchTreatments();
   }, []);
 
-  // Filter groups based on the active tab
-  const filteredGroups =
-    activeTab === "All"
-      ? groups
-      : groups.filter(
-          (group) => group.category?.toLowerCase() === activeTab.toLowerCase()
-        );
+  const fetchTreatments = async () => {
+    try {
+      const response = await axios.get(`${ApiUrl}/api/treatments/user/${userId}`);
+      setTreatments(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch treatments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return (
-    <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-2">
-      <H3>Programs</H3>
+  console.log('treatments', treatments);
 
-      <ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        contentContainerClassName="gap-4 py-2"
-      >
-        {["All",  "Family", "Health" , "Psychological"].map((category) => {
-          const isActive = category === activeTab;
-          return (
-            <Button
-              key={category}
-              size={"sm"}
-              onPress={() => setActiveTab(category)}
-              className={cn(
-                isActive ? "bg-blue-900" : "bg-white",
-                "w-36 h-9 rounded-xl"
-              )}
-            >
-              <Text
-                className={cn(
-                  isActive ? "text-white" : "",
-                  "font-medium"
-                )}
-              >
-                {category}
-              </Text>
-            </Button>
-          );
-        })}
-      </ScrollView>
+  const openModal = (treatment) => {
+    setSelectedTreatment(treatment);
+    setModalVisible(true);
+  };
 
-      {/* List of Support Groups */}
-      {loading ? (
-        <Text className="text-center text-gray-500 mt-4">Loading...</Text>
-      ) : filteredGroups.length > 0 ? (
-        <FlatList
-          data={filteredGroups}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item._id}
-          contentContainerClassName=""
-          renderItem={({ item }) => (
-            <SupportGroupCard
-              title={item.title}
-              category={item.category}
-              price={item.price}
-              recorded={item.recordedCount || 0}
-              rating={item.rating || 0}
-              image={item.image || "https://via.placeholder.com/150"}
-              onPress={() => console.log("Group Selected:", item._id)}
-              link={`/p/program/${item._id}`}
-            />
-          )}
-          contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
-        />
-      ) : (
-        <View className="flex-1">
-          <Text className="text-center text-gray-500 mt-4">
-            No Groups Available
-          </Text>
-        </View>
-      )}
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedTreatment(null);
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.doctorName}>
+        Doctor: {item.doctorId?.full_name} ({item.doctorId?.specialization})
+      </Text>
+
+      <TouchableOpacity style={styles.button} onPress={() => openModal(item)}>
+        <Text style={styles.buttonText}>View Treatment</Text>
+      </TouchableOpacity>
     </View>
   );
-}
+
+  if (loading) {
+    return <ActivityIndicator size="large" style={{ marginTop: 40 }} />;
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={treatments}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 16 }}
+      />
+
+      {/* Modal */}
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView>
+              <Text style={styles.modalTitle}>Treatment Details</Text>
+              {selectedTreatment ? (
+                <>
+                  <Text>Diagnosis: {selectedTreatment.diagnosis || 'N/A'}</Text>
+                  <Text>Status: {selectedTreatment.status || 'N/A'}</Text>
+                  <Text>Type: {selectedTreatment.type || 'N/A'}</Text>
+                  <Text>Is Follow Up: {selectedTreatment.isFollowUp ? "Yes" : "No"}</Text>
+                  <Text>Empty Stomach: {selectedTreatment.isEmptyStomach ? "Yes" : "No"}</Text>
+                  <Text style={styles.modalSubTitle}>Treatment Items:</Text>
+                  {selectedTreatment.treatmentItems && selectedTreatment.treatmentItems.length > 0 ? (
+                    selectedTreatment.treatmentItems.map((item, idx) => (
+                      <View key={idx} style={styles.treatmentItem}>
+                        <Text style={styles.itemName}>• {item.name || 'N/A'}</Text>
+                        <Text style={styles.itemDetail}>Description: {item.description || 'N/A'}</Text>
+                        <Text style={styles.itemDetail}>Quantity: {item.quantity || 'N/A'}</Text>
+                        <Text style={styles.itemDetail}>Frequency: {item.frequency || 'N/A'}</Text>
+                        <Text style={styles.itemDetail}>Duration: {item.duration || 'N/A'}</Text>
+                        <Text style={styles.itemDetail}>Instructions: {item.instructions || 'N/A'}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text>No treatment items available</Text>
+                  )}
+                </>
+              ) : (
+                <Text>Loading treatment details...</Text>
+              )}
+              <Pressable style={styles.closeButton} onPress={closeModal}>
+                <Text style={styles.buttonText}>Close</Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export default TreatmentsListScreen;
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#f0f0f0",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  doctorName: {
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: "bold",
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "white",
+    width: "100%",
+    maxHeight: "80%",
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalSubTitle: {
+    marginTop: 12,
+    fontWeight: "bold",
+  },
+  closeButton: {
+    backgroundColor: "#007bff",
+    marginTop: 20,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  treatmentItem: {
+    backgroundColor: "#f8f9fa",
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#007bff",
+  },
+  itemName: {
+    fontWeight: "bold",
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  itemDetail: {
+    fontSize: 12,
+    color: "#555",
+    marginBottom: 2,
+  },
+});

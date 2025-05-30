@@ -1,6 +1,11 @@
 import { View, Text, FlatList, Image, ScrollView } from "react-native";
 import React, { useState, useEffect } from "react";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import BackButton from "@/features/Home/Components/BackButton";
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
@@ -21,24 +26,26 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function SpecialistConsultantPage() {
   const router = useRouter();
-  const { specialist_Id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const { specialist_Id, todaySchedule   } = params;
 
   // Fetch function
   const fetchSpecialistData = async () => {
-    if (!specialist_Id) throw new Error("Specialist ID is missing.");
-
+    if (!specialist_Id) {
+      throw new Error("Specialist ID is missing.");
+    }
     const response = await fetch(
       `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
     );
 
     if (!response.ok) {
-      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_Id}).`;
-      console.error(errorMessage);
+      const errorText = await response.text();
+      console.error("API Error Response:", errorText);
+      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_Id}). Status: ${response.status}`;
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
-
     if (!result) {
       throw new Error("Invalid data received from server.");
     }
@@ -57,36 +64,60 @@ export default function SpecialistConsultantPage() {
     queryFn: fetchSpecialistData,
     enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
   });
+
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text>Loading...</Text>
+        <Text>Loading ...</Text>
+        <Text className="text-sm text-gray-500 mt-2">
+          ID: {specialist_Id || "undefined"}
+        </Text>
       </View>
     );
   }
 
-  if (error || !specialistData) {
+  if (isError || error) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">
+      <View className="flex-1 justify-center items-center px-4">
+        <Text className="text-red-500 text-center mb-4">
           {error?.message || "Specialist not found."}
         </Text>
+        <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
+        <Text className="text-xs text-gray-500 mb-4">
+          specialist_Id: {specialist_Id || "undefined"}
+        </Text>
+        <Text className="text-xs text-gray-500 mb-4">
+          All params: {JSON.stringify(params)}
+        </Text>
+        <Button onPress={() => router.back()} className="bg-blue-600">
+          <Text className="text-white">Go Back</Text>
+        </Button>
+      </View>
+    );
+  }
+
+  if (!specialistData || !specialistData.data) {
+    return (
+      <View className="flex-1 justify-center items-center px-4">
+        <Text className="text-red-500 text-center mb-4">
+          No specialist data available.
+        </Text>
+        <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
+        <Text className="text-xs text-gray-500 mb-4">
+          specialist_Id: {specialist_Id || "undefined"}
+        </Text>
+        <Text className="text-xs text-gray-500 mb-4">
+          specialistData: {JSON.stringify(specialistData)}
+        </Text>
+        <Button onPress={() => router.back()} className="bg-blue-600">
+          <Text className="text-white">Go Back</Text>
+        </Button>
       </View>
     );
   }
 
   return (
     <>
-      {/* <Stack.Screen
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg ">
-              {specialistData.full_name}
-            </Text>
-          ),
-        }}
-      /> */}
-
       <ScrollView className="flex-1 bg-blue-50/10 px-2">
         {/* Header Section */}
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
@@ -142,14 +173,14 @@ export default function SpecialistConsultantPage() {
               <View>
                 <Text className="text-sm text-gray-600">Response time</Text>
                 <Text className="text-sm font-bold">
-                  {specialistData.responseTime ?? "N/A"}
+                  {specialistData?.data?.responseTime ?? "N/A"}
                 </Text>
               </View>
             </View>
           </View>
 
           {/* Specialties Section */}
-          {specialistData.expertise && (
+          {/* {specialistData?.data?.expertise && (
             <View className="mt-4 bg-white p-4 rounded-2xl gap-4 w-full">
               <View className="flex-row gap-2 items-center w-full">
                 <View className="bg-blue-50/30 rounded-full p-2">
@@ -161,7 +192,7 @@ export default function SpecialistConsultantPage() {
                 </Text>
               </View>
               <View className="flex-row flex-wrap gap-2">
-                {specialistData.expertise.map((item: any, index: any) => (
+                {specialistData.data.expertise.map((item: any, index: any) => (
                   <Text
                     key={index}
                     className="bg-blue-50/20 text-blue-800 border border-blue-800 px-4 py-2 rounded-2xl text-sm font-medium leading-6"
@@ -171,10 +202,10 @@ export default function SpecialistConsultantPage() {
                 ))}
               </View>
             </View>
-          )}
+          )} */}
 
           {/* Feedback Section */}
-          {specialistData.feedback && (
+          {/* {specialistData?.data?.feedback && (
             <View className="mt-4 bg-white p-4 rounded-2xl w-full gap-2">
               <View className="flex-row justify-between items-center">
                 <View className="flex-row gap-2 items-center">
@@ -186,8 +217,8 @@ export default function SpecialistConsultantPage() {
                 <Text className="text-sm text-blue-500">View All</Text>
               </View>
               <Separator />
-              {specialistData.feedback.length !== 0 ? (
-                specialistData.feedback.map((item: any, index: any) => (
+              {specialistData.data.feedback.length !== 0 ? (
+                specialistData.data.feedback.map((item: any, index: any) => (
                   <View
                     key={index}
                     className="flex-row justify-between items-center py-2 gap-2"
@@ -220,20 +251,26 @@ export default function SpecialistConsultantPage() {
                 </Text>
               )}
             </View>
-          )}
+          )} */}
         </View>
 
         {/* Book Now Button */}
         <Button
           className="mt-4 bg-purple-600 mb-6"
           onPress={() =>
-            router.push(`/consult/s/${specialist_Id}/session`)
+            router.push({
+              pathname: `/instant-booking/s/${specialist_Id}/session`,
+              params: {
+                todaySchedule: JSON.stringify(todaySchedule),
+                doctorFees: specialistData?.data?.fees?.toString() || "0",
+              },
+            })
           }
         >
           <Text className="text-white font-bold">
             Book now{" "}
-            {specialistData.fees != 0
-              ? currencyFormatter(specialistData.fees ?? 0)
+            {specialistData?.data?.fees != 0
+              ? currencyFormatter(specialistData?.data?.fees ?? 0)
               : "for free"}
           </Text>
         </Button>
