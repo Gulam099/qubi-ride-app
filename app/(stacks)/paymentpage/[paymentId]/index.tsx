@@ -14,18 +14,19 @@ import BackButton from "@/features/Home/Components/BackButton";
 export default function PaymentPage() {
   const { user } = useUser();
   const router = useRouter();
- const { 
-    paymentId, 
-    userId, 
-    doctorId, 
-    selectedDateTime, 
-    sessionDuration, 
-    numberOfSessions, 
+  const {
+    paymentId,
+    userId,
+    doctorId,
+    selectedDateTime,
+    sessionDuration,
+    numberOfSessions,
     complaint,
-    bookingId 
+    bookingId,
+    instant
   } = useLocalSearchParams();
 
-    const [cardDetails, setCardDetails] = useState({
+  const [cardDetails, setCardDetails] = useState({
     name: "",
     number: "",
     month: "",
@@ -33,30 +34,30 @@ export default function PaymentPage() {
     cvc: ""
   });
   const [paymentInfo, setPaymentInfo] = useState(null);
-console.log('paymentId>>>',paymentId)
+  console.log('paymentId>>>', paymentId)
   // Fetch payment details
-//   const { data: payment, isLoading: isLoadingPayment } = useQuery({
-//     queryKey: ["payment", paymentId],
-//     queryFn: async () => {
-//       const response = await fetch(`${ApiUrl}/api/payments/${paymentId}`);
-//       if (!response.ok) {
-//         throw new Error("Failed to fetch payment details");
-//       }
-//       const data = await response.json();
-//       setPaymentInfo(data);
-//       return data;
-//     },
-//     enabled: !!paymentId,
-//   });
+  //   const { data: payment, isLoading: isLoadingPayment } = useQuery({
+  //     queryKey: ["payment", paymentId],
+  //     queryFn: async () => {
+  //       const response = await fetch(`${ApiUrl}/api/payments/${paymentId}`);
+  //       if (!response.ok) {
+  //         throw new Error("Failed to fetch payment details");
+  //       }
+  //       const data = await response.json();
+  //       setPaymentInfo(data);
+  //       return data;
+  //     },
+  //     enabled: !!paymentId,
+  //   });
 
 
-const { mutate: createVideoCall } = useMutation({
+  const { mutate: createVideoCall } = useMutation({
     mutationFn: async () => {
       const videoCallPayload = {
-        bookingId:bookingId,
+        bookingId: bookingId,
         patientId: userId,
         doctorId: doctorId,
-        type:'video',
+        type: 'video',
         scheduledAt: selectedDateTime,
         duration: sessionDuration,
         // sessionCount: parseInt(numberOfSessions),
@@ -65,7 +66,7 @@ const { mutate: createVideoCall } = useMutation({
         // roomName: `room_${bookingId}_${Date.now()}`, // Generate unique room name
         // status: "scheduled"
       };
-
+      if (instant === 'true') return;
       const response = await fetch(`${ApiUrl}/api/room/create-room`, {
         method: "POST",
         headers: {
@@ -97,23 +98,23 @@ const { mutate: createVideoCall } = useMutation({
     mutationFn: async () => {
       // Validate card details
       if (!cardDetails.name.trim()) throw new Error("Cardholder name is required");
-      if (!cardDetails.number.trim() || cardDetails.number.length < 12) 
+      if (!cardDetails.number.trim() || cardDetails.number.length < 12)
         throw new Error("Valid card number is required");
       if (!cardDetails.month || !cardDetails.year || !cardDetails.cvc)
         throw new Error("Expiration date and CVC are required");
-      
+
       // Format card details for Moyasar
       const paymentPayload = {
         source: {
           type: "creditcard",
           name: cardDetails.name,
-          number: cardDetails.number.replace(/\s/g, ""), 
+          number: cardDetails.number.replace(/\s/g, ""),
           month: cardDetails.month,
           year: cardDetails.year.length === 4 ? cardDetails.year.slice(2) : cardDetails.year,
           cvc: cardDetails.cvc
         }
       };
-      
+
       // Process the payment with Moyasar
       const response = await fetch(`${ApiUrl}/api/payments/${paymentId}`, {
         method: "POST",
@@ -122,18 +123,18 @@ const { mutate: createVideoCall } = useMutation({
         },
         body: JSON.stringify(paymentPayload),
       });
-      
+
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.error || "Payment processing failed");
       }
-      console.log('result',result)
+      console.log('result', result)
       return result;
     },
     onSuccess: (data) => {
       toast.success("Payment successful!");
 
-       createVideoCall();
+      createVideoCall();
       // Navigate to success page or booking confirmation
       router.replace("/(stacks)/payment-success");
     },
@@ -148,13 +149,13 @@ const { mutate: createVideoCall } = useMutation({
     setCardDetails(prev => ({ ...prev, number: formatted }));
   };
 
-//   if (isLoadingPayment) {
-//     return (
-//       <View style={styles.container}>
-//         <Text>Loading payment details...</Text>
-//       </View>
-//     );
-//   }
+  //   if (isLoadingPayment) {
+  //     return (
+  //       <View style={styles.container}>
+  //         <Text>Loading payment details...</Text>
+  //       </View>
+  //     );
+  //   }
 
   return (
     <><Stack.Screen
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   sectionTitle: {
-    fontSize: 18, 
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 12
   },
