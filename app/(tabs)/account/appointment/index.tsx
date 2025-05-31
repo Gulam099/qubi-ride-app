@@ -32,6 +32,8 @@ export default function AppointmentUpcomingList() {
   const [scheduledError, setScheduledError] = useState("");
   const [instantError, setInstantError] = useState("");
 
+  console.log('instantAppointments',instantAppointments)
+
   const applyFilters = (appointments: any[]) => {
     let filteredAppointments = appointments;
 

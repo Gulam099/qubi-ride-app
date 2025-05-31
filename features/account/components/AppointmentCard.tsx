@@ -46,9 +46,11 @@ const getAppointmentDate = (appointment) => {
 };
 
 const getBookingDate = (appointment) => {
-  return appointment.bookingDate || 
-         appointment.createdAt || 
-         appointment.bookedAt;
+  return appointment.appointmentDate || 
+         appointment.date || 
+         appointment.scheduledDate || 
+         appointment.appointmentTime ||
+         appointment.selectedDateTime;
 };
 
 export default function AppointmentCard({ appointment, type }: any) {
@@ -66,15 +68,11 @@ export default function AppointmentCard({ appointment, type }: any) {
   const router = useRouter();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  console.log('appointment',appointment)
+
   // Get the correct date values
   const appointmentDate = getAppointmentDate(appointment);
   const bookingDate = getBookingDate(appointment);
-
-  console.log("Appointment data:", {
-    appointmentDate,
-    bookingDate,
-    fullAppointment: appointment
-  });
 
   const Menu = [
     {
@@ -124,21 +122,20 @@ export default function AppointmentCard({ appointment, type }: any) {
                   Appointment Date:
                 </Text>
                 <Text className="text-base text-green-700 text-center">
-                  {formatDate(appointmentDate, "dd MMM yyyy, hh:mm a")}
+                  {formatDate(appointmentDate, "dd MMM yyyy, hh:mm a") || appointment?.selectedDateTime}
                 </Text>
               </View>
             )}
 
             <View className="flex-1 p-4 pb-6 gap-3">
               <Text className="text-gray-600 text-base">
-                Customer Name: {appointment.user?.name || appointment.patientName || "N/A"}
+                Customer Name: {appointment.user?.name || appointment.patientId?.name || "N/A"}
               </Text>
               
-              {type !== "upcoming" && (
                 <Text className="text-gray-600 text-base">
-                  Appointment Date: {formatDate(appointmentDate, "dd MMM yyyy, hh:mm a")}
+                  Appointment Date And Time: {formatDate(appointmentDate, "dd MMM yyyy, hh:mm a") || appointment?.bookings?.selectedDateTime}
                 </Text>
-              )}
+              
               
               <Text className="text-gray-600 text-base">
                 Booking Date: {formatDate(bookingDate, "dd MMM yyyy")}

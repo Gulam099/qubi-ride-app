@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { Textarea } from "@/components/ui/Textarea";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format, isBefore, addMinutes, parse, isSameDay } from "date-fns";
+import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 
 const InstantBookingContent = () => {
   const router = useRouter();
@@ -24,13 +25,18 @@ const InstantBookingContent = () => {
     right: 12,
   };
 
-  const { specialist_Id, todaySchedule } = useLocalSearchParams();
+  const { specialist_Id, todaySchedule, doctorFees } = useLocalSearchParams();
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
   const doctorId = specialist_Id as string;
   const [doctorSchedule, setDoctorSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [selectedNumberOfSessions, setSelectedNumberOfSessions] = useState(1);
+
+  const baseFee = parseFloat(doctorFees as string) || 0;
+  const totalFee = baseFee * selectedSlots.length;
 
   console.log("");
 
@@ -39,7 +45,34 @@ const InstantBookingContent = () => {
     setSelectedDate(now);
   }, []);
 
-  console.log("selectedDateTime", selectedDateTime);
+  // Fetch booked slots for the selected date
+  const { data: bookedSlotsData } = useQuery({
+    queryKey: ["bookedSlots", doctorId, selectedDate],
+    queryFn: async () => {
+      if (!selectedDate || !doctorId) return [];
+
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const response = await fetch(
+        `${ApiUrl}/api/instantbookings/doctor/${doctorId}?date=${dateStr}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch booked slots");
+      }
+
+      const result = await response.json();
+      return result.bookedSlots || [];
+    },
+    enabled: !!doctorId && !!selectedDate,
+  });
+
+  useEffect(() => {
+    if (bookedSlotsData) {
+      setBookedSlots(bookedSlotsData);
+    }
+  }, [bookedSlotsData]);
+
+  console.log("selectedSlots", selectedSlots);
 
   useEffect(() => {
     try {
@@ -67,8 +100,6 @@ const InstantBookingContent = () => {
     }
   }, [todaySchedule]);
 
-  
-
   const numberOfSessionsOptions = [
     { label: "1 session", value: 1 },
     { label: "2 sessions", value: 2 },
@@ -81,7 +112,6 @@ const InstantBookingContent = () => {
       return [];
     }
 
-    // Check if doctorSchedule has the required properties directly
     const { isHoliday, start, end } = doctorSchedule;
 
     if (isHoliday || !start || !end) {
@@ -90,35 +120,85 @@ const InstantBookingContent = () => {
     }
 
     try {
-      let current = new Date(start);
+      // Parse start and end times
+      const startDate = new Date(start);
       const endDate = new Date(end);
+
+      console.log("Original start:", start);
+      console.log("Original end:", end);
+      console.log("Parsed start:", startDate);
+      console.log("Parsed end:", endDate);
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error("Invalid start or end date");
+        return [];
+      }
+
       const slots = [];
       const now = new Date();
 
       // Check if selected date is today
       const isToday = isSameDay(selectedDate, now);
 
-      console.log("Generating slots from", current, "to", endDate);
       console.log("Is today?", isToday);
+      console.log("Current time:", now.toISOString());
+
+      // Create slots based on the date and time range
+      let current = new Date(startDate);
 
       while (isBefore(current, endDate)) {
-        // If it's today, only show future time slots (add 5 minutes buffer)
         const slotTime = new Date(current);
-        const bufferTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
 
-        if (!isToday || slotTime > bufferTime) {
-          slots.push(slotTime.toISOString());
+        // For today, only show future slots with 5-minute buffer
+        if (isToday) {
+          const bufferTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
+          if (slotTime <= bufferTime) {
+            current = addMinutes(current, 30);
+            continue;
+          }
         }
+
+        const slotIso = slotTime.toISOString();
+        console.log(
+          "Generated slot:",
+          slotIso,
+          "Display time:",
+          format(slotTime, "h:mm a")
+        );
+
+        slots.push({
+          iso: slotIso,
+          isBooked: bookedSlots.includes(slotIso),
+        });
+
         current = addMinutes(current, 30);
       }
 
-      console.log("Generated slots:", slots);
+      console.log("Total generated slots:", slots.length);
       return slots;
     } catch (error) {
       console.error("Error generating time slots:", error);
       return [];
     }
-  }, [selectedDate, doctorSchedule]);
+  }, [selectedDate, doctorSchedule, bookedSlots]);
+
+  const handleSlotSelection = (slotIso) => {
+    console.log("Selecting slot:", slotIso);
+    console.log("Display time:", format(new Date(slotIso), "h:mm a"));
+
+    const isCurrentlySelected = selectedSlots.includes(slotIso);
+
+    if (isCurrentlySelected) {
+      setSelectedSlots((prev) => prev.filter((slot) => slot !== slotIso));
+    } else {
+      if (selectedSlots.length < selectedNumberOfSessions) {
+        setSelectedSlots((prev) => [...prev, slotIso]);
+      } else {
+        toast.error(`You can only select ${selectedNumberOfSessions} slot(s)`);
+      }
+    }
+  };
 
   const {
     control,
@@ -129,7 +209,7 @@ const InstantBookingContent = () => {
   } = useForm({
     defaultValues: {
       language: "",
-      numberOfsessions:"",
+      numberOfSessions: "",
       duration: "",
       overview: "",
       closestAppointment: false,
@@ -138,29 +218,36 @@ const InstantBookingContent = () => {
 
   const { mutate: createVideoCall } = useMutation({
     mutationFn: async ({ bookingId, duration }) => {
-      const videoCallPayload = {
-        bookingId: bookingId,
-        patientId: userId,
-        doctorId: doctorId,
-        type: "video",
-        scheduledAt: selectedDateTime,
-        duration: duration,
-      };
+      const responses = [];
 
-      const response = await fetch(`${ApiUrl}/api/room/create-room`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(videoCallPayload),
-      });
+      for (const slot of selectedSlots) {
+        const videoCallPayload = {
+          bookingId: bookingId,
+          patientId: userId,
+          doctorId: doctorId,
+          type: "video",
+          scheduledAt: slot, // Each slot individually
+          duration: duration,
+        };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create video call");
+        const response = await fetch(`${ApiUrl}/api/room/create-room`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(videoCallPayload),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create video call");
+        }
+
+        const result = await response.json();
+        responses.push(result);
       }
 
-      return await response.json();
+      return responses; // Return all created room data
     },
     onSuccess: (data) => {
       console.log("Video call created successfully:", data);
@@ -174,45 +261,20 @@ const InstantBookingContent = () => {
 
   const { mutate: bookInstantSession, isPending: isSubmitting } = useMutation({
     mutationFn: async (data: any) => {
-      // Add the selected datetime to the booking data
+      // Add the selected slots to the booking data
       const bookingData = {
         ...data,
       };
 
-      // 1. Create Payment first
-      // const paymentPayload = {
-      //   userId: userId,
-      //   doctorId: doctorId,
-      //   amount: 1000,
-      //   currency: "SAR",
-      //   description: data.overview || "Instant consultation booking",
-      //   status: "initiated",
-      // };
-
-      // const paymentResponse = await fetch(`${ApiUrl}/api/payments/create`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
-      //   },
-      //   body: JSON.stringify(paymentPayload),
-      // });
-
-      // const paymentResult = await paymentResponse.json();
-      // if (!paymentResponse.ok)
-      //   throw new Error(paymentResult?.message || "Payment creation failed.");
-
-      // const paymentId = paymentResult?.payment?.internalPaymentId;
-      // if (!paymentId) throw new Error("Payment ID missing.");
-
-      // 2. Create Instant Booking with payment reference
+      // Create Instant Booking
       const instantBookingPayload = {
         ...bookingData,
         patientId: userId,
         doctorId: doctorId,
-        // paymentId: paymentId,
-        selectedDateTime: selectedDateTime,
-        paymentStatus: "pending", // Because payment not completed yet
+        numberOfSessions: selectedNumberOfSessions,
+        selectedSlots: selectedSlots, // All selected slots
+        paymentStatus: "pending",
+        totalFee: totalFee,
       };
 
       const bookingResponse = await fetch(
@@ -232,8 +294,6 @@ const InstantBookingContent = () => {
           bookingResult?.message || "Instant booking creation failed."
         );
 
-      console.log;
-
       return { bookingResult };
     },
     onSuccess: ({ bookingResult }) => {
@@ -247,6 +307,7 @@ const InstantBookingContent = () => {
         });
       }
       reset();
+      setSelectedSlots([]);
       router.push("/instant-booking");
       console.log("Booking result:", bookingResult);
     },
@@ -257,10 +318,18 @@ const InstantBookingContent = () => {
   });
 
   const onSubmit = (data: any) => {
-    if (!selectedDateTime) {
-      toast.error("Please select a time slot.");
+    if (selectedSlots.length === 0) {
+      toast.error("Please select at least one time slot.");
       return;
     }
+
+    if (selectedSlots.length !== selectedNumberOfSessions) {
+      toast.error(
+        `Please select exactly ${selectedNumberOfSessions} time slot(s).`
+      );
+      return;
+    }
+
     bookInstantSession(data);
   };
 
@@ -276,7 +345,7 @@ const InstantBookingContent = () => {
         <View>
           <Text className="font-semibold mb-2">Language</Text>
           <View className="flex-row gap-2">
-            {[ "Arabic", "English", "French"].map((language) => (
+            {["Arabic", "English", "French"].map((language) => (
               <Controller
                 key={language}
                 control={control}
@@ -306,41 +375,48 @@ const InstantBookingContent = () => {
             </Text>
           )}
         </View>
-        
+
         {/* Number of sessions */}
-        <Text className="text-lg font-medium mb-1">Number of sessions</Text>
-        <View className="flex-row gap-2 mb-4">
-          {numberOfSessionsOptions.map(({ label, value }) => (
-            <Controller
-              key={value}
-              control={control}
-              name="numberOfSessions"
-              rules={{ required: "Number of sessions is required" }}
-              render={({ field: { onChange, value: selectedValue } }) => (
-                <Button
-                  className={`flex-1 `}
-                  variant={selectedValue === value ? "default" : "outline"}
-                  onPress={() => onChange(value)}
-                >
-                  <Text
-                    className={
-                      selectedValue === value
-                        ? "text-white"
-                        : "text-neutral-800"
-                    }
+        <View>
+          <Text className="text-lg font-medium mb-1">Number of sessions</Text>
+          <View className="flex-row gap-2 mb-4">
+            {numberOfSessionsOptions.map(({ label, value }) => (
+              <Controller
+                key={value}
+                control={control}
+                name="numberOfSessions"
+                rules={{ required: "Number of sessions is required" }}
+                render={({ field: { onChange, value: selectedValue } }) => (
+                  <Button
+                    className="flex-1"
+                    variant={selectedValue === value ? "default" : "outline"}
+                    onPress={() => {
+                      onChange(value);
+                      setSelectedNumberOfSessions(value);
+                      // Clear selected slots when changing number of sessions
+                      setSelectedSlots([]);
+                    }}
                   >
-                    {label}
-                  </Text>
-                </Button>
-              )}
-            />
-          ))}
+                    <Text
+                      className={
+                        selectedValue === value
+                          ? "text-white"
+                          : "text-neutral-800"
+                      }
+                    >
+                      {label}
+                    </Text>
+                  </Button>
+                )}
+              />
+            ))}
+          </View>
+          {errors.numberOfSessions && (
+            <Text className="text-red-500">
+              {errors.numberOfSessions.message}
+            </Text>
+          )}
         </View>
-        {errors.numberOfSessions && (
-          <Text className="text-red-500">
-            {errors.numberOfSessions.message}
-          </Text>
-        )}
 
         {/* Duration Selection */}
         <View>
@@ -380,34 +456,55 @@ const InstantBookingContent = () => {
         {/* Time Slots */}
         {selectedDate && (
           <View>
-            <Text className="font-semibold mb-2">Available Times</Text>
+            <Text className="font-semibold mb-2">
+              Available Times
+              {selectedNumberOfSessions > 1 && (
+                <Text className="text-sm text-gray-600">
+                  {" "}
+                  (Select {selectedNumberOfSessions} slots)
+                </Text>
+              )}
+            </Text>
+            <Text className="text-sm text-gray-600 mb-2">
+              Selected: {selectedSlots.length}/{selectedNumberOfSessions}
+            </Text>
+
             {timesForSelectedDate.length > 0 ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 4 }}
               >
-                <View className="flex-row gap-2">
-                  {timesForSelectedDate.map((iso) => {
+                <View className="flex-row gap-2 flex-wrap">
+                  {timesForSelectedDate.map(({ iso, isBooked }) => {
                     const time = format(new Date(iso), "h:mm a");
-                    const isSelected = selectedDateTime === iso;
+                    const isSelected = selectedSlots.includes(iso);
 
                     return (
                       <Button
                         key={iso}
-                        onPress={() => {
-                          setSelectedDateTime(iso);
-                          setValue("selectedDateTime", iso);
-                        }}
-                        className="mx-1"
-                        variant={isSelected ? "default" : "outline"}
+                        onPress={() => !isBooked && handleSlotSelection(iso)}
+                        className="mx-1 mb-2"
+                        variant={
+                          isBooked
+                            ? "destructive"
+                            : isSelected
+                            ? "default"
+                            : "outline"
+                        }
+                        disabled={isBooked}
                       >
                         <Text
                           className={`font-medium ${
-                            isSelected ? "text-white" : "text-gray-700"
+                            isBooked
+                              ? "text-white"
+                              : isSelected
+                              ? "text-white"
+                              : "text-gray-700"
                           }`}
                         >
                           {time}
+                          {isBooked && " (Booked)"}
                         </Text>
                       </Button>
                     );
@@ -419,6 +516,22 @@ const InstantBookingContent = () => {
                 No available time slots for this date
               </Text>
             )}
+          </View>
+        )}
+
+        {/* Fee Calculation */}
+        {selectedSlots.length > 0 && (
+          <View className="bg-blue-50 p-4 rounded-lg">
+            <Text className="font-semibold text-lg mb-2">Fee Calculation</Text>
+            <Text className="text-gray-700">
+              Base Fee: {currencyFormatter(baseFee)}
+            </Text>
+            <Text className="text-gray-700">
+              Selected Sessions: {selectedSlots.length}
+            </Text>
+            <Text className="font-bold text-lg text-blue-600">
+              Total: {currencyFormatter(totalFee)}
+            </Text>
           </View>
         )}
 
@@ -461,11 +574,13 @@ const InstantBookingContent = () => {
         {/* Submit Button */}
         <Button
           onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
+          disabled={isSubmitting || selectedSlots.length === 0}
           className="mb-4"
         >
           <Text className="text-white font-semibold">
-            {isSubmitting ? "Processing..." : "Book now"}
+            {isSubmitting
+              ? "Processing..."
+              : `Book now ${totalFee > 0 ? currencyFormatter(totalFee) : ""}`}
           </Text>
         </Button>
       </ScrollView>
