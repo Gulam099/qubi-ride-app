@@ -112,7 +112,7 @@ export default function SessionConsultPage() {
       language: "",
       numberOfSessions: "",
       sessionDuration: "",
-      sex: ""
+      gender: ""
     },
   });
 
@@ -126,10 +126,33 @@ export default function SessionConsultPage() {
         throw new Error("Please select a date and time");
       }
 
-      // 1. Create Payment first
+            // 1. Create Booking now
+      const bookingPayload = {
+        userId: userId,
+        doctorId: doctorId,
+        date: selectedDateTime,
+        duration: data.sessionDuration,
+        sessionCount: data.numberOfSessions,
+        language: data.language,
+        gender: data.gender, // Added gender field
+        paymentStatus: "pending", 
+      };
+
+      const bookingResponse = await fetch(`${ApiUrl}/api/bookings/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      const bookingResult = await bookingResponse.json();
+      if (!bookingResponse.ok)
+        throw new Error(bookingResult?.message || "Booking creation failed.");
+
+      // 2. Create Payment first
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
+        bookingID: bookingResult?.booking?._id,
         amount: 1000,
         currency: "SAR",
         description: "Medical consultation session", // Fixed: removed undefined reference
@@ -151,28 +174,6 @@ export default function SessionConsultPage() {
 
       const paymentId = paymentResult?.payment?.internalPaymentId;
       if (!paymentId) throw new Error("Payment ID missing.");
-
-      // 2. Create Booking now
-      const bookingPayload = {
-        userId: userId,
-        doctorId: doctorId,
-        date: selectedDateTime,
-        duration: data.sessionDuration,
-        sessionCount: data.numberOfSessions,
-        language: data.language,
-        sex: data.sex, // Added sex field
-        paymentStatus: "pending", 
-      };
-
-      const bookingResponse = await fetch(`${ApiUrl}/api/bookings/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingPayload),
-      });
-
-      const bookingResult = await bookingResponse.json();
-      if (!bookingResponse.ok)
-        throw new Error(bookingResult?.message || "Booking creation failed.");
       
       return {
         paymentId,
@@ -339,37 +340,37 @@ export default function SessionConsultPage() {
             </Text>
           )}
 
-          {/* Sex Selection */}
+          {/* gender Selection */}
           <View>
             <Text className="font-semibold mb-2">Gender</Text>
             <View className="flex-row gap-2">
-              {["Male", "Female", "Rather not say"].map((sex) => (
+              {["Male", "Female", "Rather not say"].map((gender) => (
                 <Controller
-                  key={sex}
+                  key={gender}
                   control={control}
                   rules={{ required: "Gender is required." }}
-                  name="sex"
+                  name="gender"
                   render={({ field: { onChange, value } }) => (
                     <Button
                       className="flex-1"
-                      variant={value === sex ? "default" : "outline"}
-                      onPress={() => onChange(sex)}
+                      variant={value === gender ? "default" : "outline"}
+                      onPress={() => onChange(gender)}
                     >
                       <Text
                         className={
-                          value === sex ? "text-white" : "text-gray-800"
+                          value === gender ? "text-white" : "text-gray-800"
                         }
                       >
-                        {sex}
+                        {gender}
                       </Text>
                     </Button>
                   )}
                 />
               ))}
             </View>
-            {errors.sex && (
+            {errors.gender && (
               <Text className="text-red-500 text-sm mt-1">
-                {errors.sex.message}
+                {errors.gender.message}
               </Text>
             )}
           </View>
