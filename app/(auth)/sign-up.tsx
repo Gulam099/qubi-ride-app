@@ -104,40 +104,40 @@ export default function Page() {
             </>
           ) : (
             <>
-              
-                <Text className="text-lg font-semibold">
-                  Enter Verification Code
-                </Text>
-                <TouchableOpacity onPress={() => setVerifying(false)}>
-                  <Text className="text-blue-600 underline">
-                    Verification code sent to {phone}
-                  </Text>
-                </TouchableOpacity>
-                <OtpInput
-                  numberOfDigits={6}
-                  focusColor={colors.primary[500]}
-                  onTextChange={(code) => setCode(code)}
-                  theme={{
-                    pinCodeContainerStyle: {
-                      width: 60,
-                      backgroundColor: "white",
-                    },
-                  }}
-                />
 
-                <Button onPress={handleVerification}>
-                  <Text className="text-secondary font-semibold">
-                    Verify OTP
-                  </Text>
-                </Button>
-                {/* <Button
+              <Text className="text-lg font-semibold">
+                Enter Verification Code
+              </Text>
+              <TouchableOpacity onPress={() => setVerifying(false)}>
+                <Text className="text-blue-600 underline">
+                  Verification code sent to {phone}
+                </Text>
+              </TouchableOpacity>
+              <OtpInput
+                numberOfDigits={6}
+                focusColor={colors.primary[500]}
+                onTextChange={(code) => setCode(code)}
+                theme={{
+                  pinCodeContainerStyle: {
+                    width: 60,
+                    backgroundColor: "white",
+                  },
+                }}
+              />
+
+              <Button onPress={handleVerification}>
+                <Text className="text-secondary font-semibold">
+                  Verify OTP
+                </Text>
+              </Button>
+              {/* <Button
             variant="outline"
             disabled={isDisabled}
             onPress={handleResendOtp}
           >
             <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
           </Button> */}
-              
+
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">
