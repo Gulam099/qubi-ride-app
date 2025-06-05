@@ -1,7 +1,8 @@
 import { useSignUp, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import messaging from "@react-native-firebase/messaging";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LangToggleButton from "@/components/custom/LangToggle";
 import Logo from "@/features/Home/Components/Logo";
@@ -14,6 +15,7 @@ import { PhoneCodeFactor, SignInFirstFactor } from "@clerk/types";
 import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
 import { toast } from "sonner-native";
+import { ApiUrl } from "@/const";
 
 export default function Page() {
   const { signUp, setActive, isLoaded } = useSignUp();
@@ -25,7 +27,43 @@ export default function Page() {
   const [selectedCountry, setSelectedCountry] = React.useState<null | ICountry>(
     null
   );
+  const [fcmTokenFirebase, setfcmTokenFirebase] = useState("");
   const [verifying, setVerifying] = React.useState(false);
+
+  useEffect(() => {
+    const getFcmToken = async () => {
+      console.log("GET FCM STARTED");
+      try {
+        // Request user permission for notifications (iOS & Android 13+)
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        if (enabled) {
+          const fcmToken = await messaging().getToken();
+          if (fcmToken) {
+            console.log("FCM Token:", fcmToken);
+            setfcmTokenFirebase(fcmToken);
+            // You can send this token to your backend server here
+          } else {
+            console.log("FCM No token received");
+          }
+        } else {
+          console.log("FCM Notification permission not granted");
+        }
+      } catch (error) {
+        console.error("FCM Error getting FCM token:", error);
+      }
+    };
+    console.log("FCM USE EFFECT");
+    getFcmToken();
+    // Optional: Listen for token refresh
+    const unsubscribe = messaging().onTokenRefresh((token) => {
+      console.log("New FCM Token:", token);
+      // Send updated token to server
+    });
+    return unsubscribe;
+  }, []);
 
   // Handle the submission of the sign-in form
   const onSignUpPress = async () => {
@@ -37,6 +75,9 @@ export default function Page() {
       );
       await signUp.create({
         phoneNumber: formattedPhone,
+        unsafeMetadata: {
+          fcmToken: fcmTokenFirebase,
+        },
       });
 
       await signUp.preparePhoneNumberVerification();
@@ -49,6 +90,8 @@ export default function Page() {
     }
   };
 
+  console.log("fcmTokenFirebase>>", fcmTokenFirebase);
+
   const handleVerification = async () => {
     if (!isLoaded && !signUp) return null;
 
@@ -57,9 +100,17 @@ export default function Page() {
       const signUpAttempt = await signUp.attemptPhoneNumberVerification({
         code,
       });
+
       if (signUpAttempt.status === "complete") {
+        console.log("if signUpAttempt>>", signUpAttempt.status);
         await setActive({ session: signUpAttempt.createdSessionId });
-        await user?.update({ unsafeMetadata: { onboardingComplete: false } });
+        await user?.update({
+          unsafeMetadata: {
+            ...user?.unsafeMetadata,
+            onboardingComplete: false,
+          },
+        });
+
         router.replace("/(auth)/onboarding");
       } else {
         // If the status is not complete, check why. User may need to
@@ -104,40 +155,36 @@ export default function Page() {
             </>
           ) : (
             <>
-              
-                <Text className="text-lg font-semibold">
-                  Enter Verification Code
+              <Text className="text-lg font-semibold">
+                Enter Verification Code
+              </Text>
+              <TouchableOpacity onPress={() => setVerifying(false)}>
+                <Text className="text-blue-600 underline">
+                  Verification code sent to {phone}
                 </Text>
-                <TouchableOpacity onPress={() => setVerifying(false)}>
-                  <Text className="text-blue-600 underline">
-                    Verification code sent to {phone}
-                  </Text>
-                </TouchableOpacity>
-                <OtpInput
-                  numberOfDigits={6}
-                  focusColor={colors.primary[500]}
-                  onTextChange={(code) => setCode(code)}
-                  theme={{
-                    pinCodeContainerStyle: {
-                      width: 60,
-                      backgroundColor: "white",
-                    },
-                  }}
-                />
+              </TouchableOpacity>
+              <OtpInput
+                numberOfDigits={6}
+                focusColor={colors.primary[500]}
+                onTextChange={(code) => setCode(code)}
+                theme={{
+                  pinCodeContainerStyle: {
+                    width: 60,
+                    backgroundColor: "white",
+                  },
+                }}
+              />
 
-                <Button onPress={handleVerification}>
-                  <Text className="text-secondary font-semibold">
-                    Verify OTP
-                  </Text>
-                </Button>
-                {/* <Button
+              <Button onPress={handleVerification}>
+                <Text className="text-secondary font-semibold">Verify OTP</Text>
+              </Button>
+              {/* <Button
             variant="outline"
             disabled={isDisabled}
             onPress={handleResendOtp}
           >
             <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
           </Button> */}
-              
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">

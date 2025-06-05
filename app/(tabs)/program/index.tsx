@@ -30,7 +30,9 @@ const TreatmentsListScreen = () => {
 
   const fetchTreatments = async () => {
     try {
-      const response = await axios.get(`${ApiUrl}/api/treatments/user/${userId}`);
+      const response = await axios.get(
+        `${ApiUrl}/api/treatments/user/${userId}`
+      );
       setTreatments(response.data.data);
     } catch (error) {
       console.error("Failed to fetch treatments:", error);
@@ -39,20 +41,17 @@ const TreatmentsListScreen = () => {
     }
   };
 
+  console.log("treat>>", treatments);
 
   const openModal = (treatment) => {
-    console.log("first,", treatment);
-    if (treatment?.bookingId?.paymentStatus === 'paid') {
+    if (true) {
       setSelectedTreatment(treatment);
       setModalVisible(true);
     } else {
       // Show toast message (use your existing toast)
-      toast.error(
-        'Please pay first to view treatment details.',
-      );
+      toast.error("Please pay first to view treatment details.");
     }
   };
-
 
   const closeModal = () => {
     setModalVisible(false);
@@ -82,21 +81,38 @@ const TreatmentsListScreen = () => {
       {/* Doctor Info */}
       {item.doctor?.profile_picture && (
         <View style={styles.imageContainer}>
-          <Image source={{ uri: item.doctor.profile_picture }} style={styles.doctorImage} />
+          <Image
+            source={{ uri: item.doctor.profile_picture }}
+            style={styles.doctorImage}
+          />
         </View>
       )}
-      <Text style={styles.doctorName}>Doctor: {item.doctor?.full_name || "Unknown"}</Text>
-      <Text style={styles.doctorDetail}>Specialization: {item.doctor?.specialization || "N/A"}</Text>
-      <Text style={styles.doctorDetail}>SubSpecialization: {item.doctor?.sub_specialization || "N/A"}</Text>
-      <Text style={styles.doctorDetail}>Experience: {item.doctor?.experience ? `${item.doctor.experience} years` : "N/A"}</Text>
+      <Text style={styles.doctorName}>
+        Doctor: {item.doctor?.full_name || "Unknown"}
+      </Text>
+      <Text style={styles.doctorDetail}>
+        Specialization: {item.doctor?.specialization || "N/A"}
+      </Text>
+      <Text style={styles.doctorDetail}>
+        SubSpecialization: {item.doctor?.sub_specialization || "N/A"}
+      </Text>
+      <Text style={styles.doctorDetail}>
+        Experience:{" "}
+        {item.doctor?.experience ? `${item.doctor.experience} years` : "N/A"}
+      </Text>
 
       {/* List Treatments for this Doctor */}
       <Text style={styles.treatmentTitle}>Treatments:</Text>
       {item.treatments.map((treatment) => (
         <View key={treatment._id} style={styles.treatmentItem}>
           <Text style={styles.itemName}>• {treatment.diagnosis || "N/A"}</Text>
-          <Text style={styles.itemDetail}>Status: {treatment.status || "N/A"}</Text>
-          <TouchableOpacity style={styles.button} onPress={() => openModal(treatment)}>
+          <Text style={styles.itemDetail}>
+            Status: {treatment.status || "N/A"}
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => openModal(treatment)}
+          >
             <Text style={styles.buttonText}>View Details</Text>
           </TouchableOpacity>
         </View>
@@ -110,12 +126,18 @@ const TreatmentsListScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
-        data={groupedTreatments}
-        keyExtractor={(item, index) => item.doctor?._id || `unknown-${index}`}
-        renderItem={renderDoctorGroup}
-        contentContainerStyle={{ padding: 16 }}
-      />
+      {groupedTreatments.length > 0 ? (
+        <FlatList
+          data={groupedTreatments}
+          keyExtractor={(item, index) => item.doctor?._id || `unknown-${index}`}
+          renderItem={renderDoctorGroup}
+          contentContainerStyle={{ padding: 16 }}
+        />
+      ) : (
+        <View>
+          <Text>No treatment found</Text>
+        </View>
+      )}
 
       {/* Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -125,21 +147,39 @@ const TreatmentsListScreen = () => {
               <Text style={styles.modalTitle}>Treatment Details</Text>
               {selectedTreatment ? (
                 <>
-                  <Text>Diagnosis: {selectedTreatment.diagnosis || 'N/A'}</Text>
-                  <Text>Status: {selectedTreatment.status || 'N/A'}</Text>
-                  <Text>Type: {selectedTreatment.type || 'N/A'}</Text>
-                  <Text>Is Follow Up: {selectedTreatment.isFollowUp ? "Yes" : "No"}</Text>
-                  <Text>Empty Stomach: {selectedTreatment.isEmptyStomach ? "Yes" : "No"}</Text>
+                  <Text>Diagnosis: {selectedTreatment.diagnosis || "N/A"}</Text>
+                  <Text>Status: {selectedTreatment.status || "N/A"}</Text>
+                  <Text>Type: {selectedTreatment.type || "N/A"}</Text>
+                  <Text>
+                    Is Follow Up: {selectedTreatment.isFollowUp ? "Yes" : "No"}
+                  </Text>
+                  <Text>
+                    Empty Stomach:{" "}
+                    {selectedTreatment.isEmptyStomach ? "Yes" : "No"}
+                  </Text>
                   <Text style={styles.modalSubTitle}>Treatment Items:</Text>
-                  {selectedTreatment.treatmentItems && selectedTreatment.treatmentItems.length > 0 ? (
+                  {selectedTreatment.treatmentItems &&
+                  selectedTreatment.treatmentItems.length > 0 ? (
                     selectedTreatment.treatmentItems.map((item, idx) => (
                       <View key={idx} style={styles.treatmentItem}>
-                        <Text style={styles.itemName}>• {item.name || 'N/A'}</Text>
-                        <Text style={styles.itemDetail}>Description: {item.description || 'N/A'}</Text>
-                        <Text style={styles.itemDetail}>Quantity: {item.quantity || 'N/A'}</Text>
-                        <Text style={styles.itemDetail}>Frequency: {item.frequency || 'N/A'}</Text>
-                        <Text style={styles.itemDetail}>Duration: {item.duration || 'N/A'}</Text>
-                        <Text style={styles.itemDetail}>Instructions: {item.instructions || 'N/A'}</Text>
+                        <Text style={styles.itemName}>
+                          • {item.name || "N/A"}
+                        </Text>
+                        <Text style={styles.itemDetail}>
+                          Description: {item.description || "N/A"}
+                        </Text>
+                        <Text style={styles.itemDetail}>
+                          Quantity: {item.quantity || "N/A"}
+                        </Text>
+                        <Text style={styles.itemDetail}>
+                          Frequency: {item.frequency || "N/A"}
+                        </Text>
+                        <Text style={styles.itemDetail}>
+                          Duration: {item.duration || "N/A"}
+                        </Text>
+                        <Text style={styles.itemDetail}>
+                          Instructions: {item.instructions || "N/A"}
+                        </Text>
                       </View>
                     ))
                   ) : (
@@ -170,14 +210,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   imageContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 10,
   },
   doctorImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   doctorName: {
     fontSize: 16,

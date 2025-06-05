@@ -1,4 +1,4 @@
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Pressable } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { ApiUrl } from "@/const";
 import { toast } from "sonner-native";
@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format, isBefore, addMinutes, parse, isSameDay } from "date-fns";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+// import useFreshUser from "@/hooks/useFreshUser";
 
 const InstantBookingContent = () => {
   const router = useRouter();
@@ -27,18 +28,18 @@ const InstantBookingContent = () => {
 
   const { specialist_Id, todaySchedule, doctorFees } = useLocalSearchParams();
   const { user } = useUser();
-  const userId = user?.publicMetadata.dbPatientId as string;
+  // const { freshUser: user, refreshUser, loading } = useFreshUser();
+  const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = specialist_Id as string;
   const [doctorSchedule, setDoctorSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [selectedNumberOfSessions, setSelectedNumberOfSessions] = useState(1);
+  const [isForFamilyMember, setIsForFamilyMember] = useState(false);
 
   const baseFee = parseFloat(doctorFees as string) || 0;
   const totalFee = baseFee * selectedSlots.length;
-
-  console.log("");
 
   useEffect(() => {
     const now = new Date();
@@ -61,7 +62,7 @@ const InstantBookingContent = () => {
       }
 
       const result = await response.json();
-      return result.bookedSlots || [];
+      return result.bookings || [];
     },
     enabled: !!doctorId && !!selectedDate,
   });
@@ -72,6 +73,12 @@ const InstantBookingContent = () => {
     }
   }, [bookedSlotsData]);
 
+  const flatBookedSlotIsos = useMemo(() => {
+    if (!bookedSlots || bookedSlots.length === 0) return [];
+    return bookedSlots.flatMap((booking) => booking?.selectedSlots);
+  }, [bookedSlots]);
+
+  console.log("bookedSlots", bookedSlots);
   console.log("selectedSlots", selectedSlots);
 
   useEffect(() => {
@@ -105,7 +112,15 @@ const InstantBookingContent = () => {
     { label: "2 sessions", value: 2 },
     { label: "3 sessions", value: 3 },
   ];
-
+  const relationshipOptions = [
+    "Spouse",
+    "Child",
+    "Parent",
+    "Sibling",
+    "Grandparent",
+    "Grandchild",
+    "Other",
+  ];
   const timesForSelectedDate = useMemo(() => {
     if (!selectedDate || !doctorSchedule) {
       console.log("No selected date or doctor schedule");
@@ -169,7 +184,8 @@ const InstantBookingContent = () => {
 
         slots.push({
           iso: slotIso,
-          isBooked: bookedSlots.includes(slotIso),
+          isBooked: flatBookedSlotIsos.includes(slotIso),
+          // display: format(slotTime, "h:mm a"),
         });
 
         current = addMinutes(current, 30);
@@ -181,7 +197,7 @@ const InstantBookingContent = () => {
       console.error("Error generating time slots:", error);
       return [];
     }
-  }, [selectedDate, doctorSchedule, bookedSlots]);
+  }, [selectedDate, doctorSchedule, flatBookedSlotIsos]);
 
   const handleSlotSelection = (slotIso) => {
     console.log("Selecting slot:", slotIso);
@@ -213,23 +229,36 @@ const InstantBookingContent = () => {
       duration: "",
       overview: "",
       closestAppointment: false,
+      familyMemberName: "",
+      familyMemberAge: "",
+      relationship: "",
     },
   });
 
+  useEffect(() => {
+    if (!isForFamilyMember) {
+      reset({
+        familyMemberName: "",
+        familyMemberAge: "",
+        relationship: "",
+      });
+    }
+  }, [isForFamilyMember]);
+
   const { mutate: createVideoCall } = useMutation({
-    mutationFn: async ({ bookingId, duration }) => {
+    mutationFn: async ({ bookingId, duration, slots }) => {
       const responses = [];
 
-      for (const slot of selectedSlots) {
+      for (const slot of slots) {
         const videoCallPayload = {
           bookingId: bookingId,
           patientId: userId,
           doctorId: doctorId,
           type: "video",
-          scheduledAt: slot, // Each slot individually
+          scheduledAt: slot, 
           duration: duration,
+          instant: true,
         };
-
         const response = await fetch(`${ApiUrl}/api/room/create-room`, {
           method: "POST",
           headers: {
@@ -275,6 +304,14 @@ const InstantBookingContent = () => {
         selectedSlots: selectedSlots, // All selected slots
         paymentStatus: "pending",
         totalFee: totalFee,
+        ...(isForFamilyMember && {
+          isForFamilyMember: true,
+          familyMemberDetails: {
+            name: data.familyMemberName,
+            age: data.familyMemberAge,
+            relationship: data.relationship,
+          },
+        }),
       };
 
       const bookingResponse = await fetch(
@@ -298,18 +335,17 @@ const InstantBookingContent = () => {
     },
     onSuccess: ({ bookingResult }) => {
       toast.success("Instant booking created successfully!");
-
       // Create video call room after successful booking
       if (bookingResult?.booking?._id) {
         createVideoCall({
-          bookingId: bookingResult.booking._id,
+          bookingId: bookingResult?.booking?._id,
           duration: bookingResult?.booking?.duration,
+          slots: bookingResult?.booking?.selectedSlots,
         });
       }
       reset();
       setSelectedSlots([]);
       router.push("/instant-booking");
-      console.log("Booking result:", bookingResult);
     },
     onError: (err: any) => {
       toast.error(err.message || "Something went wrong. Please try again.");
@@ -422,7 +458,7 @@ const InstantBookingContent = () => {
         <View>
           <Text className="font-semibold mb-2">Duration</Text>
           <View className="flex-row gap-2">
-            {["60 minutes", "45 minutes", "30 minutes"].map((duration) => (
+            {["30 minutes", "45 minutes", "60 minutes"].map((duration) => (
               <Controller
                 key={duration}
                 control={control}
@@ -570,6 +606,138 @@ const InstantBookingContent = () => {
             )}
           />
         </View>
+
+        <View className="mb-6 mt-6">
+          <Pressable
+            onPress={() => setIsForFamilyMember(!isForFamilyMember)}
+            className="flex-row items-center gap-3"
+          >
+            <View
+              className={`w-5 h-5 border-2 rounded ${
+                isForFamilyMember
+                  ? "bg-blue-500 border-blue-500"
+                  : "border-gray-400"
+              } justify-center items-center`}
+            >
+              {isForFamilyMember && (
+                <Text className="text-white text-xs">✓</Text>
+              )}
+            </View>
+            <Text className="text-base font-medium">
+              Booking for a family member
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Family Member Details - Show only when checkbox is checked */}
+        {isForFamilyMember && (
+          <View className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+            <Text className="text-lg font-semibold mb-4 text-blue-600">
+              Family Member Details
+            </Text>
+
+            {/* Family Member Name */}
+            <View className="mb-4">
+              <Text className="font-semibold mb-2">Full Name *</Text>
+              <Controller
+                control={control}
+                name="familyMemberName"
+                rules={{
+                  required: isForFamilyMember
+                    ? "Family member name is required"
+                    : false,
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="Enter family member's full name"
+                    value={value}
+                    onChangeText={onChange}
+                    className="border border-gray-300 rounded-lg px-3 py-3"
+                  />
+                )}
+              />
+              {errors.familyMemberName && (
+                <Text className="text-red-500 text-sm mt-1">
+                  {errors.familyMemberName.message}
+                </Text>
+              )}
+            </View>
+
+            {/* Age and Gender Row */}
+            <View className="flex-row gap-4 mb-4">
+              {/* Age */}
+              <View className="flex-1">
+                <Text className="font-semibold mb-2">Age *</Text>
+                <Controller
+                  control={control}
+                  name="familyMemberAge"
+                  rules={{
+                    required: isForFamilyMember ? "Age is required" : false,
+                    pattern: {
+                      value: /^[0-9]+$/,
+                      message: "Please enter a valid age",
+                    },
+                  }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      placeholder="Age"
+                      value={value}
+                      onChangeText={onChange}
+                      keyboardType="numeric"
+                      className="border border-gray-300 rounded-lg px-3 py-3"
+                    />
+                  )}
+                />
+                {errors.familyMemberAge && (
+                  <Text className="text-red-500 text-sm mt-1">
+                    {errors.familyMemberAge.message}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Relationship */}
+            <View className="mb-4">
+              <Text className="font-semibold mb-2">Relationship to you *</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {relationshipOptions.map((relationship) => (
+                  <Controller
+                    key={relationship}
+                    control={control}
+                    rules={{
+                      required: isForFamilyMember
+                        ? "Relationship is required"
+                        : false,
+                    }}
+                    name="relationship"
+                    render={({ field: { onChange, value } }) => (
+                      <Button
+                        className="mb-2"
+                        variant={value === relationship ? "default" : "outline"}
+                        onPress={() => onChange(relationship)}
+                      >
+                        <Text
+                          className={
+                            value === relationship
+                              ? "text-white text-xs"
+                              : "text-gray-800 text-xs"
+                          }
+                        >
+                          {relationship}
+                        </Text>
+                      </Button>
+                    )}
+                  />
+                ))}
+              </View>
+              {errors.relationship && (
+                <Text className="text-red-500 text-sm mt-1">
+                  {errors.relationship.message}
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Submit Button */}
         <Button

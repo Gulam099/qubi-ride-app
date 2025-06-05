@@ -101,7 +101,8 @@ const JoinRoom = () => {
         currency: "SAR",
         description: "Medical consultation session",
         status: "initiated",
-        bookingId: roomData?.bookingId
+        bookingId: roomData?.bookingId,
+        bookingType:'instant'
       };
 
       const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {
@@ -137,7 +138,7 @@ const JoinRoom = () => {
 
   // Redirect to payment page
   const redirectToPayment = async () => {
-    if (roomData) {
+    if (roomData && roomData.instant === true) {
       try {
         // Show loading state
         setPaymentLoading(true);
