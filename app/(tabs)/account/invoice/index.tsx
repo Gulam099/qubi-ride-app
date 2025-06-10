@@ -1,70 +1,147 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   FlatList,
-  ActivityIndicator,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useUser } from "@clerk/clerk-expo";
 import { Loader, LoaderPage } from "@/components/loader";
 import { useRouter } from "expo-router";
-import { useUser } from "@clerk/clerk-expo";
+import { ApiUrl } from "@/const";
+
+const TAB_LABELS = {
+  pending: "Pending Payments",
+  invoices: "Invoices",
+} as const;
+
+type TabType = keyof typeof TAB_LABELS;
 
 export default function PaymentsList() {
-  const {user} = useUser();
-  const userId = user?.publicMetadata.dbPatientId as string;
-  const fetchPayments = async ({ pageParam = 1 }) => {
-    const res = await axios.get(
-      `https://www.baserah.sa/api/payment?patientId=${userId}&page=${pageParam}`
-    );
-    return res.data;
-  };
+  const [activeTab, setActiveTab] = useState<TabType>("pending");
+  const { user } = useUser();
+  const id = user?.publicMetadata.dbPatientId as string;
+  const router = useRouter();
+
   const {
-    data,
+    data: pendingData,
+    isLoading: isPendingLoading,
+    error: pendingError,
+  } = useQuery({
+    queryKey: ["pending-payments", id],
+    queryFn: async () => {
+      const res = await axios.get(`${ApiUrl}/api/payments/get/${id}/pending`);
+      return res.data;
+    },
+    enabled: activeTab === "pending" && !!id,
+  });
+
+  const {
+    data: invoiceData,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isLoading,
-    error,
+    isLoading: isInvoiceLoading,
+    error: invoiceError,
   } = useInfiniteQuery({
-    queryKey: ["payments"],
-    queryFn: fetchPayments,
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.hasNext ? allPages.length + 1 : undefined;
+    queryKey: ["invoices", id],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await axios.get(`${ApiUrl}/api/payment?patientId=${id}&page=${pageParam}`);
+      return res.data;
     },
+    getNextPageParam: (lastPage, allPages) => lastPage?.hasNext ? allPages.length + 1 : undefined,
+    enabled: activeTab === "invoices" && !!id,
+    initialPageParam: 1,
   });
 
-  const flatData = data?.pages.flatMap((page) => page.data) ?? [];
+  const invoiceList = invoiceData?.pages.flatMap(page => page.data) ?? [];
 
-  if (isLoading) return <LoaderPage/>;
 
-  if (error)
-    return (
-      <Text className="text-center mt-10 text-red-500">
-        Failed to load payments.
-      </Text>
-    );
+  const renderContent = () => {
+    if (activeTab === "pending") {
+      if (isPendingLoading) return <LoaderPage />;
+      if (pendingError) return <Text className="text-red-500 mt-5 text-center">Failed to load pending payments</Text>;
+
+      return (
+        <FlatList
+          contentContainerStyle={{ padding: 16 }}
+          data={pendingData?.data ?? []}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => <PendingPaymentCard item={item} />}
+          ListEmptyComponent={<Text className="text-center text-gray-500">No pending payments found.</Text>}
+        />
+      );
+    }
+
+    if (activeTab === "invoices") {
+      if (isInvoiceLoading) return <LoaderPage />;
+      if (invoiceError) return <Text className="text-red-500 mt-5 text-center">Failed to load invoices</Text>;
+
+      return (
+        <FlatList
+          contentContainerStyle={{ padding: 16 }}
+          data={invoiceList}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => <InvoiceCard invoice={item} />}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
-    <FlatList
-      contentContainerStyle={{ padding: 16 }}
-      contentContainerClassName=" gap-2 bg-blue-50/20"
-      data={flatData}
-      keyExtractor={(item) => item._id}
-      renderItem={({ item }) => <InvoiceCard invoice={item} />}
-      onEndReached={() => {
-        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-      }}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={isFetchingNextPage ? <Loader /> : null}
-    />
+    <View className="flex-1 bg-white">
+      {/* 🔹 Tabs */}
+      <View className="flex-row justify-around border-b border-gray-200 bg-blue-50">
+        {(Object.keys(TAB_LABELS) as TabType[]).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            className={`p-3 border-b-2 ${activeTab === tab ? "border-blue-500" : "border-transparent"}`}
+            onPress={() => setActiveTab(tab)}
+          >
+            <Text className={`font-semibold ${activeTab === tab ? "text-blue-600" : "text-gray-500"}`}>
+              {TAB_LABELS[tab]}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* 🔹 Content */}
+      {renderContent()}
+    </View>
   );
 }
 
+// 🔸 Pending Payment Card
+const PendingPaymentCard = ({ item }: any) => (
+  <View className="bg-white p-4 mb-3 rounded-xl shadow-sm border border-gray-100">
+    <View className="flex-row justify-between mb-2">
+      <Text className="text-lg font-semibold text-gray-800">{item.description}</Text>
+      <Text className="text-base font-medium text-blue-600">
+        {item.amount} {item.currency}
+      </Text>
+    </View>
+    <Text className="text-sm text-gray-600 mb-1">Booking Type: {item.bookingType}</Text>
+    <Text className="text-sm text-gray-500">
+      Created At: {format(new Date(item.createdAt), "dd MMM yyyy, hh:mm a")}
+    </Text>
+    <View className="mt-2 self-start px-3 py-1 rounded-full bg-yellow-50 border border-yellow-300">
+      <Text className="text-xs font-medium text-yellow-600 capitalize">{item.status}</Text>
+    </View>
+  </View>
+);
+
+// 🔸 Invoice Card
 const InvoiceCard = ({ invoice }: any) => {
   const router = useRouter();
 
@@ -93,7 +170,7 @@ const InvoiceCard = ({ invoice }: any) => {
     <TouchableOpacity
       onPress={handlePress}
       disabled={invoice.status === "cancel"}
-      className="flex-row bg-white rounded-xl shadow-sm h-32 relative"
+      className="flex-row bg-white rounded-xl shadow-sm h-32 relative mb-2"
     >
       <View className="rotate-[-90deg] h-32 absolute">
         <Text className="bg-blue-900 text-white rounded-t-xl py-1 w-32 h-6 text-xs font-medium text-center">
@@ -102,27 +179,16 @@ const InvoiceCard = ({ invoice }: any) => {
       </View>
       <View className="flex-1 items-start justify-start flex-row p-4 pl-10">
         <View className="flex-1 flex-col gap-2">
-          <Text className="font-semibold text-lg text-gray-800">
-            {invoice.description}
-          </Text>
-          <Text className="text-sm text-gray-600">
-            {invoice.doctorId.full_name}
-          </Text>
-          <Text className="text-sm text-gray-600">
-            Payment Id : {invoice._id}
-          </Text>
+          <Text className="font-semibold text-lg text-gray-800">{invoice.description}</Text>
+          <Text className="text-sm text-gray-600">{invoice.doctorId?.full_name}</Text>
+          <Text className="text-sm text-gray-600">Payment Id: {invoice._id}</Text>
         </View>
-
         <View className="flex-col justify-end items-end gap-1">
-          <Text
-            className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${getStatusStyle(
-              invoice.status
-            )}`}
-          >
+          <Text className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${getStatusStyle(invoice.status)}`}>
             {invoice.status}
           </Text>
           <Text className="text-xs text-gray-500">
-            {format(new Date(invoice.paidAt ?? invoice.createdAt), "dd MMM yyy , hh : mm a")}
+            {format(new Date(invoice.paidAt ?? invoice.createdAt), "dd MMM yyyy, hh:mm a")}
           </Text>
         </View>
       </View>

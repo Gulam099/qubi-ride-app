@@ -1,20 +1,27 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import colors from "@/utils/colors";
-import { ExportCurve } from "iconsax-react-native";
+import { ExportCurve, Trash } from "iconsax-react-native";
 import React from "react";
+import { TouchableOpacity } from "react-native";
 import { View, Image, Text } from "react-native";
 
 type Consultant = {
   name: string;
   profession: string;
   image: string;
+  education: string;
+  // onRemove: () => void;
 };
 
 const FavConsultantCard: React.FC<Consultant> = ({
   name,
+  // onRemove,
   profession,
   image,
+  education,
 }) => {
+
+  console.log("name", name);
   return (
     <View className="flex-row gap-4 bg-background p-4 rounded-2xl">
       <Avatar alt="avatar-with-image" className="w-16 h-16">
@@ -26,9 +33,16 @@ const FavConsultantCard: React.FC<Consultant> = ({
       <View className="flex-1">
         <Text className="font-semibold text-lg">{name}</Text>
         <Text>{profession}</Text>
+        <Text>{education}</Text>
       </View>
       <View>
-      <ExportCurve size={18} color={colors.primary[600]} />
+        <ExportCurve size={18} color={colors.primary[600]} />
+        {/* <TouchableOpacity
+          className="mt-2 text-red-500 rounded-md self-start"
+          onPress={onRemove}
+        >
+          < Trash />
+        </TouchableOpacity> */}
       </View>
     </View>
   );

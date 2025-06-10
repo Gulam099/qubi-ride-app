@@ -105,7 +105,7 @@ export default function ConsultPage() {
                 onPress={() =>
                   router.push(
                     `/consult/s/${item._id}` as RelativePathString
-                  ) 
+                  )
                 }
               />
             )}

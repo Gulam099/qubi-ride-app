@@ -13,17 +13,17 @@ import FavProgramCard from "@/features/favorite/components/FavProgramCard";
 import FavConsultantCard from "@/features/favorite/components/FavConsultantCard";
 import FavGroupCard from "@/features/favorite/components/FavGroupCard";
 import { toast } from "sonner-native";
-import { apiBaseUrl } from "@/features/Home/constHome";
 import FavLibraryCard from "@/features/favorite/components/FavLibraryCard";
 import { UserType } from "@/features/user/types/user.type";
 import { useSelector } from "react-redux";
 import { useUser } from "@clerk/clerk-expo";
+import { ApiUrl } from "@/const";
 
 export default function AccountFavoritePage() {
   const tabs = [
-    { type: "program", name: "Programs", api: "/api/favorites/programs/" },
+    // { type: "program", name: "Programs", api: "/api/favorites/programs/" },
     { type: "consult", name: "Consultants", api: "/api/favorites/doctors/" },
-    { type: "group", name: "Groups", api: "/api/favorites/groups/" },
+    // { type: "group", name: "Groups", api: "/api/favorites/groups/" },
     {
       type: "library",
       name: "Libraries",
@@ -31,7 +31,7 @@ export default function AccountFavoritePage() {
     },
   ];
 
-  const {user} = useUser();
+  const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
 
   const [activeTab, setActiveTab] = useState(tabs[0].type);
@@ -48,7 +48,7 @@ export default function AccountFavoritePage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiBaseUrl}${selectedTab.api}${userId}`);
+      const response = await fetch(`${ApiUrl}${selectedTab.api}${userId}`);
       const result = await response.json();
 
       if (response.ok) {
@@ -58,13 +58,31 @@ export default function AccountFavoritePage() {
         setData([]);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
       toast.error("Error fetching data");
       setData([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // const handleRemove = async (itemId: string, type: string) => {
+  //   try {
+  //     const response = await fetch(`${ApiUrl}/api/favorites/remove`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ userId, itemId, type }),
+  //     });
+
+  //     const result = await response.json();
+  //     if (!response.ok) throw new Error(result.message || "Failed to remove");
+
+  //     toast.success("Removed from favorites");
+  //     fetchData(type); // Refresh current tab
+  //   } catch (err) {
+  //     toast.error(err.message || "Something went wrong");
+  //   }
+  // };
+
 
   const renderContent = () => {
     if (loading) {
@@ -80,46 +98,49 @@ export default function AccountFavoritePage() {
     }
 
     switch (activeTab) {
-      case "program":
-        return data.map((item, index) => (
-          <FavProgramCard
-            key={item._id}
-            title={item.title}
-            price={item.cost}
-            image={item.image} //missing in return Data
-            subtitle={item.components}
-            date={item.date} //missing in return Data
-          />
-        ));
+      // case "program":
+      //   return data.map((item, index) => (
+      //     <FavProgramCard
+      //       key={item._id}
+      //       title={item.title}
+      //       price={item.cost}
+      //       image={item.image} //missing in return Data
+      //       subtitle={item.components}
+      //       date={item.date} //missing in return Data
+      //     />
+      //   ));
       case "consult":
-        return data.map((item, index) => (
+        return data.map((item) => (
           <FavConsultantCard
             key={item._id}
-            name={item.name}
-            profession={item.speciality}
-            image={item.image}
+            name={item.full_name}
+            profession={item.specialization}
+            education={item.education}
+            image={item.profile_picture}
+          // onRemove={() => handleRemove(item._id, "doctors")}
           />
         ));
-      case "group":
-        return data.map((item, index) => (
-          <FavGroupCard
-            key={item._id}
-            title={item.title}
-            date={item.date} //missing in return Data
-            price={item.cost}
-            image={item.image} //missing in return Data
-          />
-        ));
-      case "library":
-        return data.map((item, index) => (
+      case "culturalContent":
+        return data.map((item) => (
           <FavLibraryCard
             key={item._id}
             title={item.title}
             date={item.addedAt}
-            price={item.cost} //missing in return Data
-            image={item.image} //missing in return Data
+            price={item.cost}
+            image={item.image}
+          // onRemove={() => handleRemove(item._id, "culturalContent")}
           />
         ));
+      // case "group":
+      //   return data.map((item, index) => (
+      //     <FavGroupCard
+      //       key={item._id}
+      //       title={item.title}
+      //       date={item.date} //missing in return Data
+      //       price={item.cost}
+      //       image={item.image} //missing in return Data
+      //     />
+      //   ));
       default:
         return null;
     }

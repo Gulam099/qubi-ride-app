@@ -9,11 +9,12 @@ interface FavLibraryCardProps {
   price: string;
   date: string;
   image: string;
+  // onRemove: () => void;
 }
 
 const FavLibraryCard: React.FC<FavLibraryCardProps> = ({
   title,
-
+  // onRemove,
   price,
   date,
   image,
