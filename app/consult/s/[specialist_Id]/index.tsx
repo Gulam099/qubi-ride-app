@@ -95,9 +95,23 @@ export default function SpecialistConsultantPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
-  if (isLoading) return <View className="flex-1 justify-center items-center"><Text>Loading...</Text></View>;
-  if (error || !specialistData) return <View className="flex-1 justify-center items-center"><Text className="text-red-500">{error?.message || "Specialist not found."}</Text></View>;
+  if (error || !specialistData) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">
+          {error?.message || "Specialist not found."}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView className="flex-1 bg-blue-50/10 px-2">
@@ -124,20 +138,56 @@ export default function SpecialistConsultantPage() {
           />
         </TouchableOpacity>
 
+<<<<<<< HEAD
 
-        <View className="mt-4 flex-row w-full">
-          {[
-            { title: "Rating", value: specialistData?.data?.rating ?? "0", icon: Star1 },
-            { title: "Experience", value: specialistData?.data?.experience ?? "0", icon: IdCard },
-            { title: "Session Type", value: specialistData?.data?.sessionType ?? "0", icon: HeartSearch },
-          ].map((item) => (
-            <View key={item.title} className="flex-1 items-center">
-              <View className="bg-blue-50/30 rounded-full p-2">
-                <item.icon size={22} color="#222" />
+  <View className="mt-4 flex-row w-full">
+    {[
+      { title: "Rating", value: specialistData?.data?.rating ?? "0", icon: Star1 },
+      { title: "Experience", value: specialistData?.data?.experience ?? "0", icon: IdCard },
+      { title: "Session Type", value: specialistData?.data?.sessionType ?? "0", icon: HeartSearch },
+    ].map((item) => (
+      <View key={item.title} className="flex-1 items-center">
+=======
+          {/* Details Section */}
+        <View className="mt-4">
+          <View className="flex-row w-full">
+            {[
+              {
+                title: "Rating",
+                value: specialistData?.data?.averageRating ?? "0",
+                icon: Star1,
+              },
+              {
+                title: "Experience",
+                value: specialistData?.data?.experience ?? "0",
+                icon: IdCard,
+              },
+              {
+                title: "Session Type",
+                value: specialistData?.data?.sessionType ?? "0",
+                icon: HeartSearch,
+              },
+            ].map((item) => (
+              <View
+                className="flex-col justify-center items-center mb-4 flex-1 w-full"
+                key={item.title}
+              >
+                <View className="bg-blue-50/30 rounded-full p-2">
+                  <item.icon size={22} color="#222" />
+                </View>
+                <Text className="text-sm text-gray-600">{item.title}</Text>
+                <Text className="text-sm font-bold">{item.value}</Text>
               </View>
-              <Text className="text-sm text-gray-600">{item.title}</Text>
-              <Text className="text-sm font-bold">{item.value}</Text>
+            ))}
+          </View>
+          <View className="flex-row gap-2 px-4">
+>>>>>>> 1d95d2e5ae222946b50e4dc7187003c52e6c9ef1
+            <View className="bg-blue-50/30 rounded-full p-2">
+              <item.icon size={22} color="#222" />
             </View>
+            <Text className="text-sm text-gray-600">{item.title}</Text>
+            <Text className="text-sm font-bold">{item.value}</Text>
+          </View>
           ))}
         </View>
 
@@ -209,15 +259,15 @@ export default function SpecialistConsultantPage() {
         )}
       </View>
 
-      {/* Book Now */}
-      <Button
-        className="mt-4 bg-purple-600 mb-6"
-        onPress={() => router.push(`/consult/s/${specialist_Id}/session`)}
+      {/* Book Now */ }
+      < Button
+        className = "mt-4 bg-purple-600 mb-6"
+        onPress = {() => router.push(`/consult/s/${specialist_Id}/session`)}
       >
-        <Text className="text-white font-bold">
-          Book now {specialistData.fees != 0 ? currencyFormatter(specialistData.fees ?? 0) : "for free"}
-        </Text>
-      </Button>
-    </ScrollView>
+    <Text className="text-white font-bold">
+      Book now {specialistData.fees != 0 ? currencyFormatter(specialistData.fees ?? 0) : "for free"}
+    </Text>
+  </Button>
+    </ScrollView >
   );
 }

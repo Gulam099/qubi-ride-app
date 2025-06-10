@@ -68,33 +68,37 @@ export default function AppointmentCard({ appointment, type }: any) {
   const router = useRouter();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  console.log('appointment',appointment)
+  console.log('appointment', appointment);
+  // Safe access to selectedSlots
+  console.log('selectedSlots', appointment?.selectedSlots);
+  console.log('first selectedSlot', appointment?.selectedSlots?.[0]);
 
   // Get the correct date values
   const appointmentDate = getAppointmentDate(appointment);
   const bookingDate = getBookingDate(appointment);
 
-  const Menu = [
-    {
-      type: "treatment",
-      title: "Treatment",
-      icon: Hospital,
-      onPress: () => {
-        const patientId = appointment.doctor?._id;
-        console.log("patient ID 2", patientId);
-        router.replace(`/(stacks)/treatment/${patientId}`);
-      },
-    },
-  ];
+  // Safe access to selectedSlots with proper null checking
+  const selectedSlot = appointment?.selectedSlots?.[0] || null;
+  const selectedSlotTime = appointment?.selectedSlots?.[1] || null;
 
-  const handleClickCard = () => {
-    // if (type === "completed" || type === "upcoming") {
-    //   router.push(`/s/account/appointment/${_id}/${type}`);
-    // }
+  
+
+  
+  // Function to get the display date/time
+  const getDisplayDateTime = () => {
+    if (selectedSlot) {
+      return formatDate(selectedSlot, "dd MMM yyyy, hh:mm a");
+    }
+    if (selectedSlotTime) {
+      return selectedSlotTime;
+    }
+    if (appointmentDate) {
+      return formatDate(appointmentDate, "dd MMM yyyy, hh:mm a");
+    }
+    return "N/A";
   };
 
   return (
-    <TouchableOpacity onPress={handleClickCard}>
       <View className="bg-white overflow-hidden rounded-2xl">
         <View>
           {/* Header with appointment number */}
@@ -122,7 +126,7 @@ export default function AppointmentCard({ appointment, type }: any) {
                   Appointment Date:
                 </Text>
                 <Text className="text-base text-green-700 text-center">
-                  {formatDate(appointmentDate, "dd MMM yyyy, hh:mm a") || appointment?.selectedDateTime}
+                  {getDisplayDateTime()}
                 </Text>
               </View>
             )}
@@ -132,13 +136,12 @@ export default function AppointmentCard({ appointment, type }: any) {
                 Customer Name: {appointment.user?.name || appointment.patientId?.name || "N/A"}
               </Text>
               
-                <Text className="text-gray-600 text-base">
-                  Appointment Date And Time: {formatDate(appointmentDate, "dd MMM yyyy, hh:mm a") || appointment?.bookings?.selectedDateTime}
-                </Text>
-              
+              <Text className="text-gray-600 text-base">
+                Appointment Date And Time: {getDisplayDateTime()}
+              </Text>
               
               <Text className="text-gray-600 text-base">
-                Booking Date: {formatDate(bookingDate, "dd MMM yyyy")}
+                Booking Date: {formatDate(bookingDate || appointment.createdAt, "dd MMM yyyy")}
               </Text>
 
               {type !== "urgent" && (
@@ -185,33 +188,7 @@ export default function AppointmentCard({ appointment, type }: any) {
           </View>
         )}
 
-        {/* Drawer */}
-        <Drawer
-          visible={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          title="Attachments"
-          height="50%"
-        >
-          <View className="flex flex-1 justify-center items-start w-full gap-2">
-            {Menu.map((item, index) => (
-              <Button
-                key={item.type + index}
-                variant={"secondary"}
-                className="flex-row items-center justify-start gap-4 w-full"
-                onPress={() => {
-                  item.onPress();
-                  setIsDrawerOpen(false);
-                }}
-              >
-                <item.icon size="22" color={colors.gray[600]} />
-                <Text className="text-neutral-500 font-medium leading-7">
-                  {item.title}
-                </Text>
-              </Button>
-            ))}
-          </View>
-        </Drawer>
+      
       </View>
-    </TouchableOpacity>
   );
 }

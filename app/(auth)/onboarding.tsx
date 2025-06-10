@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Platform, ScrollView } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Input } from "@/components/ui/Input";
@@ -16,6 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useUser } from "@clerk/clerk-expo";
 import { Stack, useRouter } from "expo-router";
 import { Edit } from "iconsax-react-native";
+import { ApiUrl } from "@/const";
 export default function ProfilePage() {
   const { user } = useUser();
   const router = useRouter();
@@ -42,6 +43,22 @@ export default function ProfilePage() {
     },
   });
 
+  const createUser = useCallback(async (userPayload: any) => {
+    const userResponse = await fetch(`${ApiUrl}/api/users/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userPayload),
+    });
+
+    const userResult = await userResponse.json();
+    console.log("userResult", userResult);
+
+    if (!userResponse.ok)
+      throw new Error(userResult?.message || "user creation failed.");
+
+    return userResult;
+  }, []);
+
   const onSubmit = async (data: Partial<UserType>) => {
     try {
       const formattedDob = data.dob
@@ -55,11 +72,25 @@ export default function ProfilePage() {
           ...user?.unsafeMetadata,
           dob: formattedDob,
           gender: data.gender || user?.unsafeMetadata?.gender,
+          fcmToken: user?.unsafeMetadata?.fcmToken,
         },
       });
 
+      await createUser({
+        userId: user?.id,
+        clerkId: user?.id,
+        name: `${data?.first_name} ${data?.last_name}`,
+        gender: data?.gender,
+        phoneNumber: user?.phoneNumbers[0]?.phoneNumber,
+        fcmToken: user?.unsafeMetadata?.fcmToken,
+        dob: formattedDob,
+      });
+
       toast.success("Profile updated successfully!");
-      router.replace("/(tabs)");
+      router.replace({
+        pathname: "/(tabs)",
+        params: { refresh: Date.now().toString() },
+      });
     } catch (error) {
       console.error("Profile update error:", error);
       toast.error("Profile update failed!");

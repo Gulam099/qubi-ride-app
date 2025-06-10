@@ -1,4 +1,12 @@
-import { View, Text, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +22,11 @@ const JoinRoom = () => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [sessionDuration, setSessionDuration] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [submittingRating, setSubmittingRating] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const intervalRef = useRef(null);
 
   const roomUrl = `https://baseerah.daily.co/${roomId}`;
@@ -22,64 +35,165 @@ const JoinRoom = () => {
   const fetchRoomData = async () => {
     try {
       setLoading(true);
-      // Replace with your actual API endpoint
       const response = await fetch(`${apiNewUrl}/api/room/get-room/${roomId}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
-          // Add authorization headers if needed
-          // 'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch room data');
+        throw new Error("Failed to fetch room data");
       }
 
       const data = await response.json();
       setRoomData(data);
 
-      // Calculate time remaining until expiration
       if (data.expiresAt) {
         const expirationTime = new Date(data.expiresAt.$date || data.expiresAt);
         const now = new Date();
         const timeDiff = expirationTime.getTime() - now.getTime();
 
         if (timeDiff > 0) {
-          setTimeRemaining(Math.floor(timeDiff / 1000)); // Convert to seconds
+          setTimeRemaining(Math.floor(timeDiff / 1000));
         } else {
-          // Room already expired
-          handleRoomExpired();
+          handleSessionEnd();
           return;
         }
       }
 
-      // Set session duration (in minutes)
       if (data.duration) {
         setSessionDuration(data.duration);
       }
-
     } catch (err) {
-      console.error('Error fetching room data:', err);
+      console.error("Error fetching room data:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle room expiration
+  // Handle session end (show rating modal)
+  const handleSessionEnd = () => {
+    setSessionEnded(true);
+    setShowRatingModal(true);
+  };
+
+  // Handle post-rating flow
+  const handlePostRating = () => {
+    setShowRatingModal(false);
+
+    // Check if this is an instant booking that needs payment
+    if (roomData && roomData.instant === true) {
+      // Redirect to payment after rating
+      redirectToPayment();
+    } else {
+      // For regular bookings, just go back to home
+      router.push("/(tabs)");
+    }
+  };
+
+  // Handle room expiration (original function)
   const handleRoomExpired = () => {
+    Alert.alert("Session Expired", "This room session has expired.", [
+      {
+        text: "OK",
+        onPress: () => {
+          redirectToPayment();
+        },
+      },
+    ]);
+  };
+
+  // Submit rating and review
+  const submitRating = async () => {
+    if (selectedRating === 0) {
+      Alert.alert(
+        "Rating Required",
+        "Please select a rating before submitting."
+      );
+      return;
+    }
+
+    try {
+      setSubmittingRating(true);
+
+      const ratingPayload = {
+        doctorId: roomData?.doctorId ?? roomData?.doctor?._id,
+        patientId: roomData?.patientId ?? roomData?.patient?._id,
+        rating: selectedRating,
+        review: reviewText.trim(),
+      };
+
+      const response = await fetch(`${apiNewUrl}/api/ratings/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add authorization if needed
+        },
+        body: JSON.stringify(ratingPayload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit rating");
+      }
+
+      const result = await response.json();
+
+      // Show success message
+      Alert.alert(
+        "Thank You!",
+        "Your rating has been submitted successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              handlePostRating();
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      Alert.alert("Error", "Failed to submit rating. Please try again.", [
+        {
+          text: "Retry",
+          onPress: submitRating,
+        },
+        {
+          text: "Skip",
+          onPress: () => {
+            handlePostRating();
+          },
+        },
+      ]);
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
+
+  // Skip rating
+  const skipRating = () => {
     Alert.alert(
-      "Session Expired",
-      "This room session has expired.",
+      "Skip Rating",
+      "Are you sure you want to skip rating this session?",
       [
         {
-          text: "OK",
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Skip",
           onPress: () => {
-            // Navigate to payment page or appropriate screen
-            redirectToPayment();
-          }
-        }
+            if (roomData && roomData.instant === true) {
+              // Redirect to payment even when skipping rating
+              redirectToPayment();
+            } else {
+              // For regular bookings, just go back to home
+              router.push("/(tabs)");
+            }
+          },
+        },
       ]
     );
   };
@@ -91,17 +205,17 @@ const JoinRoom = () => {
 
       const userId = roomData?.patientId ?? roomData?.patient?._id;
       const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
-      console.log("userId", "doctorId", userId, doctorId, roomData?.bookingId)
+      console.log("userId", "doctorId", userId, doctorId, roomData?.bookingId);
 
-      // Payment payload
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
-        amount: 1000, // You might want to calculate this based on session duration
+        amount: 1000,
         currency: "SAR",
         description: "Medical consultation session",
         status: "initiated",
-        bookingId: roomData?.bookingId
+        bookingId: roomData?.bookingId,
+        bookingType: "instant",
       };
 
       const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {
@@ -126,9 +240,8 @@ const JoinRoom = () => {
       }
 
       return paymentId;
-
     } catch (error) {
-      console.error('Error creating payment:', error);
+      console.error("Error creating payment:", error);
       throw error;
     } finally {
       setPaymentLoading(false);
@@ -137,21 +250,17 @@ const JoinRoom = () => {
 
   // Redirect to payment page
   const redirectToPayment = async () => {
-    if (roomData) {
+    if (roomData && roomData.instant === true) {
       try {
-        // Show loading state
         setPaymentLoading(true);
-
-        // Create payment first
         const paymentId = await createPayment();
 
-        // Extract necessary data for payment redirection
         const bookingData = {
-          userId: roomData.patientId, // Assuming patientId is userId
+          userId: roomData.patientId,
           doctorId: roomData.doctorId,
           selectedDateTime: roomData.scheduledAt,
           sessionDuration: roomData.duration || 30,
-          numberOfSessions: 1, // Default or get from room data
+          numberOfSessions: 1,
         };
 
         const queryParams = new URLSearchParams({
@@ -161,20 +270,16 @@ const JoinRoom = () => {
           sessionDuration: bookingData.sessionDuration.toString(),
           numberOfSessions: bookingData.numberOfSessions.toString(),
           bookingId: roomData.bookingId || "",
-          instant: "true"
+          instant: "true",
         }).toString();
 
-        // Navigate with the actual payment ID
         router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
-
       } catch (error) {
-        console.error('Payment creation failed:', error);
+        console.error("Payment creation failed:", error);
         Alert.alert(
           "Payment Error",
           "Failed to create payment. Please try again.",
-          [
-            { text: "OK" }
-          ]
+          [{ text: "OK" }]
         );
         setPaymentLoading(false);
       }
@@ -190,20 +295,60 @@ const JoinRoom = () => {
     const secs = seconds % 60;
 
     if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   // Calculate elapsed time
   const getElapsedTime = () => {
     if (!roomData || !sessionDuration) return null;
 
-    const totalSeconds = sessionDuration * 60; // Convert minutes to seconds
+    const totalSeconds = sessionDuration * 60;
     const remainingSeconds = timeRemaining || 0;
     const elapsedSeconds = totalSeconds - remainingSeconds;
 
     return Math.max(0, elapsedSeconds);
+  };
+
+  // Render star rating
+  const renderStarRating = () => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <TouchableOpacity
+          key={i}
+          onPress={() => setSelectedRating(i)}
+          style={{ marginHorizontal: 5 }}
+        >
+          <Text
+            style={{
+              fontSize: 32,
+              color: i <= selectedRating ? "#fbbf24" : "#d1d5db",
+            }}
+          >
+            ★
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    return stars;
+  };
+
+  // Rating descriptions
+  const getRatingDescription = (rating) => {
+    const descriptions = {
+      1: "Poor",
+      2: "Fair",
+      3: "Good",
+      4: "Very Good",
+      5: "Excellent",
+    };
+    return descriptions[rating] || "";
   };
 
   useEffect(() => {
@@ -215,10 +360,10 @@ const JoinRoom = () => {
   useEffect(() => {
     if (timeRemaining !== null && timeRemaining > 0) {
       intervalRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
+        setTimeRemaining((prev) => {
           if (prev <= 1) {
             clearInterval(intervalRef.current);
-            handleRoomExpired();
+            handleSessionEnd(); // Show rating modal instead of expired alert
             return 0;
           }
           return prev - 1;
@@ -242,10 +387,14 @@ const JoinRoom = () => {
             headerTitle: "Join Room",
           }}
         />
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
             <ActivityIndicator size="large" color="#3b82f6" />
-            <Text style={{ marginTop: 10, color: '#64748b' }}>Loading Room Data...</Text>
+            <Text style={{ marginTop: 10, color: "#64748b" }}>
+              Loading Room Data...
+            </Text>
           </View>
         </SafeAreaView>
       </>
@@ -261,13 +410,22 @@ const JoinRoom = () => {
             headerTitle: "Join Room",
           }}
         />
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-            <Text style={{ color: '#ef4444', fontSize: 16, textAlign: 'center' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{ color: "#ef4444", fontSize: 16, textAlign: "center" }}
+            >
               Error loading room: {error}
             </Text>
             <Text
-              style={{ color: '#3b82f6', marginTop: 20, fontSize: 16 }}
+              style={{ color: "#3b82f6", marginTop: 20, fontSize: 16 }}
               onPress={fetchRoomData}
             >
               Retry
@@ -278,7 +436,6 @@ const JoinRoom = () => {
     );
   }
 
-  // Show payment loading overlay
   if (paymentLoading) {
     return (
       <>
@@ -288,10 +445,14 @@ const JoinRoom = () => {
             headerTitle: "Join Room",
           }}
         />
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
             <ActivityIndicator size="large" color="#3b82f6" />
-            <Text style={{ marginTop: 10, color: '#64748b' }}>Creating Payment...</Text>
+            <Text style={{ marginTop: 10, color: "#64748b" }}>
+              Creating Payment...
+            </Text>
           </View>
         </SafeAreaView>
       </>
@@ -306,29 +467,48 @@ const JoinRoom = () => {
           headerTitle: `Join Room`,
         }}
       />
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
         {/* Timer Display */}
-        <View style={{
-          backgroundColor: '#f8fafc',
-          paddingVertical: 12,
-          paddingHorizontal: 20,
-          borderBottomWidth: 1,
-          borderBottomColor: '#e2e8f0'
-        }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{
+            backgroundColor: "#f8fafc",
+            paddingVertical: 12,
+            paddingHorizontal: 20,
+            borderBottomWidth: 1,
+            borderBottomColor: "#e2e8f0",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <View>
-              <Text style={{ fontSize: 14, color: '#64748b' }}>Time Remaining</Text>
-              <Text style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                color: timeRemaining && timeRemaining < 300 ? '#ef4444' : '#059669'
-              }}>
+              <Text style={{ fontSize: 14, color: "#64748b" }}>
+                Time Remaining
+              </Text>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  color:
+                    timeRemaining && timeRemaining < 300
+                      ? "#ef4444"
+                      : "#059669",
+                }}
+              >
                 {formatTime(timeRemaining || 0)}
               </Text>
             </View>
             <View>
-              <Text style={{ fontSize: 14, color: '#64748b' }}>Session Duration</Text>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#374151' }}>
+              <Text style={{ fontSize: 14, color: "#64748b" }}>
+                Session Duration
+              </Text>
+              <Text
+                style={{ fontSize: 18, fontWeight: "bold", color: "#374151" }}
+              >
                 {formatTime(getElapsedTime() || 0)} / {sessionDuration}min
               </Text>
             </View>
@@ -338,12 +518,20 @@ const JoinRoom = () => {
         <View style={{ flex: 1, padding: 60 }}>
           <WebView
             source={{ uri: roomUrl }}
-            style={{ flex: 1, borderRadius: 12, overflow: 'scroll' }}
+            style={{ flex: 1, borderRadius: 12, overflow: "scroll" }}
             startInLoadingState={true}
             renderLoading={() => (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
                 <ActivityIndicator size="large" color="#3b82f6" />
-                <Text style={{ marginTop: 10, color: '#64748b' }}>Loading Room...</Text>
+                <Text style={{ marginTop: 10, color: "#64748b" }}>
+                  Loading Room...
+                </Text>
               </View>
             )}
             allowsFullscreenVideo
@@ -353,16 +541,201 @@ const JoinRoom = () => {
 
           {/* Footer */}
           <View style={{ paddingTop: 16 }}>
-            <Text style={{ textAlign: 'center', color: '#64748b' }}>
-              Room ID: {roomId} • Status: {roomData?.status || 'Unknown'}
+            <Text style={{ textAlign: "center", color: "#64748b" }}>
+              Room ID: {roomId} • Status: {roomData?.status || "Unknown"}
             </Text>
-            {roomData?.status === 'active' && (
-              <Text style={{ textAlign: 'center', color: '#059669', fontSize: 12, marginTop: 4 }}>
+            {roomData?.status === "active" && (
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: "#059669",
+                  fontSize: 12,
+                  marginTop: 4,
+                }}
+              >
                 🔴 Live Session
               </Text>
             )}
           </View>
         </View>
+
+        {/* Rating Modal */}
+        <Modal
+          visible={showRatingModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => {}}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#ffffff",
+                margin: 20,
+                borderRadius: 16,
+                padding: 24,
+                width: "90%",
+                maxWidth: 400,
+              }}
+            >
+              {/* Header */}
+              <View style={{ alignItems: "center", marginBottom: 24 }}>
+                <Text
+                  style={{
+                    fontSize: 24,
+                    fontWeight: "bold",
+                    color: "#374151",
+                    marginBottom: 8,
+                  }}
+                >
+                  Rate Your Session
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: "#64748b",
+                    textAlign: "center",
+                  }}
+                >
+                  How was your consultation with Dr.{" "}
+                  {roomData?.doctor?.name || "Doctor"}?
+                </Text>
+              </View>
+
+              {/* Star Rating */}
+              <View style={{ alignItems: "center", marginBottom: 20 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    marginBottom: 8,
+                  }}
+                >
+                  {renderStarRating()}
+                </View>
+                {selectedRating > 0 && (
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: "#6b7280",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {getRatingDescription(selectedRating)}
+                  </Text>
+                )}
+              </View>
+
+              {/* Review Text Input */}
+              <View style={{ marginBottom: 24 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: 8,
+                  }}
+                >
+                  Leave a review (optional)
+                </Text>
+                <TextInput
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "#d1d5db",
+                    borderRadius: 8,
+                    padding: 12,
+                    height: 100,
+                    textAlignVertical: "top",
+                    fontSize: 14,
+                  }}
+                  placeholder="Share your experience..."
+                  value={reviewText}
+                  onChangeText={setReviewText}
+                  multiline
+                  maxLength={500}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: "#9ca3af",
+                    textAlign: "right",
+                    marginTop: 4,
+                  }}
+                >
+                  {reviewText.length}/500
+                </Text>
+              </View>
+
+              {/* Action Buttons */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "#d1d5db",
+                    marginRight: 8,
+                  }}
+                  onPress={skipRating}
+                  disabled={submittingRating}
+                >
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: "#6b7280",
+                      fontSize: 16,
+                      fontWeight: "500",
+                    }}
+                  >
+                    Skip
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    backgroundColor: "#3b82f6",
+                    marginLeft: 8,
+                    opacity: submittingRating ? 0.7 : 1,
+                  }}
+                  onPress={submitRating}
+                  disabled={submittingRating}
+                >
+                  {submittingRating ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        color: "#ffffff",
+                        fontSize: 16,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Submit
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </>
   );

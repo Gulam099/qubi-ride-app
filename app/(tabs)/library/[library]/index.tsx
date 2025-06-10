@@ -1,52 +1,58 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   Image,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
+import { Button } from "@/components/ui/Button";
 import BackButton from "@/features/Home/Components/BackButton";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { toCapitalizeFirstLetter } from "@/utils/string.utils";
-import { useVideoPlayer } from "expo-video";
-import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner-native";
+import { ExportCurve, Heart, Star1 } from "iconsax-react-native";
+import colors from "@/utils/colors";
 import VideoPlayer from "@/features/Home/Components/VideoPlayer";
 import AudioPlayer from "@/features/Home/Components/AudioPlayer";
+import { apiNewUrl } from "@/const";
+
 
 export default function LibraryPage() {
-  const { library  } = useLocalSearchParams();
+  const { library } = useLocalSearchParams();
+  const [libraryItem, setLibraryItem] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const fetchLibraryContent = async () => {
-    const res = await fetch(
-      `https://www.baserah.sa/api/content/library?content_id=${library}`
-    );
-    const data = await res.json();
-  
-    if (!res.ok) {
-      throw new Error(data.message || "Error fetching content");
-    }
-  
-    return {
-      data: data.data,
+  useEffect(() => {
+    const fetchLibraryContent = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${apiNewUrl}/api/library/getbyid/${library}`);
+        const result = await response.json();
+
+        if (response.ok && result.status === 200) {
+          setLibraryItem(result.data);
+        } else {
+          setError(result.message || "Failed to fetch content.");
+          toast.error(result.message || "Error loading content.");
+        }
+      } catch (err) {
+        setError("Error fetching library content.");
+        toast.error("Error fetching library content.");
+      } finally {
+        setLoading(false);
+      }
     };
-  };
 
-  const {
-    data,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["libraryContent", library],
-    queryFn: fetchLibraryContent,
-  })
+    fetchLibraryContent();
+  }, [library]);
 
-  
-
-  if (isLoading) {
+  if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color="#6B21A8" />
@@ -55,18 +61,14 @@ export default function LibraryPage() {
     );
   }
 
-  // Find the library item based on the `library` parameter
-  const libraryItem = data?.data || null;
-
-  if (!libraryItem || isError) {
+  if (!libraryItem || error) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Library content not found</Text>
+        <Text className="text-gray-500">{error || "Content not found"}</Text>
       </View>
     );
   }
 
-  // Render different types of content dynamically
   const renderContent = () => {
     switch (libraryItem.type.toLowerCase()) {
       case "video":
@@ -117,37 +119,56 @@ export default function LibraryPage() {
         }}
       />
       <ScrollView className="px-4 bg-blue-50/10 flex-1 ">
-        <View className="gap-4">
-          {/* Dynamic Content */}
-          <View className="">{renderContent()}</View>
-          {/* Header */}
+        <View className="gap-4 pb-8">
+          {renderContent()}
+          {/* <View className="flex-row gap-2 justify-between items-center">
+            <View className="flex-row gap-2 items-center ">
+              <Button className="aspect-square bg-primary-50/40 p-0 size-4 rounded-full">
+                <Heart size="16" color={colors.primary[500]} />
+              </Button>
+              <Text className="text-xs">
+                {libraryItem.likes} Add to Favorites
+              </Text>
+            </View>
+            <View className="flex-row gap-2 items-center ">
+              <Button className="aspect-square bg-primary-50/40 p-0 size-4 rounded-full">
+                <ExportCurve size="16" color={colors.primary[500]} />
+              </Button>
+              <Text className="text-xs">{libraryItem.shares} Share</Text>
+            </View>
+            <View className="flex-row gap-2 items-center ">
+              <Button className="aspect-square bg-primary-50/40 p-0 size-4 rounded-full">
+                <Star1 size="16" color={colors.primary[500]} />
+              </Button>
+              <Text className="text-xs">{libraryItem.rating} Rate</Text>
+            </View>
+          </View> */}
           <Text className="font-semibold text-xl">{libraryItem.title}</Text>
           <Text className="text-gray-500 capitalize">
             {libraryItem.category}
           </Text>
-          <Text className="text-gray-600 mt-4">{libraryItem.description}</Text>
+          <Text className="text-gray-600 mt-4">{libraryItem.note}</Text>
 
           {/* Author */}
           {libraryItem.author && (
             <View className="items-center bg-white flex-row gap-2 py-4 px-6 rounded-2xl">
               <ProfileImage
                 className="size-16"
-                imageUrl={libraryItem.author.profileImage}
+                imageUrl={libraryItem.doctorId.profile_picture}
                 name={libraryItem.author.name}
               />
               <View className="flex-col gap-1">
                 <Text className="text-gray-800 mt-2 text-center font-medium text-lg">
-                  {libraryItem.author.name}
+                  {libraryItem.doctorId.full_name}
                 </Text>
                 <Text className="text-gray-500 text-sm">
-                  {libraryItem.author.specialization}
+                  {libraryItem.doctorId.specialization}
                 </Text>
               </View>
             </View>
           )}
 
           {/* Feedback */}
-
           {libraryItem.feedback && libraryItem.feedback.length > 0 && (
             <View className=" gap-2">
               <Text className="font-semibold text-xl">Feedback</Text>
@@ -172,7 +193,6 @@ export default function LibraryPage() {
                         {item.date}
                       </Text>
                     </View>
-
                     <Text className="text-sm text-blue-600">
                       {item.comment}
                     </Text>

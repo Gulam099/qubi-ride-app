@@ -20,7 +20,7 @@ type TabType = "scheduled" | "instant" | "calendar";
 
 export default function AppointmentUpcomingList() {
   const { user } = useUser();
-  const userId = user?.publicMetadata.dbPatientId as string;
+  const userId = user?.publicMetadata?.dbPatientId as string;
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
 
@@ -33,6 +33,8 @@ export default function AppointmentUpcomingList() {
 
   const [scheduledError, setScheduledError] = useState("");
   const [instantError, setInstantError] = useState("");
+
+  console.log('instantAppointments', instantAppointments)
 
   const applyFilters = (appointments: any[]) => {
     let filteredAppointments = appointments;
@@ -106,11 +108,10 @@ export default function AppointmentUpcomingList() {
   };
 
 
+  console.log('userId', userId)
   const loadScheduledAppointments = async () => {
     const response = await fetchAppointments({
       userId: userId,
-      status: "pending",
-      page: 1,
     });
 
     if (response.success) {

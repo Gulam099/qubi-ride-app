@@ -45,8 +45,32 @@ export default function UsersTodayPage() {
   });
 
   console.log("user", usersData);
+
+   const getAvailableUsers = (users: UserTodayType[]) => {
+    if (!users) return [];
+    
+    const currentTime = new Date();
+    
+    return users.filter((user: UserTodayType) => {
+      // Check if user has today's schedule
+      if (!user.todaySchedule) return false;
+      
+      // Skip if it's a holiday - doctor is not available
+      if (user.todaySchedule.isHoliday === true) return false;
+      
+      // Parse the end time from the schedule
+      const endTime = new Date(user.todaySchedule.end);
+      
+      // Only show doctors whose end time is greater than current time (still available)
+      return endTime > currentTime;
+    });
+  };
+
+    const availableUsers = getAvailableUsers(usersData);
+
+  console.log('availableUsers',availableUsers)
   // Handle search filtering
-  const filteredUsers = usersData?.filter((user: UserTodayType) => {
+  const filteredUsers = availableUsers?.filter((user: UserTodayType) => {
     const fullName = `${user.firstName || ""} ${user.lastName || ""}`
       .toLowerCase()
       .trim();
@@ -57,6 +81,19 @@ export default function UsersTodayPage() {
       email.includes(searchText.toLowerCase())
     );
   });
+
+  const getEmptyStateMessage = () => {
+    if (!availableUsers || availableUsers.length === 0) {
+      return "No doctors available.";
+    }
+    
+    if (searchText.trim() && filteredUsers?.length === 0) {
+      return "No doctors match your search.";
+    }
+    
+    return "";
+  };
+
 
   if (isLoading) {
     return (
@@ -120,7 +157,7 @@ export default function UsersTodayPage() {
           />
         ) : (
           <Text className="text-center text-gray-500">
-            No users match your search.
+            {getEmptyStateMessage()}
           </Text>
         )}
       </View>

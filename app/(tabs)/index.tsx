@@ -1,6 +1,6 @@
 import { View, TouchableOpacity } from "react-native";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { H3 } from "@/components/ui/Typography";
 import {
   PatientHomeImage,
@@ -9,9 +9,26 @@ import {
 import { Image } from "react-native";
 import { cn } from "@/lib/utils";
 import { Text } from "@/components/ui/Text";
+import { useEffect } from "react";
+import * as Updates from 'expo-updates';
 
 export default function PatientPage() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const reloadApp = async () => {
+    try {
+      await Updates.reloadAsync();
+    } catch (e) {
+      console.error("Failed to reload app:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (params.refresh) {
+      reloadApp(); // Refresh logic
+    }
+  }, [params.refresh]);
 
   return (
     <View className="flex-1 flex gap-6 flex-col h-full">
@@ -22,9 +39,7 @@ export default function PatientPage() {
       <View className="flex gap-6 flex-col px-4">
         <H3 className="text-center">What type of consultation do you need?</H3>
 
-        <TouchableOpacity
-          onPress={() => router.push("/instant-booking")}
-        >
+        <TouchableOpacity onPress={() => router.push("/instant-booking")}>
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">

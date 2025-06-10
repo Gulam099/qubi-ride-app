@@ -12,12 +12,13 @@ import { cn } from "@/lib/utils";
 import LibraryCard from "@/features/culturalLibrary/components/LibraryCard";
 import { toast } from "sonner-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { ApiUrl } from "@/const";
 
 const PAGE_SIZE = 10;
 
 const fetchLibrary = async ({ pageParam = 1 }) => {
   const res = await fetch(
-    `https://www.baserah.sa/api/content/library?page=${pageParam}&limit=${PAGE_SIZE}`
+    `${ApiUrl}/api/library/approved?page=${pageParam}&limit=${PAGE_SIZE}`
   );
   const data = await res.json();
 
@@ -132,7 +133,7 @@ export default function LibraryPage() {
               title={item.title}
               category={item.category}
               image={item.thumbnail || "https://placehold.co/200"}
-              link={`/(tabs)/library/${item._id}`}
+              link={`/library/${item._id}`}
               type={item.type}
               seenCount={item.favorites || 0}
               rating={item.rating || 0}
