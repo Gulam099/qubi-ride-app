@@ -1,49 +1,32 @@
-import axios from "axios";
 import { ApiUrl } from "@/const";
 
-const API_BASE_URL = `${ApiUrl}/api/doctor/appointments`;
 
-export async function fetchAppointments({
-  userId,
-  status,
-  page = 1,
-}: {
-  userId: string;
-  status: string;
-  page?: number;
-}) {
+export async function fetchAppointments({ userId }: { userId: string }) {
   try {
-    const response = await axios.post(
-      API_BASE_URL,
-      {
-        userId,
-        status: status,
-        page,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    if (response.data.success) {
-      return {
-        success: true,
-        data: response.data.data,
-        hasMore: response.data.has_more,
-        total: response.data.total,
-      };
-    } else {
-      throw new Error(response.data.message || "Failed to fetch appointments");
+    const response = await fetch(`${ApiUrl}/api/bookings/user/${userId}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to fetch appointments");
     }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      data: data.bookings, // because your controller returns `{ bookings }`
+      hasMore: false, // you can update this if needed
+      total: data.bookings?.length || 0,
+    };
   } catch (error: any) {
     console.error("Error fetching appointments:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Error fetching appointments",
+      message: error.message || "Error fetching appointments",
     };
   }
 }
+
 
 export const fetchInstantAppointments = async ({
   userId,

@@ -23,8 +23,6 @@ export default function ProgramLayout() {
           ),
         }}
       />
-
-      <Stack.Screen name="[program]" options={{ headerShown: false }} />
     </Stack>
   );
 }

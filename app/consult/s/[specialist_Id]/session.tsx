@@ -34,6 +34,8 @@ export default function SessionConsultPage() {
   const { specialist_Id } = useLocalSearchParams();
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [doctorSchedule, setDoctorSchedule] = useState("");
+  const [isForFamilyMember, setIsForFamilyMember] = useState(false);
+
   const SchedulePickerRef = useRef(null);
 
   const fetchSpecialistData = async () => {
@@ -68,24 +70,6 @@ export default function SessionConsultPage() {
     }
   };
 
-  // specialization options
-  const specializationOptions = [
-    { value: "assistant_specialist", label: "Assistant Specialist" },
-    { value: "specialist", label: "Specialist" },
-    { value: "first_specialist", label: "First Specialist" },
-    { value: "consultant", label: "Consultant" },
-    { value: "deputy_specialist_doctor", label: "Deputy Specialist Doctor" },
-    {
-      value: "first_deputy_specialist_doctor",
-      label: "First Deputy Specialist Doctor",
-    },
-    { value: "consultant_doctor", label: "Consultant Doctor" },
-    {
-      value: "first_consultant_doctor",
-      label: "First Consultant Doctor (Subspecialty)",
-    },
-  ];
-
   const numberOfSessionsOptions = [
     { label: "1 session", value: 1 },
     { label: "2 sessions", value: 2 },
@@ -97,6 +81,16 @@ export default function SessionConsultPage() {
     { label: "60 min", value: 60 },
   ];
 
+  const relationshipOptions = [
+    "Spouse",
+    "Child",
+    "Parent",
+    "Sibling",
+    "Grandparent",
+    "Grandchild",
+    "Other",
+  ];
+
   useEffect(() => {
     if (clerk_Id) {
       getUserById(clerk_Id);
@@ -106,15 +100,32 @@ export default function SessionConsultPage() {
   const {
     control,
     handleSubmit,
+    watch,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
       language: "",
       numberOfSessions: "",
       sessionDuration: "",
-      gender: ""
+      gender: "",
+      familyMemberName: "",
+      familyMemberAge: "",
+      relationship: "",
     },
   });
+
+  const numberOfSessionsValue = watch("numberOfSessions");
+
+  useEffect(() => {
+    if (!isForFamilyMember) {
+      reset({
+        familyMemberName: "",
+        familyMemberAge: "",
+        relationship: "",
+      });
+    }
+  }, [isForFamilyMember]);
 
   const { mutate: bookSession, isPending: isSubmitting } = useMutation({
     mutationFn: async (data: any) => {
@@ -126,7 +137,7 @@ export default function SessionConsultPage() {
         throw new Error("Please select a date and time");
       }
 
-            // 1. Create Booking now
+      // 1. Create Booking now
       const bookingPayload = {
         userId: userId,
         doctorId: doctorId,
@@ -135,7 +146,15 @@ export default function SessionConsultPage() {
         sessionCount: data.numberOfSessions,
         language: data.language,
         gender: data.gender, // Added gender field
-        paymentStatus: "pending", 
+        paymentStatus: "pending",
+        ...(isForFamilyMember && {
+          isForFamilyMember: true,
+          familyMemberDetails: {
+            name: data.familyMemberName,
+            age: data.familyMemberAge,
+            relationship: data.relationship,
+          },
+        }),
       };
 
       const bookingResponse = await fetch(`${ApiUrl}/api/bookings/create`, {
@@ -152,11 +171,12 @@ export default function SessionConsultPage() {
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
-        bookingID: bookingResult?.booking?._id,
+        bookingId: bookingResult?.booking?._id,
         amount: 1000,
         currency: "SAR",
         description: "Medical consultation session", // Fixed: removed undefined reference
         status: "initiated",
+        bookingType: "schedule",
       };
 
       const paymentResponse = await fetch(`${ApiUrl}/api/payments/create`, {
@@ -174,7 +194,7 @@ export default function SessionConsultPage() {
 
       const paymentId = paymentResult?.payment?.internalPaymentId;
       if (!paymentId) throw new Error("Payment ID missing.");
-      
+
       return {
         paymentId,
         bookingId: bookingResult?.booking?._id,
@@ -235,13 +255,18 @@ export default function SessionConsultPage() {
 
   return (
     <>
-      <ScrollView className="flex-1 bg-blue-50/10">
-        <View className="px-4 py-8 gap-2 h-full flex-1">
+      <View className="relative w-full flex-1 bg-white">
+        <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, gap: 16 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        >
           {/* Language Selection */}
           <View>
             <Text className="font-semibold mb-2">Language</Text>
             <View className="flex-row gap-2">
-              {["French", "English", "Arabic"].map((language) => (
+              {["Arabic", "English", "French"].map((language) => (
                 <Controller
                   key={language}
                   control={control}
@@ -272,73 +297,77 @@ export default function SessionConsultPage() {
             )}
           </View>
 
-          <Text className="text-lg font-medium mb-4">Number of sessions</Text>
-          <View className="flex-row gap-2 mb-4">
-            {numberOfSessionsOptions.map(({ label, value }) => (
-              <Controller
-                key={value}
-                control={control}
-                name="numberOfSessions"
-                rules={{ required: "Number of sessions is required" }}
-                render={({ field: { onChange, value: selectedValue } }) => (
-                  <Button
-                    className={`flex-1 `}
-                    variant={selectedValue === value ? "default" : "outline"}
-                    onPress={() => onChange(value)}
-                  >
-                    <Text
-                      className={
-                        selectedValue === value
-                          ? "text-white"
-                          : "text-neutral-800"
-                      }
+          <View>
+            <Text className="text-lg font-medium mb-4">Number of sessions</Text>
+            <View className="flex-row gap-2 mb-4">
+              {numberOfSessionsOptions.map(({ label, value }) => (
+                <Controller
+                  key={value}
+                  control={control}
+                  name="numberOfSessions"
+                  rules={{ required: "Number of sessions is required" }}
+                  render={({ field: { onChange, value: selectedValue } }) => (
+                    <Button
+                      className={`flex-1 `}
+                      variant={selectedValue === value ? "default" : "outline"}
+                      onPress={() => onChange(value)}
                     >
-                      {label}
-                    </Text>
-                  </Button>
-                )}
-              />
-            ))}
+                      <Text
+                        className={
+                          selectedValue === value
+                            ? "text-white"
+                            : "text-neutral-800"
+                        }
+                      >
+                        {label}
+                      </Text>
+                    </Button>
+                  )}
+                />
+              ))}
+            </View>
+            {errors.numberOfSessions && (
+              <Text className="text-red-500">
+                {errors.numberOfSessions.message}
+              </Text>
+            )}
           </View>
-          {errors.numberOfSessions && (
-            <Text className="text-red-500">
-              {errors.numberOfSessions.message}
-            </Text>
-          )}
 
-          <Text className="text-lg font-medium mb-4">Duration sessions</Text>
-          <View className="flex-row gap-2 mb-4">
-            {sessionDurations.map(({ label, value }) => (
-              <Controller
-                key={value}
-                control={control}
-                name="sessionDuration"
-                rules={{ required: "Session duration is required" }}
-                render={({ field: { onChange, value: selectedValue } }) => (
-                  <Button
-                    className={`flex-1 `}
-                    variant={selectedValue === value ? "default" : "outline"}
-                    onPress={() => onChange(value)}
-                  >
-                    <Text
-                      className={
-                        selectedValue === value
-                          ? "text-white"
-                          : "text-neutral-800"
-                      }
+          <View>
+            <Text className="text-lg font-medium mb-4">Duration sessions</Text>
+            <View className="flex-row gap-2 mb-4">
+              {sessionDurations.map(({ label, value }) => (
+                <Controller
+                  key={value}
+                  control={control}
+                  name="sessionDuration"
+                  rules={{ required: "Session duration is required" }}
+                  render={({ field: { onChange, value: selectedValue } }) => (
+                    <Button
+                      className={`flex-1 `}
+                      variant={selectedValue === value ? "default" : "outline"}
+                      onPress={() => onChange(value)}
                     >
-                      {label}
-                    </Text>
-                  </Button>
-                )}
-              />
-            ))}
+                      <Text
+                        className={
+                          selectedValue === value
+                            ? "text-white"
+                            : "text-neutral-800"
+                        }
+                      >
+                        {label}
+                      </Text>
+                    </Button>
+                  )}
+                />
+              ))}
+            </View>
+            {errors.sessionDuration && (
+              <Text className="text-red-500">
+                {errors.sessionDuration.message}
+              </Text>
+            )}
           </View>
-          {errors.sessionDuration && (
-            <Text className="text-red-500">
-              {errors.sessionDuration.message}
-            </Text>
-          )}
 
           {/* gender Selection */}
           <View>
@@ -375,27 +404,166 @@ export default function SessionConsultPage() {
             )}
           </View>
 
+          <View className="mb-6 mt-6">
+            <Pressable
+              onPress={() => setIsForFamilyMember(!isForFamilyMember)}
+              className="flex-row items-center gap-3"
+            >
+              <View
+                className={`w-5 h-5 border-2 rounded ${
+                  isForFamilyMember
+                    ? "bg-blue-500 border-blue-500"
+                    : "border-gray-400"
+                } justify-center items-center`}
+              >
+                {isForFamilyMember && (
+                  <Text className="text-white text-xs">✓</Text>
+                )}
+              </View>
+              <Text className="text-base font-medium">
+                Booking for a family member
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Family Member Details - Show only when checkbox is checked */}
+          {isForFamilyMember && (
+            <View className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+              <Text className="text-lg font-semibold mb-4 text-blue-600">
+                Family Member Details
+              </Text>
+
+              {/* Family Member Name */}
+              <View className="mb-4">
+                <Text className="font-semibold mb-2">Full Name *</Text>
+                <Controller
+                  control={control}
+                  name="familyMemberName"
+                  rules={{
+                    required: isForFamilyMember
+                      ? "Family member name is required"
+                      : false,
+                  }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      placeholder="Enter family member's full name"
+                      value={value}
+                      onChangeText={onChange}
+                      className="border border-gray-300 rounded-lg px-3 py-3"
+                    />
+                  )}
+                />
+                {errors.familyMemberName && (
+                  <Text className="text-red-500 text-sm mt-1">
+                    {errors.familyMemberName.message}
+                  </Text>
+                )}
+              </View>
+
+              {/* Age and Gender Row */}
+              <View className="flex-row gap-4 mb-4">
+                {/* Age */}
+                <View className="flex-1">
+                  <Text className="font-semibold mb-2">Age *</Text>
+                  <Controller
+                    control={control}
+                    name="familyMemberAge"
+                    rules={{
+                      required: isForFamilyMember ? "Age is required" : false,
+                      pattern: {
+                        value: /^[0-9]+$/,
+                        message: "Please enter a valid age",
+                      },
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                      <Input
+                        placeholder="Age"
+                        value={value}
+                        onChangeText={onChange}
+                        keyboardType="numeric"
+                        className="border border-gray-300 rounded-lg px-3 py-3"
+                      />
+                    )}
+                  />
+                  {errors.familyMemberAge && (
+                    <Text className="text-red-500 text-sm mt-1">
+                      {errors.familyMemberAge.message}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Relationship */}
+              <View className="mb-4">
+                <Text className="font-semibold mb-2">
+                  Relationship to you *
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {relationshipOptions.map((relationship) => (
+                    <Controller
+                      key={relationship}
+                      control={control}
+                      rules={{
+                        required: isForFamilyMember
+                          ? "Relationship is required"
+                          : false,
+                      }}
+                      name="relationship"
+                      render={({ field: { onChange, value } }) => (
+                        <Button
+                          className="mb-2"
+                          variant={
+                            value === relationship ? "default" : "outline"
+                          }
+                          onPress={() => onChange(relationship)}
+                        >
+                          <Text
+                            className={
+                              value === relationship
+                                ? "text-white text-xs"
+                                : "text-gray-800 text-xs"
+                            }
+                          >
+                            {relationship}
+                          </Text>
+                        </Button>
+                      )}
+                    />
+                  ))}
+                </View>
+                {errors.relationship && (
+                  <Text className="text-red-500 text-sm mt-1">
+                    {errors.relationship.message}
+                  </Text>
+                )}
+              </View>
+            </View>
+          )}
+
           <SchedulePickerButton
             selectedDateTime={selectedDateTime}
             setSelectedDateTime={setSelectedDateTime}
             sheetRef={SchedulePickerRef}
           />
-          
+
           <Button
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="mt-4"
+            className="mt-4 mb-4"
           >
             <Text className="text-white font-medium">
               {isSubmitting ? "Submitting..." : "Submit"}
             </Text>
           </Button>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
+
       <SchedulePickerSheet
         selectedDateTime={selectedDateTime}
         setSelectedDateTime={setSelectedDateTime}
         doctorSchedule={doctorSchedule}
+        doctorId={specialist_Id}
+        numberOfSessions={numberOfSessionsValue}
         ref={SchedulePickerRef}
       />
     </>
