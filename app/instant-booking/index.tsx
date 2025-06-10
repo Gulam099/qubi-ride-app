@@ -82,6 +82,19 @@ export default function UsersTodayPage() {
     );
   });
 
+  const getEmptyStateMessage = () => {
+    if (!availableUsers || availableUsers.length === 0) {
+      return "No doctors available.";
+    }
+    
+    if (searchText.trim() && filteredUsers?.length === 0) {
+      return "No doctors match your search.";
+    }
+    
+    return "";
+  };
+
+
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -144,7 +157,7 @@ export default function UsersTodayPage() {
           />
         ) : (
           <Text className="text-center text-gray-500">
-            No users match your search.
+            {getEmptyStateMessage()}
           </Text>
         )}
       </View>

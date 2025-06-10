@@ -155,6 +155,7 @@ export default function Page() {
             </>
           ) : (
             <>
+
               <Text className="text-lg font-semibold">
                 Enter Verification Code
               </Text>
@@ -176,7 +177,9 @@ export default function Page() {
               />
 
               <Button onPress={handleVerification}>
-                <Text className="text-secondary font-semibold">Verify OTP</Text>
+                <Text className="text-secondary font-semibold">
+                  Verify OTP
+                </Text>
               </Button>
               {/* <Button
             variant="outline"
@@ -185,6 +188,7 @@ export default function Page() {
           >
             <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
           </Button> */}
+
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">

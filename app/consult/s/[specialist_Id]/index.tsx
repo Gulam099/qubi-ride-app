@@ -64,7 +64,7 @@ export default function SpecialistConsultantPage() {
       </View>
     );
   }
-
+  
   if (error || !specialistData) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -109,7 +109,7 @@ export default function SpecialistConsultantPage() {
               {[
                 {
                   title: "Rating",
-                  value: specialistData?.data?.rating ?? "0",
+                  value: specialistData?.data?.averageRating?? "0",
                   icon: Star1,
                 },
                 {
