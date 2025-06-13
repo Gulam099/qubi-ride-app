@@ -142,4 +142,4 @@ export type ApiResponseType<T = any> = {
   hasNext?: boolean;
   total?: number;
   currentPage?: number;
-}
+};

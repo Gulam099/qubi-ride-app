@@ -16,6 +16,7 @@ export default function FamilyMemberCard({
   handleEdit,
   handleDelete,
 }: FamilyMemberCardProps) {
+
   return (
     <View className="p-4 bg-white rounded-2xl shadow-md flex-row ">
       <View className="flex-col gap-4 flex-1">

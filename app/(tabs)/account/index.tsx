@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Linking } from "react-native";
 import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Link, RelativePathString } from "expo-router";
@@ -116,6 +116,14 @@ export default function AccountPage() {
     iconColor: colors.gray[700],
     item: { link: "/contact", label: "Contact us", icon: Messages },
   };
+
+  const handleCall = (phoneNumber: string) => {
+    const phoneUrl = `tel:${phoneNumber}`;
+    Linking.openURL(phoneUrl).catch((err) =>
+      console.error("Failed to open dialer:", err)
+    );
+  };
+
 
   const handleAccountCardPress = (link: string) => {
     console.log(`Card pressed: ${link}`);
@@ -288,18 +296,15 @@ export default function AccountPage() {
                       </Text>
                     </Button>
                     <Text className="text-base text-neutral-500">or</Text>
-                    <Button
-                      onPress={() => {
-                        contactUsBottomSheetRef.current?.close();
-                        router.push("/account/chat/support");
-                      }}
-                      className="w-full"
-                      variant={"secondary"}
-                    >
-                      <Text className="text-neutral-500 font-semibold">
-                        Contact Technical Support
-                      </Text>
-                    </Button>
+                    <View className="mt-4 w-full">
+                      <Button className="w-full">
+                        <TouchableOpacity onPress={() => handleCall("+9665555550100")}>
+                          <Text className="text-white  font-semibold">
+                            Call +966 5555550100
+                          </Text>
+                        </TouchableOpacity>
+                      </Button>
+                    </View>
                   </View>
                 </View>
               </BottomSheetView>

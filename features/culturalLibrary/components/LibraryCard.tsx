@@ -18,7 +18,7 @@ import {
   People,
   VideoHorizontal,
 } from "iconsax-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -32,17 +32,24 @@ import {
   Share,
 } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
-import { apiNewUrl } from "@/const";
-import { useUser } from "@clerk/clerk-expo";
 
 type Comment = {
   id: string;
-  user: string;
-  text: string;
+  user?: string;
+  userId?: {
+    name: string;
+  };
+  text?: string;
+  comment?: string;
   timestamp: Date;
 };
 
+import { apiNewUrl, ApiUrl } from "@/const";
+import { useUser } from "@clerk/clerk-expo";
+import { toast } from "sonner-native";
+
 type LibraryCardProps = {
+  contentId: string;
   title: string;
   category: string;
   type: string;
@@ -50,7 +57,6 @@ type LibraryCardProps = {
   rating: number;
   image: string;
   link: string;
-  contentId: string; 
   comments?: Comment[];
   shareCount?: number;
   onAddComment?: (comment: string) => void;
@@ -74,7 +80,8 @@ export default function LibraryCard(props: LibraryCardProps) {
     onAddComment,
     onShare,
   } = props;
-console.log('comments>>',comments)
+
+  console.log('comments>>', comments);
 
   const segments = props.link.split('/');
   const id = segments[segments.length - 1];
@@ -86,6 +93,7 @@ console.log('comments>>',comments)
   const [localShareCount, setLocalShareCount] = useState(shareCount);
   const [isLiked, setIsLiked] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   // Define icons based on type
   const IconList: Record<string, React.ElementType> = {
@@ -94,6 +102,69 @@ console.log('comments>>',comments)
     audio: AudioSquare,
   };
   const Icon = IconList[type.toLowerCase()] || Notepad;
+
+  console.log("isfavorited", isFavorited);
+
+  useEffect(() => {
+    const checkFavorites = async () => {
+      try {
+        const res = await fetch(`${ApiUrl}/api/favorites/culturalContent/${userId}`);
+        const data = await res.json();
+        console.log("data??", data);
+
+        if (res.ok && data?.data) {
+          // Fixed: Check if contentId exists in the data array directly
+          const isInFavorites = data.data.some(
+            (item) => item._id?.toString() === contentId?.toString()
+          );
+          console.log("isInFavorites", isInFavorites);
+
+          setIsFavorited(isInFavorites);
+        } else {
+          setIsFavorited(false);
+        }
+      } catch (e) {
+        console.error("Error checking favorites:", e);
+        setIsFavorited(false);
+      }
+    };
+
+    if (userId && contentId) {
+      checkFavorites();
+    }
+  }, [userId, contentId]);
+
+  const handleAddToFavorites = async () => {
+    try {
+      const response = await fetch(`${ApiUrl}/api/favorites/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, itemId: contentId, type: "culturalContent" }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to add");
+      toast.success("Added to favorites!");
+      setIsFavorited(true);
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
+  };
+
+  const handleRemoveFromFavorites = async () => {
+    try {
+      const response = await fetch(`${ApiUrl}/api/favorites/remove`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, itemId: contentId, type: "culturalContent" }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to remove");
+      toast.success("Removed from favorites!");
+      setIsFavorited(false);
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
+  };
 
   // Handlers
   const onLike = () => {
@@ -109,8 +180,9 @@ console.log('comments>>',comments)
     if (commentText.trim()) {
       const newComment: Comment = {
         id: Date.now().toString(),
-        user: user?.fullName,// Replace with actual user name if needed
+        user: user?.fullName || "Anonymous",
         text: commentText.trim(),
+        comment: commentText.trim(),
         timestamp: new Date(),
       };
 
@@ -128,7 +200,7 @@ console.log('comments>>',comments)
         const result = await res.json();
 
         if (res.ok) {
-          setLocalComments([...comments, newComment]); // assuming comments is a list of Comment objects
+          setLocalComments([...localComments, newComment]);
         } else {
           console.error("Failed to post comment:", result.message || result);
         }
@@ -156,7 +228,6 @@ console.log('comments>>',comments)
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          // userId: userId, // Use doctorId if available, fallback to userId
           contentId: contentId || id 
         }),
       });
@@ -170,7 +241,7 @@ console.log('comments>>',comments)
         // Then perform native share functionality
         const shareResult = await Share.share({
           message: `Check out this ${type}: ${title} in ${category} category`,
-          url: `${apiNewUrl}${link}`, // Adjust based on your URL structure
+          url: `${apiNewUrl}${link}`,
           title: title,
         });
 
@@ -194,7 +265,7 @@ console.log('comments>>',comments)
     }
   };
 
-   const formatTimeAgo = (date: Date | string | undefined) => {
+  const formatTimeAgo = (date: Date | string | undefined) => {
     if (!date) return "Just now";
     
     try {
@@ -253,22 +324,16 @@ console.log('comments>>',comments)
         {/* Footer with type, seen count, and action buttons */}
         <CardFooter className="flex-row flex-wrap gap-3 mt-2">
           <View className="flex-row gap-6">
-            {/* Like */}
+            {/* Favorite/Heart */}
             <View className="items-center">
               <TouchableOpacity
-                onPress={onLike}
-                className={`w-11 h-11 rounded-full justify-center items-center ${
-                  isLiked ? "bg-red-100" : "bg-purple-100"
-                }`}
+                onPress={isFavorited ? handleRemoveFromFavorites : handleAddToFavorites}
+                className="w-11 h-11 rounded-full bg-purple-100 justify-center items-center"
               >
                 <Heart
                   size="24"
-                  color={
-                    isLiked
-                      ? colors.red?.[500] || "#ef4444"
-                      : colors.primary[500]
-                  }
-                  variant={isLiked ? "Bold" : "Outline"}
+                  color={isFavorited ? "red" : colors.primary[500]}
+                  variant={isFavorited ? "Bold" : "Linear"}
                 />
               </TouchableOpacity>
             </View>
@@ -291,6 +356,7 @@ console.log('comments>>',comments)
               <TouchableOpacity
                 onPress={handleShare}
                 className="w-11 h-11 rounded-full bg-purple-100 justify-center items-center"
+                disabled={isSharing}
               >
                 <ExportCurve size="22" color={colors.primary[500]} />
               </TouchableOpacity>
@@ -343,27 +409,29 @@ console.log('comments>>',comments)
 
           {/* Comments List */}
           <ScrollView className="flex-1 p-4">
-            {comments.length === 0 ? (
+            {localComments.length === 0 ? (
               <View className="items-center justify-center py-8">
                 <Text className="text-gray-500 text-center">
                   No comments yet. Be the first to comment!
                 </Text>
               </View>
             ) : (
-              comments.map((comment) => (
+              localComments.map((comment) => (
                 <View
                   key={comment.id}
                   className="mb-4 p-3 bg-gray-50 rounded-lg"
                 >
                   <View className="flex-row justify-between items-start mb-2">
                     <Text className="font-semibold text-gray-800">
-                      {comment?.userId?.name}
+                      {comment?.userId?.name || comment?.user || "Anonymous"}
                     </Text>
-                    {/* <Text className="text-xs text-gray-500">
+                    <Text className="text-xs text-gray-500">
                       {formatTimeAgo(comment.timestamp)}
-                    </Text> */}
+                    </Text>
                   </View>
-                  <Text className="text-gray-700">{comment.comment}</Text>
+                  <Text className="text-gray-700">
+                    {comment.comment || comment.text}
+                  </Text>
                 </View>
               ))
             )}
