@@ -215,7 +215,7 @@ export default function SessionConsultPage() {
           doctorId: bookingData.doctorId,
           selectedDateTime: bookingData.selectedDateTime,
           sessionDuration: bookingData.sessionDuration.toString(),
-          numberOfSessions: bookingData.numberOfSessions.toString(),
+          numberOfSessions: bookingData.numberOfSessions. toString(),
           bookingId: bookingId || "",
         }).toString();
         router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);

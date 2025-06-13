@@ -66,6 +66,15 @@ export default function LibraryPage() {
     }
   };
 
+  const handleShareUpdate = (contentId) => {
+    // Update the specific item's share count in the cached data
+    // This is a local update to provide immediate feedback
+    console.log(`Share count updated for content: ${contentId}`);
+    // Optionally refetch data to get the latest counts
+    // refetch();
+  };
+
+  console.log('filteredContent',filteredContent)
   const renderFooter = () =>
     isFetchingNextPage ? (
       <View className="py-4">
@@ -137,6 +146,13 @@ export default function LibraryPage() {
               type={item.type}
               seenCount={item.favorites || 0}
               rating={item.rating || 0}
+              comments={item.comments || []} // Pass real comments from DB
+              shareCount={item.shareCount || 0} // Pass real share count from DB
+              contentId={item._id} // Pass content ID for API calls
+              onAddComment={(comment) => {
+                // Handle comment addition if needed
+              }}
+              onShare={() => handleShareUpdate(item._id)}
             />
           )}
           onEndReached={loadMore}

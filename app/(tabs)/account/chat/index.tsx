@@ -1,178 +1,180 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, TouchableOpacity,Image  } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { Trash } from "iconsax-react-native";
 import colors from "@/utils/colors";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { apiNewUrl } from "@/const";
 
 function ChatListPage() {
-  const [chats, setChats] = useState<
-    {
-      id: string;
-      name: string;
-      date: string;
-      isAvailable: boolean;
-      image: string;
-    }[]
-  >([]);
+  const [value, setValue] = useState("specific_specialists");
+  const [doctors, setDoctors] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch chats from API (demo data for now)
-    const fetchChats = async () => {
-      const demoChats = [
-        {
-          id: "1",
-          name: "DR.Mohammed Alabdulla",
-          date: "April, 08",
-          isAvailable: true,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "2",
-          name: "DR.Ahmed Khan",
-          date: "April, 07",
-          isAvailable: false,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "3",
-          name: "DR.Sara Ali",
-          date: "April, 06",
-          isAvailable: true,
-          image: "https://via.placeholder.cdom/100",
-        },
-        // Add more data here
-        {
-          id: "4",
-          name: "DR.John Doe",
-          date: "April, 05",
-          isAvailable: true,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "5",
-          name: "DR.Jane Smith",
-          date: "April, 04",
-          isAvailable: false,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "6",
-          name: "DR.Michael Brown",
-          date: "April, 03",
-          isAvailable: true,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "7",
-          name: "DR.Lisa Johnson",
-          date: "April, 02",
-          isAvailable: true,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "8",
-          name: "DR.Robert Wilson",
-          date: "April, 01",
-          isAvailable: false,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "9",
-          name: "DR.Sophia Davis",
-          date: "March, 31",
-          isAvailable: true,
-          image: "https://via.placeholder.com/100",
-        },
-        {
-          id: "10",
-          name: "DR.William Thompson",
-          date: "March, 30",
-          isAvailable: true,
-          image: "https://via.placeholder.com/100",
-        },
-      ];
-      setChats(demoChats);
+    const fetchdoctors = async () => {
+      try {
+        const response = await fetch(`${apiNewUrl}/api/doctors/getall`);
+        const doctorData = await response.json();
+
+        setDoctors(doctorData.data);
+      } catch (error) {
+        console.error("Error fetching doctors:", error.message);
+      }
     };
 
-    fetchChats();
+    fetchdoctors();
   }, []);
 
+  const handleChatPress = (id: string) => {
+      console.log("Navigating to doctor ID:", id)
+    router.push(
+      `/(tabs)/chat/c/${id}` as RelativePathString
+    );
+  };
+
+  
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map(word => word.charAt(0))
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
   return (
     <View className="p-4 bg-blue-50/10 h-full">
-      <Text className="text-xl font-bold mb-4">My Chats</Text>
-      <FlatList
-        data={chats}
-        contentContainerClassName="gap-3"
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            disabled={!item.isAvailable}
-            onPress={() => router.push(`/(stacks)/chat/${item.id}`)}
-            className={cn(
-              "p-4 rounded-lg shadow-md flex-row justify-between items-center",
-              item.isAvailable ? "bg-white" : "bg-gray-200"
-            )}
-          >
-            <View className="flex-row gap-2">
-              <Avatar alt="avatar-with-image" className="w-16 h-16">
-                <AvatarImage
-                  source={{
-                    uri: item.image,
-                  }}
-                />
-                <AvatarFallback className="bg-primary-500">
-                  <Text className="text-lg font-semibold text-white">
-                    {item.name.slice(3, 4)}
-                  </Text>
-                </AvatarFallback>
-              </Avatar>
-              <View className="flex-col gap-1">
-                <Text
-                  className={cn(
-                    "font-medium text-lg",
-                    !item.isAvailable && "text-gray-500"
-                  )}
-                >
-                  {item.name}
-                </Text>
-                <Text
-                  className={cn(
-                    "text-sm",
-                    !item.isAvailable && "text-gray-500"
-                  )}
-                >
-                  {item.date}
-                </Text>
-              </View>
-            </View>
-            <Button
-              disabled={!item.isAvailable}
-              variant={"ghost"}
-              className={cn(
-                "flex-row gap-2",
-                !item.isAvailable && "opacity-50"
-              )}
-            >
-              <Text
+      <Tabs
+        value={value}
+        onValueChange={setValue}
+        className="w-full flex-col gap-2"
+      >
+        {/* <TabsList className="flex-row w-full bg-white rounded-2xl p-0 overflow-hidden">
+          {[
+            { title: "Specific Specialists", value: "specific_specialists" },
+            { title: "Specialists", value: "specialists" },
+            { title: "Customers", value: "customers" },
+          ].map((e) => {
+            const isActive = value === e.value;
+            return (
+              <TabsTrigger
+                value={e.value}
+                key={e.value}
                 className={cn(
-                  item.isAvailable ? "text-red-500" : "text-gray-500"
+                  isActive ? "bg-blue-600" : "bg-white",
+                  "rounded-2xl h-full grow justify-center items-center"
                 )}
               >
-                Delete
-              </Text>
-              <Trash
-                size="20"
-                color={item.isAvailable ? colors.red[500] : colors.gray[500]}
-              />
-            </Button>
-          </TouchableOpacity>
-        )}
-      />
+                <Text
+                  className={cn(
+                    isActive ? "text-white" : "text-neutral-700",
+                    "font-semibold text-sm leading-5"
+                  )}
+                >
+                  {e.title}
+                </Text>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList> */}
+        
+        <TabsContent value="specific_specialists" className="h-full">
+          <FlatList
+            data={doctors}
+            contentContainerClassName="gap-3 pb-4"
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item, index) => item.id ? item.id.toString() : `doctor-${index}`}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => handleChatPress(item._id)}
+                className="bg-white rounded-xl p-4 shadow-sm"
+              >
+                <View className="flex-row items-center gap-3">
+                  {/* Avatar Section */}
+                  <View className="relative">
+                    {item?.profile_picture ? (
+                      <Image
+                        source={{ uri: item.profile_picture }}
+                        className="w-16 h-16 rounded-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View className="w-16 h-16 rounded-full bg-blue-500 justify-center items-center">
+                        <Text className="text-white font-bold text-lg">
+                          {getInitials(item.full_name)}
+                        </Text>
+                      </View>
+                    )}
+                    {/* Online indicator (optional) */}
+                    <View className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                  </View>
+
+                  {/* Content Section */}
+                  <View className="flex-1">
+                    <View className="flex-row justify-between items-start mb-1">
+                      <Text className="font-semibold text-lg text-gray-900 flex-1" numberOfLines={1}>
+                        {item.full_name || "Unknown Doctor"}
+                      </Text>
+                      <Text className="text-xs text-gray-500 ml-2">
+                        {item.date || ""}
+                      </Text>
+                    </View>
+                    
+                    <Text className="text-sm text-gray-600 mb-1" numberOfLines={1}>
+                      {item.specialization || "General Practitioner"}
+                    </Text>
+                    
+                    {/* Experience or additional info */}
+                    {item.experience && (
+                      <Text className="text-xs text-gray-500">
+                        {item.experience} years experience
+                      </Text>
+                    )}
+                    
+                    {/* Rating (if available) */}
+                    {item.rating && (
+                      <View className="flex-row items-center mt-1">
+                        <Text className="text-xs text-yellow-600">★</Text>
+                        <Text className="text-xs text-gray-600 ml-1">
+                          {item.rating}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Arrow or status indicator */}
+                  <View className="justify-center">
+                    <Text className="text-gray-400 text-lg">›</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={() => (
+              <View className="flex-1 justify-center items-center py-10">
+                <Text className="text-gray-500 text-center">
+                  No doctors available
+                </Text>
+              </View>
+            )}
+          />
+        </TabsContent>
+        
+        <TabsContent value="specialists" className="h-full">
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-gray-500">Specialists content coming soon</Text>
+          </View>
+        </TabsContent>
+        
+        <TabsContent value="customers" className="h-full">
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-gray-500">Customers content coming soon</Text>
+          </View>
+        </TabsContent>
+      </Tabs>
     </View>
   );
 }
