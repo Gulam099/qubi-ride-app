@@ -34,7 +34,6 @@ export default function PaymentPage() {
     cvc: "",
   });
   const [paymentInfo, setPaymentInfo] = useState(null);
-  console.log("paymentId>>>", paymentId);
   // Fetch payment details
   //   const { data: payment, isLoading: isLoadingPayment } = useQuery({
   //     queryKey: ["payment", paymentId],

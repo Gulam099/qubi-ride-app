@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { Loader } from "@/components/loader";
+import { ApiUrl } from "@/const";
 
 export default function InvoiceIdPerPage() {
   const { invoice_Id } = useLocalSearchParams();
@@ -19,9 +20,8 @@ export default function InvoiceIdPerPage() {
   const fetchInvoiceData = async ({ queryKey }: any) => {
     const [_key, invoice_Id] = queryKey;
 
-    const res = await axios.get(
-      `https://www.baserah.sa/api/payment?paymentId=${invoice_Id}`
-    );
+    const res = await axios.get(`${ApiUrl}/api/payments/invoice/${invoice_Id}`);
+    console.log("invoice response", res);
     return res.data.data;
   };
   const {
@@ -35,7 +35,7 @@ export default function InvoiceIdPerPage() {
     refetchOnWindowFocus: false,
   });
 
-  
+  console.log("invoice", invoice);
 
   const handlePrint = () => {
     console.log("Printing Invoice...");
@@ -135,7 +135,7 @@ export default function InvoiceIdPerPage() {
                 Total cost: {invoice.amount}
               </Text>
               <Text className="text-sm text-gray-600">
-                Paid by: {invoice.patientId?.name}
+                Paid by: {invoice.userId?.name}
               </Text>
             </View>
           </>
