@@ -25,7 +25,7 @@ export default function AccountFavoritePage() {
     { type: "consult", name: "Consultants", api: "/api/favorites/doctors/" },
     // { type: "group", name: "Groups", api: "/api/favorites/groups/" },
     {
-      type: "library",
+      type: "culturalContent",
       name: "Libraries",
       api: "/api/favorites/culturalContent/",
     },
@@ -50,6 +50,7 @@ export default function AccountFavoritePage() {
     try {
       const response = await fetch(`${ApiUrl}${selectedTab.api}${userId}`);
       const result = await response.json();
+
 
       if (response.ok) {
         setData(result.data || []);
@@ -125,9 +126,11 @@ export default function AccountFavoritePage() {
           <FavLibraryCard
             key={item._id}
             title={item.title}
-            date={item.addedAt}
-            price={item.cost}
-            image={item.image}
+            category={item.category}
+            link={`/library/${item._id}`}
+            // date={item.addedAt}
+            // price={item.cost}
+            image={item.file}
           // onRemove={() => handleRemove(item._id, "culturalContent")}
           />
         ));

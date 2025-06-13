@@ -50,7 +50,7 @@ export default function PaymentsList() {
   } = useInfiniteQuery({
     queryKey: ["invoices", id],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await axios.get(`${ApiUrl}/api/payment?patientId=${id}&page=${pageParam}`);
+      const res = await axios.get(`${ApiUrl}/api/payments/get/${id}/paid`);
       return res.data;
     },
     getNextPageParam: (lastPage, allPages) => lastPage?.hasNext ? allPages.length + 1 : undefined,
@@ -59,6 +59,7 @@ export default function PaymentsList() {
   });
 
   const invoiceList = invoiceData?.pages.flatMap(page => page.data) ?? [];
+
 
 
   const renderContent = () => {

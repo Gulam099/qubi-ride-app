@@ -53,12 +53,14 @@ export default function LibraryPage() {
 
   const allContent = data?.pages.flatMap((page) => page.data) ?? [];
 
+  console.log("allcontent", allContent);
+
   const filteredContent =
     activeTab === "All"
       ? allContent
       : allContent.filter(
-          (item) => item.type?.toLowerCase() === activeTab.toLowerCase()
-        );
+        (item) => item.type?.toLowerCase() === activeTab.toLowerCase()
+      );
 
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -137,6 +139,7 @@ export default function LibraryPage() {
               type={item.type}
               seenCount={item.favorites || 0}
               rating={item.rating || 0}
+              contentId={item._id}
             />
           )}
           onEndReached={loadMore}
