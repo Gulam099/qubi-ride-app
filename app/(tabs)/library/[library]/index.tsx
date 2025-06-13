@@ -169,7 +169,7 @@ export default function LibraryPage() {
           )}
 
           {/* Feedback */}
-          {libraryItem.feedback && libraryItem.feedback.length > 0 && (
+          {/* {libraryItem.feedback && libraryItem.feedback.length > 0 && (
             <View className=" gap-2">
               <Text className="font-semibold text-xl">Feedback</Text>
               {libraryItem.feedback.map((item: any, index: any) => (
@@ -200,7 +200,7 @@ export default function LibraryPage() {
                 </View>
               ))}
             </View>
-          )}
+          )} */}
         </View>
       </ScrollView>
     </>

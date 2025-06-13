@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, StyleSheet } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ApiUrl } from "@/const";
 import { toast } from "sonner-native";
@@ -49,38 +49,62 @@ export default function PaymentPage() {
   //     enabled: !!paymentId,
   //   });
 
+   const selectedDateTimes = useMemo(() => {
+    if (!selectedDateTime) return [];
+    
+    // If it's a string (single date), convert to array
+    if (typeof selectedDateTime === 'string') {
+      try {
+        // Try to parse as JSON first (in case it's a stringified array)
+        const parsed = JSON.parse(selectedDateTime);
+        return Array.isArray(parsed) ? parsed : [selectedDateTime];
+      } catch {
+        // If JSON parse fails, treat as single date string
+        return [selectedDateTime];
+      }
+    }
+    
+    // If it's already an array, use it directly
+    if (Array.isArray(selectedDateTime)) {
+      return selectedDateTime;
+    }
+    
+    return [];
+  }, [selectedDateTime]);
+
+
   const { mutate: createVideoCall } = useMutation({
     mutationFn: async () => {
-      const videoCallPayload = {
-        bookingId: bookingId,
-        patientId: userId,
-        doctorId: doctorId,
-        type: "video",
-        scheduledAt: selectedDateTime,
-        duration: sessionDuration,
-        instant: false,
-        // sessionCount: parseInt(numberOfSessions),
-        // complaint: complaint,
-        // Add any other video call specific data you need
-        // roomName: `room_${bookingId}_${Date.now()}`, // Generate unique room name
-        // status: "scheduled"
-      };
-      if (instant === "true") return;
-      const response = await fetch(`${ApiUrl}/api/room/create-room`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(videoCallPayload),
-      });
+      const responses = [];
+      for (const selectedDateTime of selectedDateTimes) {
+        const videoCallPayload = {
+          bookingId: bookingId,
+          patientId: userId,
+          doctorId: doctorId,
+          type: "video",
+          scheduledAt: selectedDateTime,
+          duration: sessionDuration,
+          instant: false,
+        };
+        if (instant === "true") return;
+        const response = await fetch(`${ApiUrl}/api/room/create-room`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(videoCallPayload),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create video call");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create video call");
+        }
+        const result = await response.json();
+        responses.push(result);
       }
-
-      return await response.json();
+      return responses; 
     },
+
     onSuccess: (data) => {
       console.log("Video call created successfully:", data);
       toast.success("Video call scheduled successfully!");
