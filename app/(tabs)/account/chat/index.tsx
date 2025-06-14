@@ -8,31 +8,35 @@ import { Trash } from "iconsax-react-native";
 import colors from "@/utils/colors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiNewUrl } from "@/const";
+import { useUser } from "@clerk/clerk-expo";
 
 function ChatListPage() {
+  const { user } = useUser();
   const [value, setValue] = useState("specific_specialists");
   const [doctors, setDoctors] = useState([]);
   const router = useRouter();
-
+  const userId = user?.publicMetadata?.dbPatientId as string;
+  console.log('userId',userId)
   useEffect(() => {
     const fetchdoctors = async () => {
       try {
-        const response = await fetch(`${apiNewUrl}/api/doctors/getall`);
+        const response = await fetch(`${apiNewUrl}/api/doctor/chat/userId/${userId}`);
         const doctorData = await response.json();
 
-        setDoctors(doctorData.data);
+        setDoctors(doctorData.doctors);
       } catch (error) {
         console.error("Error fetching doctors:", error.message);
       }
     };
 
     fetchdoctors();
-  }, []);
+  }, [userId]);
 
   const handleChatPress = (id: string) => {
       console.log("Navigating to doctor ID:", id)
+      console.log("Navigating to:", `/tabs)/account/chat/c/${id}`);
     router.push(
-      `/(tabs)/chat/c/${id}` as RelativePathString
+      `/(tabs)/account/chat/c/${id}`
     );
   };
 
@@ -90,7 +94,7 @@ function ChatListPage() {
             keyExtractor={(item, index) => item.id ? item.id.toString() : `doctor-${index}`}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => handleChatPress(item._id)}
+                onPress={() => handleChatPress(item.doctorId)}
                 className="bg-white rounded-xl p-4 shadow-sm"
               >
                 <View className="flex-row items-center gap-3">

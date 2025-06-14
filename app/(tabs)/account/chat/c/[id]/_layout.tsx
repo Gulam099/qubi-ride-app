@@ -24,7 +24,7 @@ export default function ChatLayout() {
         }}
       />
       <Stack.Screen
-        name="c/[id]"
+        name="[id]"
         options={{
           headerTitle: ({ children }) => (
             <Text className="font-semibold text-lg">My Chats</Text>
