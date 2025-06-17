@@ -41,7 +41,7 @@ const InstantBookingContent = () => {
 
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
-  
+
   // specialization options
   const specializationOptions = [
     { value: "assistant_specialist", label: "Assistant Specialist" },
@@ -82,7 +82,7 @@ const InstantBookingContent = () => {
       // 1. Create Payment first
       const paymentPayload = {
         userId: userId,
-        amount: 1000, 
+        amount: 1000,
         currency: "SAR",
         description: data.overview || "Instant consultation booking",
         status: "initiated",
@@ -92,7 +92,7 @@ const InstantBookingContent = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
+          Authorization: `Bearer ${process.env.MYFATOORAH_TEST_TOKEN}`,
         },
         body: JSON.stringify(paymentPayload),
       });
@@ -132,7 +132,7 @@ const InstantBookingContent = () => {
       toast.success("Instant booking created successfully!");
       reset();
       console.log("Booking result:", bookingResult);
-      
+
       if (paymentId) {
         router.push(`/(stacks)/paymentpage/${paymentId}`);
         console.log('route', `/(stacks)/paymentpage/${paymentId}`);
@@ -152,8 +152,8 @@ const InstantBookingContent = () => {
 
   return (
     <View className="relative w-full flex-1 bg-white">
-      <ScrollView 
-        className="flex-1" 
+      <ScrollView
+        className="flex-1"
         contentContainerStyle={{ padding: 16, gap: 16 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -381,8 +381,8 @@ const InstantBookingContent = () => {
         </View>
 
         {/* Submit Button */}
-        <Button 
-          onPress={handleSubmit(onSubmit)} 
+        <Button
+          onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}
           className="mb-4"
         >

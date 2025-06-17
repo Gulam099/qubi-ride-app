@@ -26,7 +26,7 @@ const relationshipOptions = [
 
 function FamilyPage() {
   const { user } = useUser();
-  const phoneNumber = user?.phoneNumbers?.[0]?.phoneNumber?.replace("+91", "");
+  const phoneNumber = user?.phoneNumbers?.[0]?.phoneNumber;
   const [familyMembers, setFamilyMembers] = useState<FamilyType[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<FamilyType | null>(null);

@@ -73,6 +73,8 @@ const JoinRoom = () => {
     }
   };
 
+  console.log("room data", roomData);
+
   // Handle session end (show rating modal)
   const handleSessionEnd = () => {
     setSessionEnded(true);
@@ -205,12 +207,15 @@ const JoinRoom = () => {
 
       const userId = roomData?.patientId ?? roomData?.patient?._id;
       const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
+      const amount = roomData?.doctorId?.fees;
       console.log("userId", "doctorId", userId, doctorId, roomData?.bookingId);
+
+
 
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
-        amount: 1000,
+        amount: amount,
         currency: "SAR",
         description: "Medical consultation session",
         status: "initiated",
@@ -222,7 +227,7 @@ const JoinRoom = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
+          Authorization: `Bearer ${process.env.MYFATOORAH_TEST_TOKEN}`,
         },
         body: JSON.stringify(paymentPayload),
       });
@@ -564,7 +569,7 @@ const JoinRoom = () => {
           visible={showRatingModal}
           animationType="slide"
           transparent={true}
-          onRequestClose={() => {}}
+          onRequestClose={() => { }}
         >
           <View
             style={{
