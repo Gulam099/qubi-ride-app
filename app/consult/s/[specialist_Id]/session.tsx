@@ -183,7 +183,7 @@ export default function SessionConsultPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.EXPO_MOYASAR_TEST_SECRET_KEY}`,
+          Authorization: `Bearer ${process.env.MYFATOORAH_TEST_TOKEN}`,
         },
         body: JSON.stringify(paymentPayload),
       });
@@ -215,7 +215,7 @@ export default function SessionConsultPage() {
           doctorId: bookingData.doctorId,
           selectedDateTime: bookingData.selectedDateTime,
           sessionDuration: bookingData.sessionDuration.toString(),
-          numberOfSessions: bookingData.numberOfSessions. toString(),
+          numberOfSessions: bookingData.numberOfSessions.toString(),
           bookingId: bookingId || "",
         }).toString();
         router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
@@ -257,10 +257,10 @@ export default function SessionConsultPage() {
     <>
       <View className="relative w-full flex-1 bg-white">
         <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16, gap: 16 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+          className="flex-1"
+          contentContainerStyle={{ padding: 16, gap: 16 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {/* Language Selection */}
           <View>
@@ -410,11 +410,10 @@ export default function SessionConsultPage() {
               className="flex-row items-center gap-3"
             >
               <View
-                className={`w-5 h-5 border-2 rounded ${
-                  isForFamilyMember
+                className={`w-5 h-5 border-2 rounded ${isForFamilyMember
                     ? "bg-blue-500 border-blue-500"
                     : "border-gray-400"
-                } justify-center items-center`}
+                  } justify-center items-center`}
               >
                 {isForFamilyMember && (
                   <Text className="text-white text-xs">✓</Text>

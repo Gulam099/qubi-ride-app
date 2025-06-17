@@ -48,18 +48,24 @@ export const SchedulePickerButton = ({
   selectedDateTime: string;
   setSelectedDateTime: (value: string) => void;
 }) => {
-  // Parse selectedDateTime to handle multiple slots
   const parseSelectedSlots = (dateTimeStr: string) => {
     if (!dateTimeStr) return [];
     try {
       return JSON.parse(dateTimeStr);
     } catch {
-      // If it's a single slot (backward compatibility)
       return [dateTimeStr];
     }
   };
 
   const selectedSlots = parseSelectedSlots(selectedDateTime);
+
+  // Convert UTC to local time for display
+  const formatLocalDate = (utcDate: string) => {
+    const date = new Date(utcDate);
+    // Add the timezone offset to convert to local time
+    const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    return format(localDate, "EEEE  , dd MMMM yyyy , hh : mm a");
+  };
 
   return (
     <Button
@@ -71,11 +77,8 @@ export const SchedulePickerButton = ({
         {selectedSlots.length === 0
           ? "Please Select Date time"
           : selectedSlots.length === 1
-          ? format(
-              new Date(selectedSlots[0]),
-              "EEEE  , dd MMMM yyyy , hh : mm a"
-            )
-          : `${selectedSlots.length} slots selected on ${format(
+            ? formatLocalDate(selectedSlots[0])
+            : `${selectedSlots.length} slots selected on ${format(
               new Date(selectedSlots[0]),
               "EEEE  , dd MMMM yyyy"
             )}`}
@@ -159,13 +162,13 @@ export const SchedulePickerSheet = forwardRef<
       selectedSlots.length > 0
         ? selectedSlots.length === 1
           ? format(
-              new Date(selectedSlots[0]),
-              "EEEE  , dd MMMM yyyy , hh : mm a"
-            )
+            new Date(selectedSlots[0]),
+            "EEEE  , dd MMMM yyyy , hh : mm a"
+          )
           : `${selectedSlots.length} slots selected on ${format(
-              new Date(selectedSlots[0]),
-              "EEEE  , dd MMMM yyyy"
-            )}`
+            new Date(selectedSlots[0]),
+            "EEEE  , dd MMMM yyyy"
+          )}`
         : "";
 
     console.log(
@@ -241,11 +244,7 @@ export const SchedulePickerSheet = forwardRef<
 
     // ✅ Generate time slots for selected date
     const timesForSelectedDate = useMemo(() => {
-      if (
-        !selectedDate ||
-        !doctorSchedule ||
-        !(selectedDate in doctorSchedule)
-      ) {
+      if (!selectedDate || !doctorSchedule || !(selectedDate in doctorSchedule)) {
         return [];
       }
 
@@ -256,24 +255,27 @@ export const SchedulePickerSheet = forwardRef<
       }
 
       try {
-        let current = new Date(start);
-        const endDate = new Date(end);
+        // Create dates in local timezone
+        const startDate = new Date(selectedDate + 'T' + start.split('T')[1]);
+        const endDate = new Date(selectedDate + 'T' + end.split('T')[1]);
+
+        let current = new Date(startDate);
         const slots = [];
 
-        // Ensure we don't generate slots in the past
         const now = new Date();
-        const selectedDateObj = new Date(selectedDate);
-        const isToday =
-          format(selectedDateObj, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+        const isToday = format(now, "yyyy-MM-dd") === selectedDate;
 
         while (isBefore(current, endDate)) {
-          // If it's today, only show future time slots
           if (!isToday || current > now) {
-            const slotInfo = {
-              time: current.toISOString(),
-              isBooked: flatBookedSlotIsos.includes(current.toISOString()),
-            };
-            slots.push(slotInfo);
+            // Store as ISO string but keep local time
+            const localTime = new Date(
+              current.getTime() - current.getTimezoneOffset() * 60000
+            ).toISOString();
+
+            slots.push({
+              time: localTime,
+              isBooked: flatBookedSlotIsos.includes(localTime),
+            });
           }
           current = addMinutes(current, 30);
         }
@@ -368,20 +370,19 @@ export const SchedulePickerSheet = forwardRef<
                       isSelected
                         ? "default"
                         : isAvailable && !finalDisabled
-                        ? "outline"
-                        : "ghost"
+                          ? "outline"
+                          : "ghost"
                     }
                   >
                     <Text
-                      className={`${
-                        finalDisabled || state === "disabled"
-                          ? "text-gray-300"
-                          : isSelected
+                      className={`${finalDisabled || state === "disabled"
+                        ? "text-gray-300"
+                        : isSelected
                           ? "text-white"
                           : isAvailable
-                          ? "text-green-600 font-semibold"
-                          : "text-gray-400"
-                      }`}
+                            ? "text-green-600 font-semibold"
+                            : "text-gray-400"
+                        }`}
                     >
                       {date.day}
                     </Text>
@@ -408,7 +409,7 @@ export const SchedulePickerSheet = forwardRef<
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 4 }}
-                    
+
                   >
                     <View className="flex-row gap-2">
                       {timesForSelectedDate.map((slot) => {
@@ -439,7 +440,7 @@ export const SchedulePickerSheet = forwardRef<
                                       slot.time,
                                     ].sort();
                                   } else {
-                                    return; 
+                                    return;
                                   }
                                 }
 
@@ -455,35 +456,33 @@ export const SchedulePickerSheet = forwardRef<
                               (!isSelected &&
                                 selectedSlots.length >= numberOfSessions)
                             }
-                            className={` ${
-                              isBooked
-                                ? "bg-red-100 border-red-300 opacity-60"
-                                : isSelected
+                            className={` ${isBooked
+                              ? "bg-red-100 border-red-300 opacity-60"
+                              : isSelected
                                 ? "bg-blue-600 border-blue-600"
                                 : !canSelect &&
                                   selectedSlots.length >= numberOfSessions
-                                ? "bg-gray-100 border-gray-200 opacity-50"
-                                : "border-gray-300"
-                            }`}
+                                  ? "bg-gray-100 border-gray-200 opacity-50"
+                                  : "border-gray-300"
+                              }`}
                             variant={
                               isBooked
                                 ? "outline"
                                 : isSelected
-                                ? "default"
-                                : "outline"
+                                  ? "default"
+                                  : "outline"
                             }
                           >
                             <Text
-                              className={`font-medium ${
-                                isBooked
-                                  ? "text-red-600"
-                                  : isSelected
+                              className={`font-medium ${isBooked
+                                ? "text-red-600"
+                                : isSelected
                                   ? "text-white"
                                   : !canSelect &&
                                     selectedSlots.length >= numberOfSessions
-                                  ? "text-gray-400"
-                                  : "text-gray-700"
-                              }`}
+                                    ? "text-gray-400"
+                                    : "text-gray-700"
+                                }`}
                             >
                               {time}
                               {isBooked && " (Booked)"}
