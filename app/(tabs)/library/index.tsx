@@ -146,7 +146,7 @@ export default function LibraryPage() {
               image={item.thumbnail || "https://placehold.co/200"}
               link={`/library/${item._id}`}
               type={item.type}
-              seenCount={item.favorites || 0}
+              seenCount={item.seenCount}
               rating={item.rating || 0}
               comments={item.comments || []} // Pass real comments from DB
               shareCount={item.shareCount || 0} // Pass real share count from DB

@@ -9,28 +9,10 @@ export default function ChatLayout() {
   return (
     <Stack
       screenOptions={{
-        headerLeft: () => <BackButton className="" />,
-        headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: false,
         headerTintColor: "white",
       }}
     >
-      <Stack.Screen
-        name="index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">My Chats</Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="[id]"
-        options={{
-          headerTitle: ({ children }) => (
-            <Text className="font-semibold text-lg">My Chats</Text>
-          ),
-        }}
-      />
     </Stack>
   );
 }

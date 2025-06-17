@@ -20,59 +20,54 @@ export default function PatientLayout() {
   const { user } = useUser();
 
   const tabConfig = [
-    {
-      name: "index",
-      title: "Home",
-      icon: Home,
-      headerLeft: ({ user }: any) => (
-        <View className="pl-4">
-          <Link href={"/account"}>
-            <ProfileImage
-              className="size-12 border border-primary-600"
-              TextClassName="text-sm font-bold"
-              imageUrl={user?.imageUrl!}
-              name={user?.firstName!}
-            />
-          </Link>
-        </View>
-      ),
-      headerTitle: ({ user }: any) => (
-        <Link href={"/account"} className="ml-2">
-          <Text className="font-semibold text-lg text-white">
-            Hello, {user?.firstName ?? "User"}
-          </Text>
+  {
+    name: "index",
+    title: "Home",
+    icon: Home,
+    headerLeft: ({ user }: any) => (
+      <View className="pl-4">
+        <Link href={"/account"}>
+          <ProfileImage
+            className="size-12 border border-primary-600"
+            TextClassName="text-sm font-bold"
+            imageUrl={user?.imageUrl!}
+            name={user?.firstName!}
+          />
         </Link>
-      ),
-      headerTransparent: true,
-      headerStyle: {
-        backgroundColor: "#00000056",
-      },
+      </View>
+    ),
+    headerTitle: ({ user }: any) => (
+      <Link href={"/account"} className="ml-2">
+        <Text className="font-semibold text-lg text-white">
+          Hello, {user?.firstName ?? "User"}
+        </Text>
+      </Link>
+    ),
+    headerTransparent: true,
+    headerStyle: {
+      backgroundColor: "#00000056",
     },
-    {
-      name: "support",
-      title: "Group",
-      icon: Profile2User,
-      headerShown: false,
-    },
-    {
-      name: "program",
-      title: "Programs",
-      icon: ShieldTick,
-      headerShown: false,
-    },
-    {
-      name: "library",
-      title: "Library",
-      icon: Notepad,
-      headerShown: false,
-    },
-    {
-      name: "account",
-      title: "File",
-      icon: DocumentText1,
-      headerShown: false,
-    },
-  ];
+  },
+  {
+    name: "program",
+    title: "Programs",
+    icon: ShieldTick,
+    headerShown: false,
+  },
+  {
+    name: "library",
+    title: "Library",
+    icon: Notepad,
+    headerShown: false,
+  },
+  {
+    name: "account",
+    title: "File",
+    icon: DocumentText1,
+    headerShown: false,
+  },
+];
+
 
   return (
     <Tabs

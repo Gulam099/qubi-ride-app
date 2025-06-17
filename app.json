@@ -30,6 +30,17 @@
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
+        },
+       {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "baserti",
+              "host": "library",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

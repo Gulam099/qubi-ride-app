@@ -1,99 +1,82 @@
 import { View, Text, FlatList } from "react-native";
 import React, { useState } from "react";
-import {
-  RelativePathString,
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
+import { useRouter } from "expo-router";
 import SpecialistCard from "@/features/account/components/SpecialistCard";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { toast } from "sonner-native";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
-import { SearchNormal1 } from "iconsax-react-native";
 
-type UserTodayType = {
+type UserScheduleType = {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  todaySchedule: any;
-  image:String
+  scheduleDate: string; 
+  schedule: {
+    isHoliday: boolean;
+    start: string;
+    end: string;
+    [key: string]: any;
+  };
+  image: string;
 };
 
 export default function UsersTodayPage() {
   const router = useRouter();
-
   const [searchText, setSearchText] = useState("");
 
-  // Fetching users with today's schedules using `useQuery`
   const {
     data: usersData,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["users-today"],
+    queryKey: ["users-scheduled"],
     queryFn: async () => {
-      const response = await fetch(`${ApiUrl}/users/today`);
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to fetch users.");
-      }
-      return result.users; // Extract users array from response
+      const res = await fetch(`${ApiUrl}/users/today`);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to fetch users.");
+      return result.users; // Includes both today & tomorrow
     },
   });
 
-  console.log("user", usersData);
-
-   const getAvailableUsers = (users: UserTodayType[]) => {
+  const getAvailableUsers = (users: UserScheduleType[]) => {
     if (!users) return [];
-    
-    const currentTime = new Date();
-    
-    return users.filter((user: UserTodayType) => {
-      // Check if user has today's schedule
-      if (!user.todaySchedule) return false;
-      
-      // Skip if it's a holiday - doctor is not available
-      if (user.todaySchedule.isHoliday === true) return false;
-      
-      // Parse the end time from the schedule
-      const endTime = new Date(user.todaySchedule.end);
-      
-      // Only show doctors whose end time is greater than current time (still available)
-      return endTime > currentTime;
+
+    const now = new Date();
+
+    return users.filter((user) => {
+      const { schedule } = user;
+      if (!schedule || schedule.isHoliday) return false;
+      const end = new Date(schedule.end);
+      return end > now;
     });
   };
 
-    const availableUsers = getAvailableUsers(usersData);
+  const availableUsers = getAvailableUsers(usersData);
 
-  console.log('availableUsers',availableUsers)
-  // Handle search filtering
-  const filteredUsers = availableUsers?.filter((user: UserTodayType) => {
+  // Optional: sort users by scheduleDate (today first)
+  const sortedUsers = availableUsers.sort((a, b) =>
+    a.scheduleDate.localeCompare(b.scheduleDate)
+  );
+
+  const filteredUsers = sortedUsers.filter((user) => {
     const fullName = `${user.firstName || ""} ${user.lastName || ""}`
       .toLowerCase()
       .trim();
     const email = user.email?.toLowerCase() || "";
-
-    return (
-      fullName.includes(searchText.toLowerCase()) ||
-      email.includes(searchText.toLowerCase())
-    );
+    const search = searchText.toLowerCase();
+    return fullName.includes(search) || email.includes(search);
   });
 
   const getEmptyStateMessage = () => {
     if (!availableUsers || availableUsers.length === 0) {
-      return "No doctors available.";
+      return "No doctors available instantly please book scheduled appointment.";
     }
-    
-    if (searchText.trim() && filteredUsers?.length === 0) {
+    if (searchText.trim() && filteredUsers.length === 0) {
       return "No doctors match your search.";
     }
-    
     return "";
   };
-
 
   if (isLoading) {
     return (
@@ -113,54 +96,46 @@ export default function UsersTodayPage() {
 
   return (
     <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
-      <View className="flex-col gap-3">
-        <Input
-          placeholder="Search for a user"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+      <Input
+        placeholder="Search for a doctor"
+        value={searchText}
+        onChangeText={setSearchText}
+      />
 
-        {filteredUsers?.length > 0 ? (
-          <FlatList
-            data={filteredUsers}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              return (
-                <SpecialistCard
-                  key={item.id}
-                  name={
-                    `${item.firstName || ""} ${item.lastName || ""}`.trim() ||
-                    "Unknown User"
-                  }
-                  title={item.email}
-                  price={`${
-                    Object.keys(item.allSchedules || {}).length
-                  } schedules`}
-                  likes={0}
-                  imageUrl={item.image}
-                  shareLink={`${item.id}`}
-                  onPress={() => {
-                    console.log("Navigating with ID:", item.id);
-                    // FIX: Navigate to match your file structure [specialist_Id]
-                    router.push({
-                      pathname: `/instant-booking/s/${item.id}`, // second page
-                      params: {
-                        todaySchedule: JSON.stringify(item.todaySchedule), // safely pass as string
-                      },
-                    });
-                  }}
-                />
-              );
-            }}
-            showsVerticalScrollIndicator={false}
-            contentContainerClassName="flex flex-col gap-3 pb-16"
-          />
-        ) : (
-          <Text className="text-center text-gray-500">
-            {getEmptyStateMessage()}
-          </Text>
-        )}
-      </View>
+      {filteredUsers.length > 0 ? (
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <SpecialistCard
+              key={item.id}
+              name={`${item.firstName} ${item.lastName}`.trim()}
+              title={item.email}
+              price={`${item.scheduleDate} | ${
+                item.schedule?.start?.split("T")[1]?.slice(0, 5) || ""
+              } - ${item.schedule?.end?.split("T")[1]?.slice(0, 5) || ""}`}
+              likes={0}
+              imageUrl={item.image}
+              shareLink={item.id}
+              onPress={() => {
+                router.push({
+                  pathname: `/instant-booking/s/${item.id}`,
+                  params: {
+                    schedule: JSON.stringify(item.schedule),
+                    scheduleDate: item.scheduleDate,
+                  },
+                });
+              }}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerClassName="flex flex-col gap-3 pb-16"
+        />
+      ) : (
+        <Text className="text-center text-gray-500">
+          {getEmptyStateMessage()}
+        </Text>
+      )}
     </View>
   );
 }

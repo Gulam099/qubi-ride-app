@@ -286,131 +286,125 @@ export const SchedulePickerSheet = forwardRef<
     }, [selectedDate, doctorSchedule, flatBookedSlotIsos]);
 
     return (
-      <BottomSheet
+       <BottomSheet
         ref={internalSheetRef}
         index={-1}
         enableDynamicSizing={false}
         snapPoints={["100%"]}
       >
-        <BottomSheetView className="w-full flex-1 bg-white p-4">
-          <View className="gap-4">
-            <Text className="text-lg font-medium">
-              {CalenderHeading ?? "Available Dates"}
-            </Text>
-
-            <View className="bg-background rounded-lg py-2 flex justify-center items-start">
-              {selectedSlots.length > 0 ? (
-                <View className="w-full">
-                  <Text className="text-xl bg-neutral-100 text-primary-600 p-4 rounded-xl text-center w-full mb-2">
-                    {formattedDateTime}
+        <BottomSheetScrollView className="flex-1 bg-white">
+          <View className="p-4 pb-8">
+            <View className="gap-4">
+              <Text className="text-lg font-medium">
+                {CalenderHeading ?? "Available Dates"}
+              </Text>
+              <View className="bg-background rounded-lg py-2 flex justify-center items-start">
+                {selectedSlots.length > 0 ? (
+                  <View className="w-full">
+                    <Text className="text-xl bg-neutral-100 text-primary-600 p-4 rounded-xl text-center w-full mb-2">
+                      {formattedDateTime}
+                    </Text>
+                    {selectedSlots.length > 1 && (
+                      <View className="flex-row flex-wrap gap-2 px-2">
+                        {selectedSlots.map((slot, index) => (
+                          <Text
+                            key={index}
+                            className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                          >
+                            {format(new Date(slot), "h:mm a")}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <Text className="text-gray-600 text-xl bg-neutral-100 p-4 rounded-xl text-center w-full">
+                    Please select {numberOfSessions} time slot
+                    {numberOfSessions > 1 ? "s" : ""}.
                   </Text>
-                  {selectedSlots.length > 1 && (
-                    <View className="flex-row flex-wrap gap-2 px-2">
-                      {selectedSlots.map((slot, index) => (
-                        <Text
-                          key={index}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                        >
-                          {format(new Date(slot), "h:mm a")}
-                        </Text>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <Text className="text-gray-600 text-xl bg-neutral-100 p-4 rounded-xl text-center w-full">
-                  Please select {numberOfSessions} time slot
-                  {numberOfSessions > 1 ? "s" : ""}.
-                </Text>
-              )}
-            </View>
+                )}
+              </View>
+              
+              {/* Calendar */}
+              <Calendar
+                minDate={minDate}
+                maxDate={maxDate}
+                markedDates={markedDates}
+                disableAllTouchEventsForDisabledDays={true}
+                onDayPress={(day) => {
+                  const date = new Date(day.dateString);
+                  if (!isDayDisabled(date)) {
+                    setSelectedDate(day.dateString);
+                    // Reset selected slots when date changes
+                    setSelectedSlots([]);
+                    setSelectedDateTime("");
+                  }
+                }}
+                dayComponent={({ date, state }) => {
+                  const dateObj = new Date(date.dateString);
+                  const isDisabled = isDayDisabled(dateObj);
+                  const isSelected = selectedDate === date.dateString;
+                  const isAvailable = markedDates?.[date.dateString];
 
-            {/* Calendar */}
-            <Calendar
-              minDate={minDate}
-              maxDate={maxDate}
-              markedDates={markedDates}
-              disableAllTouchEventsForDisabledDays={true}
-              onDayPress={(day) => {
-                const date = new Date(day.dateString);
-                if (!isDayDisabled(date)) {
-                  setSelectedDate(day.dateString);
-                  // Reset selected slots when date changes
-                  setSelectedSlots([]);
-                  setSelectedDateTime("");
-                }
-              }}
-              dayComponent={({ date, state }) => {
-                const dateObj = new Date(date.dateString);
-                const isDisabled = isDayDisabled(dateObj);
-                const isSelected = selectedDate === date.dateString;
-                const isAvailable = markedDates?.[date.dateString];
+                  const isBeforeMin = minDate && dateObj < new Date(minDate);
+                  const isAfterMax = maxDate && dateObj > new Date(maxDate);
+                  const isOutOfRange = isBeforeMin || isAfterMax;
 
-                const isBeforeMin = minDate && dateObj < new Date(minDate);
-                const isAfterMax = maxDate && dateObj > new Date(maxDate);
-                const isOutOfRange = isBeforeMin || isAfterMax;
+                  const finalDisabled = isDisabled || isOutOfRange;
 
-                const finalDisabled = isDisabled || isOutOfRange;
-
-                return (
-                  <Button
-                    disabled={finalDisabled}
-                    size="icon"
-                    onPress={() => {
-                      if (!finalDisabled) {
-                        setSelectedDate(date.dateString);
-                        setSelectedSlots([]);
-                        setSelectedDateTime("");
+                  return (
+                    <Button
+                      disabled={finalDisabled}
+                      size="icon"
+                      onPress={() => {
+                        if (!finalDisabled) {
+                          setSelectedDate(date.dateString);
+                          setSelectedSlots([]);
+                          setSelectedDateTime("");
+                        }
+                      }}
+                      className="items-center justify-center w-10 h-10 rounded-full"
+                      variant={
+                        isSelected
+                          ? "default"
+                          : isAvailable && !finalDisabled
+                          ? "outline"
+                          : "ghost"
                       }
-                    }}
-                    className="items-center justify-center w-10 h-10 rounded-full"
-                    variant={
-                      isSelected
-                        ? "default"
-                        : isAvailable && !finalDisabled
-                        ? "outline"
-                        : "ghost"
-                    }
-                  >
-                    <Text
-                      className={`${
-                        finalDisabled || state === "disabled"
-                          ? "text-gray-300"
-                          : isSelected
-                          ? "text-white"
-                          : isAvailable
-                          ? "text-green-600 font-semibold"
-                          : "text-gray-400"
-                      }`}
                     >
-                      {date.day}
-                    </Text>
-                  </Button>
-                );
-              }}
-            />
-
-            {/* Time Slots */}
-            {selectedDate && (
-              <View>
-                <Text className="font-semibold mb-2">
-                  {TimeSliderHeading ?? "Available Times"}
-                  {numberOfSessions > 1 && (
-                    <Text className="text-sm text-gray-600 font-normal">
-                      {" "}
-                      (Select {numberOfSessions} slots - {selectedSlots.length}/
-                      {numberOfSessions} selected)
-                    </Text>
-                  )}
-                </Text>
-                {timesForSelectedDate.length > 0 ? (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 4 }}
-                    
-                  >
-                    <View className="flex-row gap-2">
+                      <Text
+                        className={`${
+                          finalDisabled || state === "disabled"
+                            ? "text-gray-300"
+                            : isSelected
+                            ? "text-white"
+                            : isAvailable
+                            ? "text-green-600 font-semibold"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {date.day}
+                      </Text>
+                    </Button>
+                  );
+                }}
+              />
+              
+              {/* Time Slots */}
+              {selectedDate && (
+                <View>
+                  <Text className="font-semibold mb-2">
+                    {TimeSliderHeading ?? "Available Times"}
+                    {numberOfSessions > 1 && (
+                      <Text className="text-sm text-gray-600 font-normal">
+                        {" "}
+                        (Select {numberOfSessions} slots - {selectedSlots.length}/
+                        {numberOfSessions} selected)
+                      </Text>
+                    )}
+                  </Text>
+                  {timesForSelectedDate.length > 0 ? (
+                    <View className="flex-row flex-wrap gap-2">
                       {timesForSelectedDate.map((slot) => {
                         const time = format(new Date(slot.time), "h:mm a");
                         const isSelected = selectedSlots.includes(slot.time);
@@ -439,7 +433,7 @@ export const SchedulePickerSheet = forwardRef<
                                       slot.time,
                                     ].sort();
                                   } else {
-                                    return; 
+                                    return;
                                   }
                                 }
 
@@ -455,7 +449,7 @@ export const SchedulePickerSheet = forwardRef<
                               (!isSelected &&
                                 selectedSlots.length >= numberOfSessions)
                             }
-                            className={` ${
+                            className={`mb-2 ${
                               isBooked
                                 ? "bg-red-100 border-red-300 opacity-60"
                                 : isSelected
@@ -472,6 +466,11 @@ export const SchedulePickerSheet = forwardRef<
                                 ? "default"
                                 : "outline"
                             }
+                            style={{
+                              minWidth: 90,
+                              marginRight: 8,
+                              marginBottom: 8,
+                            }}
                           >
                             <Text
                               className={`font-medium ${
@@ -492,29 +491,31 @@ export const SchedulePickerSheet = forwardRef<
                         );
                       })}
                     </View>
-                  </ScrollView>
-                ) : (
-                  <Text className="text-gray-500 text-center py-4">
-                    No available time slots for this date
-                  </Text>
-                )}
-              </View>
-            )}
+                  ) : (
+                    <Text className="text-gray-500 text-center py-4">
+                      No available time slots for this date
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+            
+            {/* Done Button - Now inside the scrollable area */}
+            <Button
+              onPress={() => {
+                internalSheetRef.current?.close();
+              }}
+              className="mt-4"
+              disabled={selectedSlots.length !== numberOfSessions}
+            >
+              <Text className="text-white">
+                Done{" "}
+                {selectedSlots.length > 0 &&
+                  `(${selectedSlots.length}/${numberOfSessions})`}
+              </Text>
+            </Button>
           </View>
-          <Button
-            onPress={() => {
-              internalSheetRef.current?.close();
-            }}
-            className="mt-4"
-            disabled={selectedSlots.length !== numberOfSessions}
-          >
-            <Text className="text-white">
-              Done{" "}
-              {selectedSlots.length > 0 &&
-                `(${selectedSlots.length}/${numberOfSessions})`}
-            </Text>
-          </Button>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheet>
     );
   }
