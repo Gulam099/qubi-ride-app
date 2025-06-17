@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,9 +9,20 @@ import { FamilyFormType, FamilyType } from "@/features/family/types/FamilyType";
 import { Label } from "@/components/ui/Label";
 import { useUser } from "@clerk/clerk-expo";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { X } from "lucide-react-native";
+import { X, ChevronDown } from "lucide-react-native";
 import { ApiUrl } from "@/const";
 import axios from "axios";
+
+const relationshipOptions = [
+  { label: "Spouse", value: "spouse" },
+  { label: "Son", value: "son" },
+  { label: "Daughter", value: "daughter" },
+  { label: "Father", value: "father" },
+  { label: "Mother", value: "mother" },
+  { label: "Brother", value: "brother" },
+  { label: "Sister", value: "sister" },
+  { label: "Other", value: "other" }
+];
 
 function FamilyPage() {
   const { user } = useUser();
@@ -19,14 +30,18 @@ function FamilyPage() {
   const [familyMembers, setFamilyMembers] = useState<FamilyType[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<FamilyType | null>(null);
+  const [showRelationshipDropdown, setShowRelationshipDropdown] = useState(false);
 
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FamilyFormType>();
 
+  const relationshipValue = watch("relationship");
   const AddFamilyMemberFormBottomSheetRef = useRef<BottomSheet>(null);
 
   useEffect(() => {
@@ -84,6 +99,7 @@ function FamilyPage() {
       reset();
       setIsEditing(false);
       setCurrentMember(null);
+      setShowRelationshipDropdown(false);
       AddFamilyMemberFormBottomSheetRef.current?.close();
     } catch (error) {
       console.error("Error saving family member:", error);
@@ -99,7 +115,6 @@ function FamilyPage() {
         phoneNumber,
         familyMemberId: item._id,
       });
-
 
       const res = await axios.get(`${ApiUrl}/api/user/${phoneNumber}/family`);
       setFamilyMembers(res.data);
@@ -125,38 +140,57 @@ function FamilyPage() {
     AddFamilyMemberFormBottomSheetRef.current?.expand();
   };
 
-  return (
-    <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
-      {familyMembers.length === 0 ? (
-        <Text className="font-semibold text-center mt-[80%]">
-          No Family Member Added
-        </Text>
-      ) : (
-        <FlatList
-          data={familyMembers?.family}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={{ gap: 16, padding: 16 }}
-          renderItem={({ item }) => (
-            <FamilyMemberCard
-              item={item}
-              handleEdit={() => handleEdit(item)}
-              handleDelete={() => handleDelete(item)}
-            />
-          )}
-        />
-      )}
+  const handleRelationshipSelect = (value: string) => {
+    setValue("relationship", value);
+    setShowRelationshipDropdown(false);
+  };
 
-      <Button
-        className="mt-4 w-full"
-        onPress={() => {
-          reset();
-          setIsEditing(false);
-          setCurrentMember(null);
-          AddFamilyMemberFormBottomSheetRef.current?.expand();
+  const ListHeaderComponent = () => (
+    <Button
+      className="mb-4 w-full"
+      onPress={() => {
+        reset();
+        setIsEditing(false);
+        setCurrentMember(null);
+        setShowRelationshipDropdown(false);
+        AddFamilyMemberFormBottomSheetRef.current?.expand();
+      }}
+    >
+      <Text className="text-white font-medium">Add a new member</Text>
+    </Button>
+  );
+
+  const ListEmptyComponent = () => (
+    <View className="flex-1 justify-center items-center mt-20">
+      <Text className="font-semibold text-center">
+        No Family Member Added
+      </Text>
+    </View>
+  );
+
+  const renderFamilyMember = ({ item }: { item: FamilyType }) => (
+    <FamilyMemberCard
+      item={item}
+      handleEdit={() => handleEdit(item)}
+      handleDelete={() => handleDelete(item)}
+    />
+  );
+
+  return (
+    <View className="flex-1 bg-blue-50/10">
+      <FlatList
+        data={familyMembers?.family || []}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={{ 
+          padding: 16, 
+          gap: 16,
+          flexGrow: 1 
         }}
-      >
-        <Text className="text-white font-medium">Add a new member</Text>
-      </Button>
+        renderItem={renderFamilyMember}
+        ListHeaderComponent={ListHeaderComponent}
+        ListEmptyComponent={ListEmptyComponent}
+        showsVerticalScrollIndicator={false}
+      />
 
       <BottomSheet
         ref={AddFamilyMemberFormBottomSheetRef}
@@ -174,68 +208,137 @@ function FamilyPage() {
                 reset();
                 setIsEditing(false);
                 setCurrentMember(null);
+                setShowRelationshipDropdown(false);
                 AddFamilyMemberFormBottomSheetRef.current?.close();
               }}
             >
               <X size={20} color="#262626" />
             </Button>
 
-            {[
-              {
-                label: "Name",
-                name: "name",
-                placeholder: "Name",
-              },
-              {
-                label: "Id Number",
-                name: "idNumber",
-                placeholder: "54674832465854",
-              },
-              {
-                label: "Age",
-                name: "age",
-                placeholder: "Example: 12 years old",
-                isNumeric: true,
-              },
-              {
-                label: "File Number",
-                name: "fileNo",
-                placeholder: "Example: 13234345",
-              },
-              {
-                label: "Relative Relation",
-                name: "relationship",
-                placeholder: "Example: Mother",
-              },
-            ].map(({ label, name, placeholder, isNumeric }) => (
-              <View key={name}>
-                <Label>{label}</Label>
-                <Controller
-                  name={name as keyof FamilyFormType}
-                  control={control}
-                  rules={{ required: `${label} is required` }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      placeholder={placeholder}
-                      value={isNumeric ? value?.toString() : value}
-                      onChangeText={(text) =>
-                        isNumeric ? onChange(Number(text)) : onChange(text)
-                      }
-                      className="mb-3"
-                      keyboardType={isNumeric ? "numeric" : "default"}
-                    />
-                  )}
-                />
-                {errors?.[name as keyof FamilyFormType] && (
-                  <Text className="text-red-500">
-                    {
-                      errors?.[name as keyof FamilyFormType]
-                        ?.message as string
-                    }
-                  </Text>
+            {/* Name Field */}
+            <View>
+              <Label>Name</Label>
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: "Name is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="Name"
+                    value={value}
+                    onChangeText={onChange}
+                    className="mb-3"
+                  />
                 )}
-              </View>
-            ))}
+              />
+              {errors?.name && (
+                <Text className="text-red-500">{errors.name.message}</Text>
+              )}
+            </View>
+
+            {/* ID Number Field */}
+            <View>
+              <Label>Id Number</Label>
+              <Controller
+                name="idNumber"
+                control={control}
+                rules={{ required: "Id Number is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="54674832465854"
+                    value={value}
+                    onChangeText={onChange}
+                    className="mb-3"
+                  />
+                )}
+              />
+              {errors?.idNumber && (
+                <Text className="text-red-500">{errors.idNumber.message}</Text>
+              )}
+            </View>
+
+            {/* Age Field */}
+            <View>
+              <Label>Age</Label>
+              <Controller
+                name="age"
+                control={control}
+                rules={{ required: "Age is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="Example: 12 years old"
+                    value={value?.toString()}
+                    onChangeText={(text) => onChange(Number(text))}
+                    className="mb-3"
+                    keyboardType="numeric"
+                  />
+                )}
+              />
+              {errors?.age && (
+                <Text className="text-red-500">{errors.age.message}</Text>
+              )}
+            </View>
+
+            {/* File Number Field */}
+            <View>
+              <Label>File Number</Label>
+              <Controller
+                name="fileNo"
+                control={control}
+                rules={{ required: "File Number is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder="Example: 13234345"
+                    value={value}
+                    onChangeText={onChange}
+                    className="mb-3"
+                  />
+                )}
+              />
+              {errors?.fileNo && (
+                <Text className="text-red-500">{errors.fileNo.message}</Text>
+              )}
+            </View>
+
+            {/* Relationship Dropdown Field */}
+            <View>
+              <Label>Relative Relation</Label>
+              <Controller
+                name="relationship"
+                control={control}
+                rules={{ required: "Relationship is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <View className="relative">
+                    <TouchableOpacity
+                      onPress={() => setShowRelationshipDropdown(!showRelationshipDropdown)}
+                      className="border border-gray-300 rounded-md p-3 mb-3 flex-row justify-between items-center bg-white"
+                    >
+                      <Text className={`${value ? 'text-black' : 'text-gray-400'}`}>
+                        {value ? relationshipOptions.find(opt => opt.value === value)?.label : "Select relationship"}
+                      </Text>
+                      <ChevronDown size={20} color="#666" />
+                    </TouchableOpacity>
+                    
+                    {showRelationshipDropdown && (
+                      <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+                        {relationshipOptions.map((option) => (
+                          <TouchableOpacity
+                            key={option.value}
+                            onPress={() => handleRelationshipSelect(option.value)}
+                            className="p-3 border-b border-gray-100 last:border-b-0"
+                          >
+                            <Text className="text-black">{option.label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+              />
+              {errors?.relationship && (
+                <Text className="text-red-500">{errors.relationship.message}</Text>
+              )}
+            </View>
 
             <Button className="mt-4" onPress={handleSubmit(onSubmit)}>
               <Text className="text-white font-medium">

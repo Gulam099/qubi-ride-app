@@ -1,33 +1,34 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { Stack } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function ChatLayout() {
+const { name } = useLocalSearchParams();
   return (
     <Stack
       screenOptions={{
-        headerLeft: () => <BackButton className="" />,
+        headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
-        headerShadowVisible: false,
-        headerTintColor: "white",
+        headerShadowVisible: true,
       }}
     >
       <Stack.Screen
-        name="index"
+        name="chatlist"
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">My Chats</Text>
           ),
         }}
       />
-      <Stack.Screen
-        name="c/[id]"
+       <Stack.Screen
+        name="c/[id]/index"
         options={{
-          headerTitle: ({ children }) => (
-            <Text className="font-semibold text-lg">My Chats</Text>
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{name}</Text>
           ),
         }}
       />

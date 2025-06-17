@@ -32,6 +32,7 @@ import {
   Share,
 } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
+import { createLibraryDeepLink } from "@/utils/deeplink";
 
 type Comment = {
   id: string;
@@ -53,7 +54,7 @@ type LibraryCardProps = {
   title: string;
   category: string;
   type: string;
-  seenCount: number;
+  seenCount:Number;
   rating: number;
   image: string;
   link: string;
@@ -81,17 +82,11 @@ export default function LibraryCard(props: LibraryCardProps) {
     onShare,
   } = props;
 
-  console.log('comments>>', comments);
-
-  const segments = props.link.split('/');
-  const id = segments[segments.length - 1];
-
   // State management
   const [isCommentModalVisible, setCommentModalVisible] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [localComments, setLocalComments] = useState<Comment[]>(comments);
   const [localShareCount, setLocalShareCount] = useState(shareCount);
-  const [isLiked, setIsLiked] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -103,12 +98,12 @@ export default function LibraryCard(props: LibraryCardProps) {
   };
   const Icon = IconList[type.toLowerCase()] || Notepad;
 
-  console.log("isfavorited", isFavorited);
-
   useEffect(() => {
     const checkFavorites = async () => {
       try {
-        const res = await fetch(`${ApiUrl}/api/favorites/culturalContent/${userId}`);
+        const res = await fetch(
+          `${ApiUrl}/api/favorites/culturalContent/${userId}`
+        );
         const data = await res.json();
         console.log("data??", data);
 
@@ -139,7 +134,11 @@ export default function LibraryCard(props: LibraryCardProps) {
       const response = await fetch(`${ApiUrl}/api/favorites/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, itemId: contentId, type: "culturalContent" }),
+        body: JSON.stringify({
+          userId,
+          itemId: contentId,
+          type: "culturalContent",
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to add");
@@ -155,7 +154,11 @@ export default function LibraryCard(props: LibraryCardProps) {
       const response = await fetch(`${ApiUrl}/api/favorites/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, itemId: contentId, type: "culturalContent" }),
+        body: JSON.stringify({
+          userId,
+          itemId: contentId,
+          type: "culturalContent",
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to remove");
@@ -164,12 +167,6 @@ export default function LibraryCard(props: LibraryCardProps) {
     } catch (err) {
       toast.error("Something went wrong");
     }
-  };
-
-  // Handlers
-  const onLike = () => {
-    setIsLiked(!isLiked);
-    console.log(`${isLiked ? "Unliked" : "Liked"} ${title}`);
   };
 
   const onComment = () => {
@@ -218,35 +215,38 @@ export default function LibraryCard(props: LibraryCardProps) {
   };
 
   const handleShare = async () => {
-    if (isSharing) return; // Prevent multiple simultaneous shares
-    
+    if (isSharing) return;
+
     setIsSharing(true);
-    
+
     try {
-      // First, update the share count in the database
       const res = await fetch(`${apiNewUrl}/api/library/incrementShareCount`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          contentId: contentId || id 
+        body: JSON.stringify({
+          contentId: contentId,
         }),
       });
-      
+
       const result = await res.json();
-      
+
       if (res.ok) {
         // Update local share count immediately for better UX
-        setLocalShareCount(prev => prev + 1);
-        
-        // Then perform native share functionality
-        const shareResult = await Share.share({
-          message: `Check out this ${type}: ${title} in ${category} category`,
-          url: `${apiNewUrl}${link}`,
+        setLocalShareCount((prev) => prev + 1);
+
+        const deepLink = createLibraryDeepLink(contentId);
+
+        // Prepare share content
+        const shareOptions = {
+          message: `Check out this ${type}: ${title} in ${category} category\n\n${deepLink}`,
           title: title,
-        });
+        };
+
+        // Share the content with deep link
+        const shareResult = await Share.share(shareOptions);
 
         if (shareResult.action === Share.sharedAction) {
-          console.log(`Shared ${title}`);
+          console.log(`Shared ${title} with deep link: ${deepLink}`);
         }
 
         // Call parent callback if provided
@@ -254,7 +254,10 @@ export default function LibraryCard(props: LibraryCardProps) {
           onShare();
         }
       } else {
-        console.error("Failed to update share count:", result.message || result);
+        console.error(
+          "Failed to update share count:",
+          result.message || result
+        );
         Alert.alert("Error", "Unable to update share count.");
       }
     } catch (error) {
@@ -267,15 +270,15 @@ export default function LibraryCard(props: LibraryCardProps) {
 
   const formatTimeAgo = (date: Date | string | undefined) => {
     if (!date) return "Just now";
-    
+
     try {
-      const timestamp = typeof date === 'string' ? new Date(date) : date;
-      
+      const timestamp = typeof date === "string" ? new Date(date) : date;
+
       // Check if the date is valid
       if (isNaN(timestamp.getTime())) {
         return "Just now";
       }
-      
+
       const now = new Date();
       const diffInMinutes = Math.floor(
         (now.getTime() - timestamp.getTime()) / (1000 * 60)
@@ -327,7 +330,9 @@ export default function LibraryCard(props: LibraryCardProps) {
             {/* Favorite/Heart */}
             <View className="items-center">
               <TouchableOpacity
-                onPress={isFavorited ? handleRemoveFromFavorites : handleAddToFavorites}
+                onPress={
+                  isFavorited ? handleRemoveFromFavorites : handleAddToFavorites
+                }
                 className="w-11 h-11 rounded-full bg-purple-100 justify-center items-center"
               >
                 <Heart

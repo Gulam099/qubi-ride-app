@@ -58,7 +58,7 @@ export default function AccountNotificationPage() {
   if (notifications.length === 0) {
     return (
       <View className="p-4">
-        <Text className="text-center">No notifications available.</Text>
+        <Text className="text-center">No notifications.</Text>
       </View>
     );
   }

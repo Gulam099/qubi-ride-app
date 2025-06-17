@@ -145,13 +145,13 @@ export default function AccountPage() {
         <ScrollView
           showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
         >
-          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16 relative">
+          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16">
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
                 {user?.fullName ?? "User"}
               </Text>
-              <CopyToClipboard
+              {/* <CopyToClipboard
                 data={userId ?? "User id not found"}
                 variant={"ghost"}
                 className="flex-row gap-2 justify-start items-start p-0"
@@ -160,7 +160,7 @@ export default function AccountPage() {
                   {userId ?? "User id not found"}
                 </Text>
                 <Copy size="16" color={colors.gray[200]} />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
               <Link href={"/account/profile"}>
                 <Text className="text-blue-100 text-sm underline">
                   View Profile
@@ -180,7 +180,7 @@ export default function AccountPage() {
           </View>
           <View className="flex justify-center items-center h-full w-full flex-1 p-6 pt-2">
             <View className="flex justify-center items-center flex-row flex-wrap  gap-4">
-              {Interests.map((section) => (
+              {/* {Interests.map((section) => (
                 <View
                   key={section.title}
                   className="flex flex-col  gap-4 py-4 w-full"
@@ -201,7 +201,7 @@ export default function AccountPage() {
                     ))}
                   </View>
                 </View>
-              ))}
+              ))} */}
 
               {/* <AccountCard
                 className=""

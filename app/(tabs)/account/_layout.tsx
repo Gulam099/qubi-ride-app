@@ -11,12 +11,9 @@ export default function AccountLayout() {
     <Stack
       screenOptions={{
         headerBackButtonDisplayMode: "generic",
-        headerShadowVisible: false,
-        headerLeft: () => <BackButton className="" />,
+        headerBackVisible: true,
+        headerShadowVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
-        headerTitle: ({ children }: { children: any }) => (
-          <Text className="font-semibold text-lg ">My {children}</Text>
-        ),
       }}
     >
       <Stack.Screen

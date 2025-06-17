@@ -52,6 +52,27 @@ export default function LibraryPage() {
     fetchLibraryContent();
   }, [library]);
 
+   useEffect(() => {
+      const incrementSeen = async () => {
+        try {
+          const response = await fetch(`${apiNewUrl}/api/library/seen`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ library }),
+          });
+  
+        } catch (error) {
+          console.error("Failed to update seen count:", error);
+        }
+      };
+  
+      if (library) {
+        incrementSeen();
+      }
+    }, [library]);
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">

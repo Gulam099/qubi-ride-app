@@ -167,8 +167,7 @@ const InstantBookingContent = () => {
 
         // For today, only show future slots with 5-minute buffer
         if (isToday) {
-          const bufferTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
-          if (slotTime <= bufferTime) {
+          if (slotTime < now) {
             current = addMinutes(current, 30);
             continue;
           }

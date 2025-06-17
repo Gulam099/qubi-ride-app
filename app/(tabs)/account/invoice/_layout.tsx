@@ -9,10 +9,9 @@ export default function InvoiceLayout() {
   return (
     <Stack
       screenOptions={{
-        headerLeft: () => <BackButton className="" />,
+        headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
-        headerShadowVisible: false,
-        headerTintColor: "white",
+        headerShadowVisible: true,
       }}
     >
       <Stack.Screen
