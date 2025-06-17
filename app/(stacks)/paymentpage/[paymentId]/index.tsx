@@ -49,9 +49,9 @@ export default function PaymentPage() {
   //     enabled: !!paymentId,
   //   });
 
-   const selectedDateTimes = useMemo(() => {
+  const selectedDateTimes = useMemo(() => {
     if (!selectedDateTime) return [];
-    
+
     // If it's a string (single date), convert to array
     if (typeof selectedDateTime === 'string') {
       try {
@@ -63,12 +63,12 @@ export default function PaymentPage() {
         return [selectedDateTime];
       }
     }
-    
+
     // If it's already an array, use it directly
     if (Array.isArray(selectedDateTime)) {
       return selectedDateTime;
     }
-    
+
     return [];
   }, [selectedDateTime]);
 
@@ -102,7 +102,7 @@ export default function PaymentPage() {
         const result = await response.json();
         responses.push(result);
       }
-      return responses; 
+      return responses;
     },
 
     onSuccess: (data) => {
@@ -126,7 +126,7 @@ export default function PaymentPage() {
       if (!cardDetails.month || !cardDetails.year || !cardDetails.cvc)
         throw new Error("Expiration date and CVC are required");
 
-      // Format card details for Moyasar
+      // Format card details
       const paymentPayload = {
         source: {
           type: "creditcard",
@@ -141,7 +141,7 @@ export default function PaymentPage() {
         },
       };
 
-      // Process the payment with Moyasar
+      // Process the payment with My Fatoorah
       const response = await fetch(`${ApiUrl}/api/payments/${paymentId}`, {
         method: "POST",
         headers: {
