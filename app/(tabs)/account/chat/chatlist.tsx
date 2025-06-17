@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity,Image  } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -16,11 +16,13 @@ function ChatListPage() {
   const [doctors, setDoctors] = useState([]);
   const router = useRouter();
   const userId = user?.publicMetadata?.dbPatientId as string;
-  console.log('userId',userId)
+  console.log("userId", userId);
   useEffect(() => {
     const fetchdoctors = async () => {
       try {
-        const response = await fetch(`${apiNewUrl}/api/doctor/chat/userId/${userId}`);
+        const response = await fetch(
+          `${apiNewUrl}/api/doctor/chat/userId/${userId}`
+        );
         const doctorData = await response.json();
 
         setDoctors(doctorData.doctors);
@@ -32,20 +34,18 @@ function ChatListPage() {
     fetchdoctors();
   }, [userId]);
 
-  const handleChatPress = (id: string) => {
-      console.log("Navigating to doctor ID:", id)
-      console.log("Navigating to:", `/tabs)/account/chat/c/${id}`);
-    router.push(
-      `/(tabs)/account/chat/c/${id}`
-    );
+  const handleChatPress = (id: string, name: string) => {
+    console.log("Navigating to doctor ID:", id);
+    console.log("Navigating to doctor name:", name);
+    console.log("Navigating to:", `/tabs)/account/chat/c/${id}`);
+    router.push(`/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(name)}`);
   };
 
-  
   const getInitials = (name: string) => {
     if (!name) return "?";
     return name
       .split(" ")
-      .map(word => word.charAt(0))
+      .map((word) => word.charAt(0))
       .join("")
       .substring(0, 2)
       .toUpperCase();
@@ -85,16 +85,18 @@ function ChatListPage() {
             );
           })}
         </TabsList> */}
-        
+
         <TabsContent value="specific_specialists" className="h-full">
           <FlatList
             data={doctors}
             contentContainerClassName="gap-3 pb-4"
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item, index) => item.id ? item.id.toString() : `doctor-${index}`}
+            keyExtractor={(item, index) =>
+              item.id ? item.id.toString() : `doctor-${index}`
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => handleChatPress(item.doctorId)}
+                onPress={() => handleChatPress(item.doctorId, item.full_name)}
                 className="bg-white rounded-xl p-4 shadow-sm"
               >
                 <View className="flex-row items-center gap-3">
@@ -120,25 +122,31 @@ function ChatListPage() {
                   {/* Content Section */}
                   <View className="flex-1">
                     <View className="flex-row justify-between items-start mb-1">
-                      <Text className="font-semibold text-lg text-gray-900 flex-1" numberOfLines={1}>
+                      <Text
+                        className="font-semibold text-lg text-gray-900 flex-1"
+                        numberOfLines={1}
+                      >
                         {item.full_name || "Unknown Doctor"}
                       </Text>
                       <Text className="text-xs text-gray-500 ml-2">
                         {item.date || ""}
                       </Text>
                     </View>
-                    
-                    <Text className="text-sm text-gray-600 mb-1" numberOfLines={1}>
+
+                    <Text
+                      className="text-sm text-gray-600 mb-1"
+                      numberOfLines={1}
+                    >
                       {item.specialization || "General Practitioner"}
                     </Text>
-                    
+
                     {/* Experience or additional info */}
                     {item.experience && (
                       <Text className="text-xs text-gray-500">
                         {item.experience} years experience
                       </Text>
                     )}
-                    
+
                     {/* Rating (if available) */}
                     {item.rating && (
                       <View className="flex-row items-center mt-1">
@@ -166,13 +174,15 @@ function ChatListPage() {
             )}
           />
         </TabsContent>
-        
+
         <TabsContent value="specialists" className="h-full">
           <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500">Specialists content coming soon</Text>
+            <Text className="text-gray-500">
+              Specialists content coming soon
+            </Text>
           </View>
         </TabsContent>
-        
+
         <TabsContent value="customers" className="h-full">
           <View className="flex-1 justify-center items-center">
             <Text className="text-gray-500">Customers content coming soon</Text>

@@ -152,8 +152,6 @@ export default function AccountFavoritePage() {
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
       <View className="flex flex-col gap-4">
-        <H3>My Favorites</H3>
-
         <ScrollView
           horizontal={true}
           showsHorizontalScrollIndicator={false}

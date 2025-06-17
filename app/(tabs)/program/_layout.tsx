@@ -9,15 +9,14 @@ export default function ProgramLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShadowVisible: false,
+        headerBackVisible: true,
+        headerRight: () => <NotificationIconButton className="mr-4" />,
+        headerShadowVisible: true,
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          title: "In",
-          headerLeft: () => <BackButton className="p" />,
-          headerRight: () => <NotificationIconButton className="mr-4" />,
           headerTitle: () => (
             <Text className="font-semibold text-lg  px-2">Programs</Text>
           ),

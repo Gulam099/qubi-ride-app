@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
 import { io } from "socket.io-client";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import axios from "axios";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
@@ -24,12 +24,23 @@ const socket = io(`${apiNewUrl}`, {
 
 function ChatScreen() {
   const { user } = useUser();
-  const { id } = useLocalSearchParams();
+  const { id ,name } = useLocalSearchParams();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState(""); 
   const [isUploading, setIsUploading] = useState(false);
   const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = id as string;
+  const navigation = useNavigation();
+
+   useLayoutEffect(() => {
+    if (name) {
+      navigation.setOptions({
+        headerTitle: () => (
+          <Text style={{ fontWeight: "600", fontSize: 18 }}>{name}</Text>
+        ),
+      });
+    }
+  }, [name]);
 
   console.log("doctorId", doctorId);
   console.log("userId", userId);
@@ -37,6 +48,58 @@ function ChatScreen() {
   const currentUser = {
     _id: userId,
     name: "You",
+  };
+
+  // Helper function to get date string for grouping
+  const getDateString = (date) => {
+    const messageDate = new Date(date);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (messageDate.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (messageDate.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    } else {
+      return messageDate.toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+      });
+    }
+  };
+
+  // Helper function to format time only
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Function to add date dividers to messages
+  const addDateDividers = (messages) => {
+    const messagesWithDividers = [];
+    let currentDate = null;
+
+    messages.forEach((message, index) => {
+      const messageDate = getDateString(message.createdAt);
+      
+      // Add date divider if date changed
+      if (currentDate !== messageDate) {
+        messagesWithDividers.push({
+          _id: `date-${messageDate}-${index}`,
+          type: 'date-divider',
+          date: messageDate,
+        });
+        currentDate = messageDate;
+      }
+      
+      messagesWithDividers.push(message);
+    });
+
+    return messagesWithDividers;
   };
 
   // Load existing chat history
@@ -56,7 +119,6 @@ function ChatScreen() {
 
       if (chat && chat.messages) {
         const formatted = chat.messages
-          .reverse()
           .map((msg: any, index: number) => ({
             _id: `${msg._id || index}`,
             text: msg.text || "",
@@ -66,8 +128,11 @@ function ChatScreen() {
               name: msg.role === "doctor" ? "Doctor" : "Patient",
               avatar: msg.imageUrl || undefined,
             },
-          }));
-        setMessages(formatted);
+          }))
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        
+        const messagesWithDividers = addDateDividers(formatted);
+        setMessages(messagesWithDividers);
       }
     } catch (error) {
       console.error("Error fetching chats:", error);
@@ -98,7 +163,12 @@ function ChatScreen() {
             avatar: msg.imageUrl || undefined,
           },
         };
-        setMessages((prev) => [...prev, formatted]);
+        
+        setMessages((prev) => {
+          const messagesOnly = prev.filter(item => item.type !== 'date-divider');
+          const newMessages = [...messagesOnly, formatted];
+          return addDateDividers(newMessages);
+        });
       }
     });
 
@@ -133,7 +203,12 @@ function ChatScreen() {
         },
       };
 
-      setMessages((previousMessages) => [...previousMessages, message]);
+      setMessages((prev) => {
+        const messagesOnly = prev.filter(item => item.type !== 'date-divider');
+        const newMessages = [...messagesOnly, message];
+        return addDateDividers(newMessages);
+      });
+      
       setInputText(""); // Clear input after sending
 
       // Send via socket
@@ -166,22 +241,41 @@ function ChatScreen() {
 
   const flatListRef = useRef(null);
 
-  const renderItem = ({ item }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.user._id === userId ? styles.myMessage : styles.otherMessage,
-      ]}
-    >
-      <Text style={styles.messageText}>{item.text}</Text>
-      <Text style={styles.timestamp}>
-        {new Date(item.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </Text>
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    // Render date divider
+    if (item.type === 'date-divider') {
+      return (
+        <View style={styles.dateDividerContainer}>
+          <View style={styles.dateDividerLine} />
+          <Text style={styles.dateDividerText}>{item.date}</Text>
+          <View style={styles.dateDividerLine} />
+        </View>
+      );
+    }
+
+    // Render message
+    return (
+      <View
+        style={[
+          styles.messageBubble,
+          item.user._id === userId ? styles.myMessage : styles.otherMessage,
+        ]}
+      >
+        <Text style={[
+          styles.messageText,
+          item.user._id === userId ? styles.myMessageText : styles.otherMessageText
+        ]}>
+          {item.text}
+        </Text>
+        <Text style={[
+          styles.timestamp,
+          item.user._id === userId ? styles.myTimestamp : styles.otherTimestamp
+        ]}>
+          {formatTime(item.createdAt)}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -198,6 +292,7 @@ function ChatScreen() {
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: true })
         }
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
       />
 
       <View style={styles.inputContainer}>
@@ -232,52 +327,102 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     padding: 10,
+    flexGrow: 1,
   },
   messageBubble: {
     maxWidth: "80%",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 4,
+    padding: 12,
+    borderRadius: 18,
+    marginVertical: 2,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
   },
   myMessage: {
     backgroundColor: "#0a84ff",
     alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
   },
   otherMessage: {
     backgroundColor: "#ECECEC",
     alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
   },
   messageText: {
     fontSize: 16,
+    lineHeight: 20,
+  },
+  myMessageText: {
+    color: "#fff",
+  },
+  otherMessageText: {
+    color: "#000",
   },
   timestamp: {
     fontSize: 10,
-    color: "#555",
     alignSelf: "flex-end",
-    marginTop: 2,
+    marginTop: 4,
+  },
+  myTimestamp: {
+    color: "rgba(255, 255, 255, 0.7)",
+  },
+  otherTimestamp: {
+    color: "#666",
+  },
+  dateDividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    marginHorizontal: 20,
+  },
+  dateDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dateDividerText: {
+    backgroundColor: '#F5F5F5',
+    color: '#666',
+    fontSize: 12,
+    fontWeight: '500',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginHorizontal: 10,
+    textAlign: 'center',
   },
   inputContainer: {
     flexDirection: "row",
     padding: 10,
     borderTopWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#E5E5E7",
+    backgroundColor: "#fff",
   },
   textInput: {
     flex: 1,
-    padding: 10,
+    padding: 12,
     backgroundColor: "#f0f0f0",
     borderRadius: 20,
+    maxHeight: 100,
+    fontSize: 16,
   },
   sendButton: {
     justifyContent: "center",
     marginLeft: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     backgroundColor: "#0a84ff",
     borderRadius: 20,
+    minHeight: 40,
   },
   sendButtonText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
 

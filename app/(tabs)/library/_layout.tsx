@@ -16,7 +16,7 @@ export default function ProgramLayout() {
         name="index"
         options={{
           title: "In",
-          headerLeft: () => <BackButton className="p" />,
+          // headerLeft: () => <BackButton className="p" />,
           headerRight: () => <NotificationIconButton className="mr-4" />,
           headerTitle: () => (
             <Text className="font-semibold text-lg  px-2">

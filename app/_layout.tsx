@@ -324,6 +324,8 @@ const InitialLayout = () => {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
               <Stack.Screen name="(modals)" options={{ headerShown: false }} />
+              <Stack.Screen name="consult" options={{ headerShown: false }} />
+              <Stack.Screen name="instant-booking" options={{ headerShown: false }} />
             </Stack>
           </SafeAreaProvider>
           <Toaster position="top-center" />

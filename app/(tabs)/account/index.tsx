@@ -145,7 +145,7 @@ export default function AccountPage() {
         <ScrollView
           showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
         >
-          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16 relative">
+          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16">
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
