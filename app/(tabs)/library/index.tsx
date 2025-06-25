@@ -147,6 +147,7 @@ export default function LibraryPage() {
               link={`/library/${item._id}`}
               type={item.type}
               seenCount={item.seenCount}
+              likeCount={item.likeCount}
               rating={item.rating || 0}
               comments={item.comments || []} // Pass real comments from DB
               shareCount={item.shareCount || 0} // Pass real share count from DB

@@ -36,15 +36,29 @@ const InstantBookingContent = () => {
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [selectedNumberOfSessions, setSelectedNumberOfSessions] = useState(1);
+  const [selectedDuration, setSelectedDuration] = useState(30);
   const [isForFamilyMember, setIsForFamilyMember] = useState(false);
+  const [userFamily, setUserFamily] = useState();
 
   const baseFee = parseFloat(doctorFees as string) || 0;
   const totalFee = baseFee * selectedSlots.length;
+  const getUserFamilyById = async (userId) => {
+    try {
+      const response = await fetch(`${ApiUrl}/api/users/getUser/${userId}`);
+      const data = await response.json();
+      setUserFamily(data.family);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  };
 
   useEffect(() => {
     const now = new Date();
     setSelectedDate(now);
-  }, []);
+    if (userId) {
+      getUserFamilyById(userId);
+    }
+  }, [userId]);
 
   // Fetch booked slots for the selected date
   const { data: bookedSlotsData } = useQuery({
@@ -75,7 +89,28 @@ const InstantBookingContent = () => {
 
   const flatBookedSlotIsos = useMemo(() => {
     if (!bookedSlots || bookedSlots.length === 0) return [];
-    return bookedSlots.flatMap((booking) => booking?.selectedSlots);
+
+    const blockedSlots = [];
+    bookedSlots.forEach((booking) => {
+      booking.selectedSlots?.forEach((slot) => {
+        const slotStart = new Date(slot);
+        // Extract duration number from string like "30 minutes"
+        const durationStr = booking.duration || "30 minutes";
+        const duration = parseInt(durationStr.split(" ")[0]) || 30;
+
+        // Block all slots within the duration
+        for (let i = 0; i < duration; i += 30) {
+          const blockedSlot = addMinutes(slotStart, i);
+          blockedSlots.push({
+            iso: blockedSlot.toISOString(),
+            duration: duration,
+            originalDuration: duration,
+          });
+        }
+      });
+    });
+
+    return blockedSlots;
   }, [bookedSlots]);
 
   console.log("bookedSlots", bookedSlots);
@@ -112,26 +147,50 @@ const InstantBookingContent = () => {
     { label: "2 sessions", value: 2 },
     { label: "3 sessions", value: 3 },
   ];
-  const relationshipOptions = [
-    "Spouse",
-    "Child",
-    "Parent",
-    "Sibling",
-    "Grandparent",
-    "Grandchild",
-    "Other",
-  ];
-  const timesForSelectedDate = useMemo(() => {
+  const isSlotAvailable = (slotTime, duration) => {
+    if (!selectedDate || !doctorSchedule) return false;
+
+    const { isHoliday, start, end } = doctorSchedule;
+    if (isHoliday) return false;
+
+    const endDate = new Date(end);
+    const slotEndTime = addMinutes(slotTime, duration);
+
+    // Check if slot + duration fits within doctor's schedule
+    if (slotEndTime > endDate) return false;
+
+    // Check for overlap with any existing booking
+    for (const booking of bookedSlots) {
+      if (!booking.selectedSlots || booking.selectedSlots.length === 0)
+        continue;
+
+      for (const bookedSlot of booking.selectedSlots) {
+        const bookedStart = new Date(bookedSlot);
+        const bookedDuration = booking.duration || 30;
+        const bookedEnd = addMinutes(bookedStart, bookedDuration);
+
+        // Check if there's any overlap between new slot and existing booking
+        // Two time ranges overlap if: start1 < end2 && start2 < end1
+        if (slotTime < bookedEnd && slotEndTime > bookedStart) {
+          return false; // There's an overlap
+        }
+      }
+    }
+
+    return true;
+  };
+
+  const { availableSlots, bookedSlotsForDate } = useMemo(() => {
     if (!selectedDate || !doctorSchedule) {
       console.log("No selected date or doctor schedule");
-      return [];
+      return { availableSlots: [], bookedSlotsForDate: [] };
     }
 
     const { isHoliday, start, end } = doctorSchedule;
 
     if (isHoliday || !start || !end) {
       console.log("Holiday or missing start/end times");
-      return [];
+      return { availableSlots: [], bookedSlotsForDate: [] };
     }
 
     try {
@@ -147,10 +206,11 @@ const InstantBookingContent = () => {
       // Validate dates
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         console.error("Invalid start or end date");
-        return [];
+        return { availableSlots: [], bookedSlotsForDate: [] };
       }
 
-      const slots = [];
+      const available = [];
+      const booked = [];
       const now = new Date();
 
       // Check if selected date is today
@@ -159,48 +219,107 @@ const InstantBookingContent = () => {
       console.log("Is today?", isToday);
       console.log("Current time:", now.toISOString());
 
-      // Create slots based on the date and time range
+      // STEP 1: Get booked slots for the selected date (with their original duration)
+      const bookedSlotsForSelectedDate = flatBookedSlotIsos.filter(
+        (bookedSlot) => {
+          const bookedDate = new Date(bookedSlot.iso);
+          return isSameDay(bookedDate, selectedDate);
+        }
+      );
+
+      console.log("Booked slots for date:", bookedSlotsForSelectedDate);
+
+      // Create booked slot display objects with their ORIGINAL duration
+      bookedSlotsForSelectedDate.forEach((bookedSlot) => {
+        let slotTime, originalDuration;
+
+        if (typeof bookedSlot === "object" && bookedSlot.iso) {
+          // If booked slot has duration information
+          slotTime = new Date(bookedSlot.iso);
+          originalDuration =
+            bookedSlot.duration || bookedSlot.originalDuration || 30; // fallback to 30 if not specified
+        } else {
+          // If it's just an ISO string, assume default duration
+          slotTime = new Date(bookedSlot);
+          originalDuration = 30; // You might want to store this information in your booking data
+        }
+
+        if (!isNaN(slotTime.getTime())) {
+          const slotEndTime = addMinutes(slotTime, originalDuration);
+
+          const bookedSlotData = {
+            iso: slotTime.toISOString(),
+            isBooked: true,
+            startTime: format(slotTime, "h:mm a"),
+            endTime: format(slotEndTime, "h:mm a"),
+            duration: originalDuration, // Keep original duration
+            displayText: `${format(slotTime, "h:mm a")} - ${format(
+              slotEndTime,
+              "h:mm a"
+            )} (${originalDuration} min)`,
+            formattedTime: format(slotTime, "h:mm a"),
+          };
+
+          booked.push(bookedSlotData);
+        }
+      });
+
+      // STEP 2: Generate available slots using the SELECTED duration
       let current = new Date(startDate);
 
       while (isBefore(current, endDate)) {
         const slotTime = new Date(current);
+        const slotEndTime = addMinutes(slotTime, selectedDuration);
 
         // For today, only show future slots with 5-minute buffer
-        if (isToday) {
-          if (slotTime < now) {
-            current = addMinutes(current, 30);
-            continue;
-          }
+        if (isToday && slotTime < now) {
+          current = addMinutes(current, selectedDuration);
+          continue;
+        }
+
+        // Check if this slot + duration fits within the schedule
+        if (slotEndTime > endDate) {
+          current = addMinutes(current, selectedDuration);
+          continue;
         }
 
         const slotIso = slotTime.toISOString();
-        console.log(
-          "Generated slot:",
-          slotIso,
-          "Display time:",
-          format(slotTime, "h:mm a")
-        );
+        const isAvailable = isSlotAvailable(slotTime, selectedDuration);
 
-        slots.push({
-          iso: slotIso,
-          isBooked: flatBookedSlotIsos.includes(slotIso),
-          // display: format(slotTime, "h:mm a"),
-        });
+        if (isAvailable) {
+          const slotData = {
+            iso: slotIso,
+            isBooked: false,
+            startTime: format(slotTime, "h:mm a"),
+            endTime: format(slotEndTime, "h:mm a"),
+            duration: selectedDuration, // Use selected duration for new bookings
+            displayText: `${format(slotTime, "h:mm a")} - ${format(
+              slotEndTime,
+              "h:mm a"
+            )} (${selectedDuration} min)`,
+            formattedTime: format(slotTime, "h:mm a"),
+          };
 
-        current = addMinutes(current, 30);
+          available.push(slotData);
+        }
+
+        current = addMinutes(current, selectedDuration);
       }
 
-      console.log("Total generated slots:", slots.length);
-      return slots;
+      console.log("Available slots:", available.length);
+      console.log("Booked slots:", booked.length);
+
+      return { availableSlots: available, bookedSlotsForDate: booked };
     } catch (error) {
       console.error("Error generating time slots:", error);
-      return [];
+      return { availableSlots: [], bookedSlotsForDate: [] };
     }
-  }, [selectedDate, doctorSchedule, flatBookedSlotIsos]);
+  }, [selectedDate, doctorSchedule, flatBookedSlotIsos, selectedDuration]);
 
   const handleSlotSelection = (slotIso) => {
+    const slot = availableSlots.find((s) => s.iso === slotIso);
     console.log("Selecting slot:", slotIso);
-    console.log("Display time:", format(new Date(slotIso), "h:mm a"));
+    console.log("Display time:", slot?.displayText);
 
     const isCurrentlySelected = selectedSlots.includes(slotIso);
 
@@ -213,6 +332,13 @@ const InstantBookingContent = () => {
         toast.error(`You can only select ${selectedNumberOfSessions} slot(s)`);
       }
     }
+  };
+  // Handle duration change
+  const handleDurationChange = (duration) => {
+    const numericDuration = parseInt(duration.split(" ")[0]); // Extract number from "30 minutes"
+    setSelectedDuration(numericDuration);
+    setSelectedSlots([]); // Clear selected slots when duration changes
+    setValue("duration", duration); // Update form value
   };
 
   const {
@@ -229,8 +355,6 @@ const InstantBookingContent = () => {
       overview: "",
       closestAppointment: false,
       familyMemberName: "",
-      familyMemberAge: "",
-      relationship: "",
     },
   });
 
@@ -238,8 +362,6 @@ const InstantBookingContent = () => {
     if (!isForFamilyMember) {
       reset({
         familyMemberName: "",
-        familyMemberAge: "",
-        relationship: "",
       });
     }
   }, [isForFamilyMember]);
@@ -254,7 +376,7 @@ const InstantBookingContent = () => {
           patientId: userId,
           doctorId: doctorId,
           type: "video",
-          scheduledAt: slot, 
+          scheduledAt: slot,
           duration: duration,
           instant: true,
         };
@@ -467,7 +589,10 @@ const InstantBookingContent = () => {
                   <Button
                     className="flex-1"
                     variant={value === duration ? "default" : "outline"}
-                    onPress={() => onChange(duration)}
+                    onPress={() => {
+                      onChange(duration); // Update form
+                      handleDurationChange(duration); // Update slots
+                    }}
                   >
                     <Text
                       className={
@@ -504,52 +629,87 @@ const InstantBookingContent = () => {
               Selected: {selectedSlots.length}/{selectedNumberOfSessions}
             </Text>
 
-            {timesForSelectedDate.length > 0 ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 4 }}
-              >
-                <View className="flex-row gap-2 flex-wrap">
-                  {timesForSelectedDate.map(({ iso, isBooked }) => {
-                    const time = format(new Date(iso), "h:mm a");
-                    const isSelected = selectedSlots.includes(iso);
+            {/* Available Slots Section */}
+            {availableSlots.length > 0 ? (
+              <View className="mb-4">
+                <Text className="text-sm text-green-600 font-medium mb-2">
+                  Available Slots ({availableSlots.length})
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 4 }}
+                >
+                  <View className="flex-row gap-2 flex-wrap">
+                    {availableSlots.map((slot) => {
+                      const isSelected = selectedSlots.includes(slot.iso);
+                      const canSelect =
+                        selectedSlots.length < selectedNumberOfSessions ||
+                        isSelected;
 
-                    return (
-                      <Button
-                        key={iso}
-                        onPress={() => !isBooked && handleSlotSelection(iso)}
-                        className="mx-1 mb-2"
-                        variant={
-                          isBooked
-                            ? "destructive"
-                            : isSelected
-                            ? "default"
-                            : "outline"
-                        }
-                        disabled={isBooked}
-                      >
-                        <Text
-                          className={`font-medium ${
-                            isBooked
-                              ? "text-white"
-                              : isSelected
-                              ? "text-white"
-                              : "text-gray-700"
-                          }`}
+                      return (
+                        <Button
+                          key={slot.iso}
+                          onPress={() => handleSlotSelection(slot.iso)}
+                          className="mx-1 mb-2"
+                          variant={isSelected ? "default" : "outline"}
+                          disabled={
+                            !isSelected &&
+                            selectedSlots.length >= selectedNumberOfSessions
+                          }
                         >
-                          {time}
-                          {isBooked && " (Booked)"}
-                        </Text>
-                      </Button>
-                    );
-                  })}
-                </View>
-              </ScrollView>
+                          <Text
+                            className={`font-medium ${
+                              isSelected
+                                ? "text-white"
+                                : !canSelect &&
+                                  selectedSlots.length >=
+                                    selectedNumberOfSessions
+                                ? "text-gray-400"
+                                : "text-gray-700"
+                            }`}
+                          >
+                            {slot.formattedTime}
+                          </Text>
+                        </Button>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
             ) : (
               <Text className="text-gray-500 text-center py-4">
                 No available time slots for this date
               </Text>
+            )}
+            {bookedSlotsForDate.length > 0 && (
+              <View className="mt-4">
+                <Text className="text-sm text-red-600 font-medium mb-2">
+                  Booked Slots ({bookedSlotsForDate.length})
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 4 }}
+                >
+                  <View className="flex-row gap-2 flex-wrap">
+                    {bookedSlotsForDate.map((slot) => (
+                      <View
+                        key={slot.iso}
+                        className="bg-red-50 border border-red-200 px-3 py-2 rounded-md mx-1 mb-2"
+                        style={{ minWidth: 90 }}
+                      >
+                        <Text className="text-red-600 font-medium text-center text-sm">
+                          {slot.formattedTime}
+                        </Text>
+                        <Text className="text-red-500 text-xs text-center">
+                          (Booked)
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
             )}
           </View>
         )}
@@ -632,109 +792,44 @@ const InstantBookingContent = () => {
         {isForFamilyMember && (
           <View className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
             <Text className="text-lg font-semibold mb-4 text-blue-600">
-              Family Member Details
+              Select Family Member
             </Text>
 
-            {/* Family Member Name */}
-            <View className="mb-4">
-              <Text className="font-semibold mb-2">Full Name *</Text>
-              <Controller
-                control={control}
-                name="familyMemberName"
-                rules={{
-                  required: isForFamilyMember
-                    ? "Family member name is required"
-                    : false,
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    placeholder="Enter family member's full name"
-                    value={value}
-                    onChangeText={onChange}
-                    className="border border-gray-300 rounded-lg px-3 py-3"
-                  />
-                )}
-              />
-              {errors.familyMemberName && (
-                <Text className="text-red-500 text-sm mt-1">
-                  {errors.familyMemberName.message}
-                </Text>
-              )}
-            </View>
-
-            {/* Age and Gender Row */}
-            <View className="flex-row gap-4 mb-4">
-              {/* Age */}
-              <View className="flex-1">
-                <Text className="font-semibold mb-2">Age *</Text>
-                <Controller
-                  control={control}
-                  name="familyMemberAge"
-                  rules={{
-                    required: isForFamilyMember ? "Age is required" : false,
-                    pattern: {
-                      value: /^[0-9]+$/,
-                      message: "Please enter a valid age",
-                    },
-                  }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      placeholder="Age"
-                      value={value}
-                      onChangeText={onChange}
-                      keyboardType="numeric"
-                      className="border border-gray-300 rounded-lg px-3 py-3"
-                    />
-                  )}
-                />
-                {errors.familyMemberAge && (
-                  <Text className="text-red-500 text-sm mt-1">
-                    {errors.familyMemberAge.message}
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            {/* Relationship */}
-            <View className="mb-4">
-              <Text className="font-semibold mb-2">Relationship to you *</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {relationshipOptions.map((relationship) => (
-                  <Controller
-                    key={relationship}
-                    control={control}
-                    rules={{
-                      required: isForFamilyMember
-                        ? "Relationship is required"
-                        : false,
-                    }}
-                    name="relationship"
-                    render={({ field: { onChange, value } }) => (
-                      <Button
-                        className="mb-2"
-                        variant={value === relationship ? "default" : "outline"}
-                        onPress={() => onChange(relationship)}
+            <Controller
+              control={control}
+              name="familyMemberName" // Changed from familyMemberId to familyMemberName
+              rules={{
+                required: "Please select a family member",
+              }}
+              render={({ field: { onChange, value } }) => (
+                <View className="border border-gray-300 rounded-lg px-3 py-2">
+                  {userFamily?.map((member) => (
+                    <Pressable
+                      key={member._id}
+                      onPress={() => onChange(member.name)} // Pass only the name
+                      className={`py-2 ${
+                        value === member.name ? "bg-blue-100" : "bg-white" // Compare with name
+                      }`}
+                    >
+                      <Text
+                        className={`text-base ${
+                          value === member.name
+                            ? "text-blue-700 font-semibold"
+                            : ""
+                        }`}
                       >
-                        <Text
-                          className={
-                            value === relationship
-                              ? "text-white text-xs"
-                              : "text-gray-800 text-xs"
-                          }
-                        >
-                          {relationship}
-                        </Text>
-                      </Button>
-                    )}
-                  />
-                ))}
-              </View>
-              {errors.relationship && (
-                <Text className="text-red-500 text-sm mt-1">
-                  {errors.relationship.message}
-                </Text>
+                      {member.name}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               )}
-            </View>
+            />
+            {errors.familyMemberName && ( // Changed error field name
+              <Text className="text-red-500 text-sm mt-1">
+                {errors.familyMemberName.message}
+              </Text>
+            )}
           </View>
         )}
 

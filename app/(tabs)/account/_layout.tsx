@@ -80,12 +80,12 @@ export default function AccountLayout() {
           title: "Settings",
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="consult"
         options={{
           headerShown: false,
         }}
-      />
+      /> */}
       <Stack.Screen
         name="chat"
         options={{

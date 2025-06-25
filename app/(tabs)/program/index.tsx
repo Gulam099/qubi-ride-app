@@ -134,8 +134,10 @@ const TreatmentsListScreen = () => {
           contentContainerStyle={{ padding: 16 }}
         />
       ) : (
-        <View>
-          <Text>No treatment found</Text>
+        <View className="flex-1 justify-center items-center">
+          <Text className="text-lg font-semibold text-gray-600">
+            No treatment found
+          </Text>
         </View>
       )}
 

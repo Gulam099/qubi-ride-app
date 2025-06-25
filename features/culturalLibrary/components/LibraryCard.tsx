@@ -55,6 +55,7 @@ type LibraryCardProps = {
   category: string;
   type: string;
   seenCount:Number;
+  likeCount:Number;
   rating: number;
   image: string;
   link: string;
@@ -74,6 +75,7 @@ export default function LibraryCard(props: LibraryCardProps) {
     type,
     link,
     seenCount,
+    likeCount,
     image,
     contentId,
     comments = [],
@@ -86,6 +88,8 @@ export default function LibraryCard(props: LibraryCardProps) {
   const [isCommentModalVisible, setCommentModalVisible] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [localComments, setLocalComments] = useState<Comment[]>(comments);
+  const [localLikeCount, setLocalLikeCount] = useState(likeCount);
+
   const [localShareCount, setLocalShareCount] = useState(shareCount);
   const [isSharing, setIsSharing] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -144,6 +148,7 @@ export default function LibraryCard(props: LibraryCardProps) {
       if (!response.ok) throw new Error(result.message || "Failed to add");
       toast.success("Added to favorites!");
       setIsFavorited(true);
+       setLocalLikeCount((prev) => prev + 1);
     } catch (err) {
       toast.error("Something went wrong");
     }
@@ -164,6 +169,7 @@ export default function LibraryCard(props: LibraryCardProps) {
       if (!response.ok) throw new Error(result.message || "Failed to remove");
       toast.success("Removed from favorites!");
       setIsFavorited(false);
+      setLocalLikeCount((prev) => (prev > 0 ? prev - 1 : 0));
     } catch (err) {
       toast.error("Something went wrong");
     }
@@ -326,7 +332,7 @@ export default function LibraryCard(props: LibraryCardProps) {
 
         {/* Footer with type, seen count, and action buttons */}
         <CardFooter className="flex-row flex-wrap gap-3 mt-2">
-          <View className="flex-row gap-6">
+          <View className="flex-row gap-10">
             {/* Favorite/Heart */}
             <View className="items-center">
               <TouchableOpacity
@@ -341,6 +347,9 @@ export default function LibraryCard(props: LibraryCardProps) {
                   variant={isFavorited ? "Bold" : "Linear"}
                 />
               </TouchableOpacity>
+              <Text className="text-xs mt-1 text-center">
+                {localLikeCount}
+              </Text>
             </View>
 
             {/* Comment */}
@@ -357,7 +366,7 @@ export default function LibraryCard(props: LibraryCardProps) {
             </View>
 
             {/* Share */}
-            <View className="items-center">
+            {/* <View className="items-center">
               <TouchableOpacity
                 onPress={handleShare}
                 className="w-11 h-11 rounded-full bg-purple-100 justify-center items-center"
@@ -368,7 +377,7 @@ export default function LibraryCard(props: LibraryCardProps) {
               <Text className="text-xs mt-1 capitalize text-center">
                 {localShareCount} share
               </Text>
-            </View>
+            </View> */}
 
             {/* Type */}
             <View className="items-center">
@@ -423,7 +432,7 @@ export default function LibraryCard(props: LibraryCardProps) {
             ) : (
               localComments.map((comment) => (
                 <View
-                  key={comment.id}
+                  key={comment._id}
                   className="mb-4 p-3 bg-gray-50 rounded-lg"
                 >
                   <View className="flex-row justify-between items-start mb-2">

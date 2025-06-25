@@ -28,7 +28,6 @@ export default function SpecialistConsultantPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { specialist_Id, todaySchedule   } = params;
-
   // Fetch function
   const fetchSpecialistData = async () => {
     if (!specialist_Id) {

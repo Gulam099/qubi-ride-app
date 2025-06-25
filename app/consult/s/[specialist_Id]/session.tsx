@@ -31,13 +31,17 @@ import {
 export default function SessionConsultPage() {
   const { user } = useUser();
   const router = useRouter();
-  const { specialist_Id } = useLocalSearchParams();
+  const userId = user?.publicMetadata.dbPatientId as string;
+  const { specialist_Id, doctorFees } = useLocalSearchParams();
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [doctorSchedule, setDoctorSchedule] = useState("");
   const [isForFamilyMember, setIsForFamilyMember] = useState(false);
+  const [userFamily, setUserFamily] = useState();
+
+  console.log("userFamily", userFamily);
 
   const SchedulePickerRef = useRef(null);
-
+  console.log("doctorFees", doctorFees);
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
     const response = await fetch(
@@ -70,6 +74,16 @@ export default function SessionConsultPage() {
     }
   };
 
+  const getUserFamilyById = async (userId) => {
+    try {
+      const response = await fetch(`${ApiUrl}/api/users/getUser/${userId}`);
+      const data = await response.json();
+      setUserFamily(data.family);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  };
+
   const numberOfSessionsOptions = [
     { label: "1 session", value: 1 },
     { label: "2 sessions", value: 2 },
@@ -81,21 +95,12 @@ export default function SessionConsultPage() {
     { label: "60 min", value: 60 },
   ];
 
-  const relationshipOptions = [
-    "Spouse",
-    "Child",
-    "Parent",
-    "Sibling",
-    "Grandparent",
-    "Grandchild",
-    "Other",
-  ];
-
   useEffect(() => {
-    if (clerk_Id) {
+    if (clerk_Id || userId) {
       getUserById(clerk_Id);
+      getUserFamilyById(userId);
     }
-  }, [clerk_Id]);
+  }, [clerk_Id, userId]);
 
   const {
     control,
@@ -110,26 +115,22 @@ export default function SessionConsultPage() {
       sessionDuration: "",
       gender: "",
       familyMemberName: "",
-      familyMemberAge: "",
-      relationship: "",
     },
   });
 
   const numberOfSessionsValue = watch("numberOfSessions");
+  const sessionDurationValue = watch("sessionDuration");
 
   useEffect(() => {
     if (!isForFamilyMember) {
       reset({
         familyMemberName: "",
-        familyMemberAge: "",
-        relationship: "",
       });
     }
   }, [isForFamilyMember]);
 
   const { mutate: bookSession, isPending: isSubmitting } = useMutation({
     mutationFn: async (data: any) => {
-      const userId = user?.publicMetadata.dbPatientId as string;
       const doctorId = specialist_Id as string;
 
       // Validation
@@ -172,7 +173,7 @@ export default function SessionConsultPage() {
         userId: userId,
         doctorId: doctorId,
         bookingId: bookingResult?.booking?._id,
-        amount: 1000,
+        amount: doctorFees,
         currency: "SAR",
         description: "Medical consultation session", // Fixed: removed undefined reference
         status: "initiated",
@@ -410,10 +411,11 @@ export default function SessionConsultPage() {
               className="flex-row items-center gap-3"
             >
               <View
-                className={`w-5 h-5 border-2 rounded ${isForFamilyMember
+                className={`w-5 h-5 border-2 rounded ${
+                  isForFamilyMember
                     ? "bg-blue-500 border-blue-500"
                     : "border-gray-400"
-                  } justify-center items-center`}
+                } justify-center items-center`}
               >
                 {isForFamilyMember && (
                   <Text className="text-white text-xs">✓</Text>
@@ -429,113 +431,44 @@ export default function SessionConsultPage() {
           {isForFamilyMember && (
             <View className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
               <Text className="text-lg font-semibold mb-4 text-blue-600">
-                Family Member Details
+                Select Family Member
               </Text>
 
-              {/* Family Member Name */}
-              <View className="mb-4">
-                <Text className="font-semibold mb-2">Full Name *</Text>
-                <Controller
-                  control={control}
-                  name="familyMemberName"
-                  rules={{
-                    required: isForFamilyMember
-                      ? "Family member name is required"
-                      : false,
-                  }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      placeholder="Enter family member's full name"
-                      value={value}
-                      onChangeText={onChange}
-                      className="border border-gray-300 rounded-lg px-3 py-3"
-                    />
-                  )}
-                />
-                {errors.familyMemberName && (
-                  <Text className="text-red-500 text-sm mt-1">
-                    {errors.familyMemberName.message}
-                  </Text>
-                )}
-              </View>
-
-              {/* Age and Gender Row */}
-              <View className="flex-row gap-4 mb-4">
-                {/* Age */}
-                <View className="flex-1">
-                  <Text className="font-semibold mb-2">Age *</Text>
-                  <Controller
-                    control={control}
-                    name="familyMemberAge"
-                    rules={{
-                      required: isForFamilyMember ? "Age is required" : false,
-                      pattern: {
-                        value: /^[0-9]+$/,
-                        message: "Please enter a valid age",
-                      },
-                    }}
-                    render={({ field: { onChange, value } }) => (
-                      <Input
-                        placeholder="Age"
-                        value={value}
-                        onChangeText={onChange}
-                        keyboardType="numeric"
-                        className="border border-gray-300 rounded-lg px-3 py-3"
-                      />
-                    )}
-                  />
-                  {errors.familyMemberAge && (
-                    <Text className="text-red-500 text-sm mt-1">
-                      {errors.familyMemberAge.message}
-                    </Text>
-                  )}
-                </View>
-              </View>
-
-              {/* Relationship */}
-              <View className="mb-4">
-                <Text className="font-semibold mb-2">
-                  Relationship to you *
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {relationshipOptions.map((relationship) => (
-                    <Controller
-                      key={relationship}
-                      control={control}
-                      rules={{
-                        required: isForFamilyMember
-                          ? "Relationship is required"
-                          : false,
-                      }}
-                      name="relationship"
-                      render={({ field: { onChange, value } }) => (
-                        <Button
-                          className="mb-2"
-                          variant={
-                            value === relationship ? "default" : "outline"
-                          }
-                          onPress={() => onChange(relationship)}
+              <Controller
+                control={control}
+                name="familyMemberName" // Changed from familyMemberId to familyMemberName
+                rules={{
+                  required: "Please select a family member",
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <View className="border border-gray-300 rounded-lg px-3 py-2">
+                    {userFamily?.map((member) => (
+                      <Pressable
+                        key={member._id}
+                        onPress={() => onChange(member.name)} // Pass only the name
+                        className={`py-2 ${
+                          value === member.name ? "bg-blue-100" : "bg-white" // Compare with name
+                        }`}
+                      >
+                        <Text
+                          className={`text-base ${
+                            value === member.name
+                              ? "text-blue-700 font-semibold"
+                              : ""
+                          }`}
                         >
-                          <Text
-                            className={
-                              value === relationship
-                                ? "text-white text-xs"
-                                : "text-gray-800 text-xs"
-                            }
-                          >
-                            {relationship}
-                          </Text>
-                        </Button>
-                      )}
-                    />
-                  ))}
-                </View>
-                {errors.relationship && (
-                  <Text className="text-red-500 text-sm mt-1">
-                    {errors.relationship.message}
-                  </Text>
+                          {member.relationship} - {member.name}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
                 )}
-              </View>
+              />
+              {errors.familyMemberName && ( // Changed error field name
+                <Text className="text-red-500 text-sm mt-1">
+                  {errors.familyMemberName.message}
+                </Text>
+              )}
             </View>
           )}
 
@@ -563,6 +496,7 @@ export default function SessionConsultPage() {
         doctorSchedule={doctorSchedule}
         doctorId={specialist_Id}
         numberOfSessions={numberOfSessionsValue}
+        time={sessionDurationValue}
         ref={SchedulePickerRef}
       />
     </>

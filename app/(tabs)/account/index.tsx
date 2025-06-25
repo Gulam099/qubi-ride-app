@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Linking } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Linking, StatusBar } from "react-native";
 import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Link, RelativePathString } from "expo-router";
@@ -87,7 +87,7 @@ export default function AccountPage() {
           label: "My bookings",
           icon: ClipboardText,
         },
-        { link: "/account/report", label: "My reports", icon: Book },
+        // { link: "/account/report", label: "My reports", icon: Book },
         { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
         { link: "/account/scale", label: "Metrics", icon: Clipboard },
       ],
@@ -140,27 +140,21 @@ export default function AccountPage() {
   }
 
   return (
-    <SafeAreaView>
-      <View className="h-full bg-neutral-200">
+   <View style={{ flex: 1, backgroundColor: colors.primary[800] }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary[800]} />
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScrollView
-          showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
         >
-          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-16">
+          {/* Header Section */}
+          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8">
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
                 {user?.fullName ?? "User"}
               </Text>
-              {/* <CopyToClipboard
-                data={userId ?? "User id not found"}
-                variant={"ghost"}
-                className="flex-row gap-2 justify-start items-start p-0"
-              >
-                <Text className="text-base  text-gray-200 ">
-                  {userId ?? "User id not found"}
-                </Text>
-                <Copy size="16" color={colors.gray[200]} />
-              </CopyToClipboard> */}
               <Link href={"/account/profile"}>
                 <Text className="text-blue-100 text-sm underline">
                   View Profile
@@ -178,140 +172,114 @@ export default function AccountPage() {
               <Edit size="24" color={colors.gray[100]} />
             </Button>
           </View>
-          <View className="flex justify-center items-center h-full w-full flex-1 p-6 pt-2">
-            <View className="flex justify-center items-center flex-row flex-wrap  gap-4">
-              {/* {Interests.map((section) => (
-                <View
-                  key={section.title}
-                  className="flex flex-col  gap-4 py-4 w-full"
-                >
-                  <View className="flex flex-row flex-wrap justify-between  gap-4">
-                    {section.items.map((item) => (
-                      <AccountCard
-                        key={item.link + section.title}
-                        className="basis-[29%]"
-                        iconColor={section.iconColor}
-                        iconSize={28}
-                        shadowColor={section.shadowColor}
-                        backgroundColor={section.backgroundColor}
-                        icon={item.icon}
-                        label={item.label}
-                        link={item.link}
-                      />
-                    ))}
-                  </View>
-                </View>
-              ))} */}
 
-              {/* <AccountCard
-                className=""
-                iconColor={colors.gray[700]}
-                iconSize={28}
-                shadowColor={colors.blue[100]}
-                backgroundColor={"white"}
-                icon={Add}
-                label={"Select my interests"}
-                link={"/"}
-              /> */}
-            </View>
-            <View className="flex  w-full pb-4">
-              {sections.map((section) => (
-                <View key={section.title} className="flex flex-col gap-4 py-4">
-                  <H4 className=" font-semibold text-gray-800 ">
-                    {section.title}
-                  </H4>
-                  <View className="flex flex-row flex-wrap justify-between  gap-4">
-                    {section.items.map((item) => (
-                      <AccountCard
-                        key={item.link + section.title}
-                        className={"basis-[29%]"}
-                        iconColor={section.iconColor}
-                        iconSize={28}
-                        shadowColor={section.shadowColor}
-                        backgroundColor={section.backgroundColor}
-                        icon={item.icon}
-                        label={item.label}
-                        link={item.link}
-                      />
-                    ))}
-                  </View>
-                </View>
-              ))}
-
-              <TouchableOpacity
-                onPress={() => contactUsBottomSheetRef.current?.expand()}
-              >
-                <AccountCard2
-                  className={"basis-[29%]"}
-                  iconColor={ContactUsCard.iconColor}
-                  iconSize={28}
-                  shadowColor={ContactUsCard.shadowColor}
-                  backgroundColor={ContactUsCard.backgroundColor}
-                  icon={ContactUsCard.item.icon}
-                  label={ContactUsCard.item.label}
-                  link={ContactUsCard.item.link}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <SignOutButton sheetRef={signOutRef} />
-            <DeleteAccountButton sheetRef={deleteAccountRef} />
-            <SignOutSheet ref={signOutRef} />
-            <DeleteAccountSheet ref={deleteAccountRef} />
-
-            <BottomSheet
-              ref={contactUsBottomSheetRef}
-              index={-1} // Start fully hidden
-              enablePanDownToClose={true}
-              style={{ zIndex: 500 }}
-            >
-              <BottomSheetView className="w-full flex-1 bg-white ">
-                <View className="flex flex-col justify-center items-center w-full gap-4 p-6 mx-auto">
-                  <Button
-                    size={"icon"}
-                    variant={"ghost"}
-                    className="absolute top-2 right-2 rounded-full p-0 text-neutral-800"
-                    onPress={() => contactUsBottomSheetRef.current?.close()}
-                  >
-                    <X size={20} color={"#262626"} />
-                  </Button>
-
-                  <View className="flex flex-col  justify-center items-center w-full gap-4 py-8">
-                    <H3 className="border-none text-lg text-neutral-700 text-center">
-                      Welcome! Baserah team is here to serve you
-                    </H3>
-                    <Text className="text-base text-neutral-500">
-                      The usual response time for us is a few minutes
-                    </Text>
-
-                    <Button
-                      onPress={() => {
-                        contactUsBottomSheetRef.current?.close();
-                        router.push("/help/ticket");
-                      }}
-                      className="w-full"
-                    >
-                      <Text className="text-white font-semibold">
-                        Add a ticket directly
-                      </Text>
-                    </Button>
-                    <Text className="text-base text-neutral-500">or</Text>
-                    <View className="mt-4 w-full">
-                      <Button className="w-full">
-                        <TouchableOpacity onPress={() => handleCall("+9665555550100")}>
-                          <Text className="text-white  font-semibold">
-                            Call +966 5555550100
-                          </Text>
-                        </TouchableOpacity>
-                      </Button>
+          {/* Content Section */}
+          <View className="flex-1 bg-neutral-200">
+            <View className="flex justify-center items-center h-full w-full flex-1 p-6 pt-6">
+              <View className="flex justify-center items-center flex-row flex-wrap gap-4">
+                {/* Interests section - uncomment if needed */}
+              </View>
+              
+              <View className="flex w-full pb-4">
+                {sections.map((section) => (
+                  <View key={section.title} className="flex flex-col gap-4 py-4">
+                    <H4 className="font-semibold text-gray-800">
+                      {section.title}
+                    </H4>
+                    <View className="flex flex-row flex-wrap justify-between gap-4">
+                      {section.items.map((item) => (
+                        <AccountCard
+                          key={item.link + section.title}
+                          className={"basis-[29%]"}
+                          iconColor={section.iconColor}
+                          iconSize={28}
+                          shadowColor={section.shadowColor}
+                          backgroundColor={section.backgroundColor}
+                          icon={item.icon}
+                          label={item.label}
+                          link={item.link}
+                        />
+                      ))}
                     </View>
                   </View>
-                </View>
-              </BottomSheetView>
-            </BottomSheet>
+                ))}
+
+                <TouchableOpacity
+                  onPress={() => contactUsBottomSheetRef.current?.expand()}
+                >
+                  <AccountCard2
+                    className={"basis-[29%]"}
+                    iconColor={ContactUsCard.iconColor}
+                    iconSize={28}
+                    shadowColor={ContactUsCard.shadowColor}
+                    backgroundColor={ContactUsCard.backgroundColor}
+                    icon={ContactUsCard.item.icon}
+                    label={ContactUsCard.item.label}
+                    link={ContactUsCard.item.link}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <SignOutButton sheetRef={signOutRef} />
+              <DeleteAccountButton sheetRef={deleteAccountRef} />
+            </View>
           </View>
         </ScrollView>
-      </View>
-    </SafeAreaView>
+
+        <SignOutSheet ref={signOutRef} />
+        <DeleteAccountSheet ref={deleteAccountRef} />
+
+        <BottomSheet
+          ref={contactUsBottomSheetRef}
+          index={-1}
+          enablePanDownToClose={true}
+          style={{ zIndex: 500 }}
+        >
+          <BottomSheetView className="w-full flex-1 bg-white">
+            <View className="flex flex-col justify-center items-center w-full gap-4 p-6 mx-auto">
+              <Button
+                size={"icon"}
+                variant={"ghost"}
+                className="absolute top-2 right-2 rounded-full p-0 text-neutral-800"
+                onPress={() => contactUsBottomSheetRef.current?.close()}
+              >
+                <X size={20} color={"#262626"} />
+              </Button>
+
+              <View className="flex flex-col justify-center items-center w-full gap-4 py-8">
+                <H3 className="border-none text-lg text-neutral-700 text-center">
+                  Welcome! Baserah team is here to serve you
+                </H3>
+                <Text className="text-base text-neutral-500">
+                  The usual response time for us is a few minutes
+                </Text>
+
+                <Button
+                  onPress={() => {
+                    contactUsBottomSheetRef.current?.close();
+                    router.push("/help/ticket");
+                  }}
+                  className="w-full"
+                >
+                  <Text className="text-white font-semibold">
+                    Add a ticket directly
+                  </Text>
+                </Button>
+                <Text className="text-base text-neutral-500">or</Text>
+                <View className="mt-4 w-full">
+                  <Button className="w-full">
+                    <TouchableOpacity onPress={() => handleCall("+9665555550100")}>
+                      <Text className="text-white font-semibold">
+                        Call +966 5555550100
+                      </Text>
+                    </TouchableOpacity>
+                  </Button>
+                </View>
+              </View>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </SafeAreaView>
+    </View>
   );
 }

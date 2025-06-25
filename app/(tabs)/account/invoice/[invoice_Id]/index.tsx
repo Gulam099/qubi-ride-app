@@ -12,7 +12,9 @@ import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { Loader } from "@/components/loader";
 import { ApiUrl } from "@/const";
-
+import Logo from "@/features/Home/Components/Logo";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 export default function InvoiceIdPerPage() {
   const { invoice_Id } = useLocalSearchParams();
   const { user } = useUser();
@@ -37,8 +39,26 @@ export default function InvoiceIdPerPage() {
 
   console.log("invoice", invoice);
 
-  const handlePrint = () => {
-    console.log("Printing Invoice...");
+  const handledownload = async () => {
+    if (!invoice_Id) return;
+
+    const downloadUrl = `${ApiUrl}/api/payments/${invoice_Id}/pdf`;
+    const fileUri = FileSystem.documentDirectory + `invoice_${invoice_Id}.pdf`;
+
+    try {
+      const downloadResumable = FileSystem.createDownloadResumable(
+        downloadUrl,
+        fileUri
+      );
+
+      const { uri } = await downloadResumable.downloadAsync();
+      console.log("Downloaded to:", uri);
+
+      // Share the PDF (e.g., open with other apps like WhatsApp, Drive, etc.)
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.error("Failed to download PDF:", error);
+    }
   };
 
   const getStatusStyle = (status: string) => {
@@ -59,12 +79,12 @@ export default function InvoiceIdPerPage() {
       <View className="flex flex-row justify-between items-center">
         <H3 className="text-xl flex-1">My Invoices</H3>
         <Button
-          onPress={handlePrint}
+          onPress={handledownload}
           disabled={isLoading || isError}
           className="bg-purple-200 flex flex-row gap-2 items-center"
         >
           <Printer size="22" color={colors.primary[500]} />
-          <Text className="text-primary-500 font-medium">Print</Text>
+          <Text className="text-primary-500 font-medium">Downlaod</Text>
         </Button>
       </View>
 
@@ -75,6 +95,9 @@ export default function InvoiceIdPerPage() {
           <>
             <View className=" items-start justify-start flex-row  gap-3">
               <View className="flex-1 flex-col gap-2">
+                <View className="flex justify-center items-center">
+                  <Logo size={100} />
+                </View>
                 <Text className="font-semibold text-lg text-gray-800">
                   {invoice.description}
                 </Text>
@@ -94,9 +117,7 @@ export default function InvoiceIdPerPage() {
                 >
                   {invoice.status}
                 </Text>
-                <Text className="text-xs text-gray-500">
-                  {invoice.date}
-                </Text>
+                <Text className="text-xs text-gray-500">{invoice.date}</Text>
               </View>
             </View>
 

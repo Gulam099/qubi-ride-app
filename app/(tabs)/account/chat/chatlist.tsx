@@ -34,11 +34,11 @@ function ChatListPage() {
     fetchdoctors();
   }, [userId]);
 
-  const handleChatPress = (id: string, name: string) => {
+  const handleChatPress = (id: string, name: string,canChat: boolean) => {
     console.log("Navigating to doctor ID:", id);
     console.log("Navigating to doctor name:", name);
     console.log("Navigating to:", `/tabs)/account/chat/c/${id}`);
-    router.push(`/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(name)}`);
+    router.push(`/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(name)}&canChat=${canChat}`);
   };
 
   const getInitials = (name: string) => {
@@ -96,7 +96,7 @@ function ChatListPage() {
             }
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => handleChatPress(item.doctorId, item.full_name)}
+                onPress={() => handleChatPress(item.doctorId, item.full_name,item.canChat)}
                 className="bg-white rounded-xl p-4 shadow-sm"
               >
                 <View className="flex-row items-center gap-3">

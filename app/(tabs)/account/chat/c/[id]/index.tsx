@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { io } from "socket.io-client";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import axios from "axios";
@@ -14,8 +20,8 @@ import {
 import { FlatList } from "react-native";
 import { Text } from "react-native";
 import { StyleSheet } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 
 const socket = io(`${apiNewUrl}`, {
   transports: ["websocket"],
@@ -24,15 +30,19 @@ const socket = io(`${apiNewUrl}`, {
 
 function ChatScreen() {
   const { user } = useUser();
-  const { id ,name } = useLocalSearchParams();
+  const { id, name ,canChat } = useLocalSearchParams();
   const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState(""); 
+  const [inputText, setInputText] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = id as string;
   const navigation = useNavigation();
 
-   useLayoutEffect(() => {
+
+  const isChatAllowed = canChat === "true"; 
+
+  console.log('canChat',canChat)
+  useLayoutEffect(() => {
     if (name) {
       navigation.setOptions({
         headerTitle: () => (
@@ -41,9 +51,6 @@ function ChatScreen() {
       });
     }
   }, [name]);
-
-  console.log("doctorId", doctorId);
-  console.log("userId", userId);
 
   const currentUser = {
     _id: userId,
@@ -56,16 +63,19 @@ function ChatScreen() {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (messageDate.toDateString() === today.toDateString()) {
       return "Today";
     } else if (messageDate.toDateString() === yesterday.toDateString()) {
       return "Yesterday";
     } else {
-      return messageDate.toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'long',
-        year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+      return messageDate.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "long",
+        year:
+          messageDate.getFullYear() !== today.getFullYear()
+            ? "numeric"
+            : undefined,
       });
     }
   };
@@ -85,17 +95,17 @@ function ChatScreen() {
 
     messages.forEach((message, index) => {
       const messageDate = getDateString(message.createdAt);
-      
+
       // Add date divider if date changed
       if (currentDate !== messageDate) {
         messagesWithDividers.push({
           _id: `date-${messageDate}-${index}`,
-          type: 'date-divider',
+          type: "date-divider",
           date: messageDate,
         });
         currentDate = messageDate;
       }
-      
+
       messagesWithDividers.push(message);
     });
 
@@ -129,8 +139,11 @@ function ChatScreen() {
               avatar: msg.imageUrl || undefined,
             },
           }))
-          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        
+          .sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+
         const messagesWithDividers = addDateDividers(formatted);
         setMessages(messagesWithDividers);
       }
@@ -140,43 +153,60 @@ function ChatScreen() {
   };
 
   // Receive messages
-  useEffect(() => {
-    socket.on("connect", () => {
-      // Join both patient and doctor rooms
-      socket.emit("join", { userId: userId });
-      socket.emit("join", { userId: doctorId });
-    });
+  const roomId = [userId, doctorId].sort().join("_");
 
+  useEffect(() => {
+    // Register patient with server
+    socket.emit("register_user", userId);
+
+    // Join the room immediately if socket is already connected
+    if (socket.connected) {
+      socket.emit("join_room", { roomId });
+    } else {
+      socket.on("connect", () => {
+        socket.emit("register_user", userId);
+        socket.emit("join_room", { roomId });
+      });
+    }
+
+    // Listen for new messages
     socket.on("new_message", (msg) => {
-      // Check if this message is for this chat (between this patient and doctor)
+      console.log("NEW MESSAGE", msg);
       if (
         (msg.userId === userId && msg.doctorId === doctorId) ||
         (msg.userId === doctorId && msg.doctorId === userId)
       ) {
-        const formatted = {
-          _id: `${Date.now()}-${Math.random()}`,
-          text: msg.text,
-          createdAt: new Date(),
-          user: {
-            _id: msg.senderId,
-            name: msg.role === "doctor" ? "Doctor" : "Patient",
-            avatar: msg.imageUrl || undefined,
-          },
-        };
-        
-        setMessages((prev) => {
-          const messagesOnly = prev.filter(item => item.type !== 'date-divider');
-          const newMessages = [...messagesOnly, formatted];
-          return addDateDividers(newMessages);
-        });
+        // Don't add message if it's from the current user (avoid duplicates)
+        if (msg.senderId !== userId) {
+          const formatted = {
+            _id: `${Date.now()}-${Math.random()}`,
+            text: msg.text,
+            createdAt: new Date(),
+            user: {
+              _id: msg.senderId,
+              name: msg.role === "doctor" ? "Doctor" : "Patient",
+              avatar: msg.imageUrl || undefined,
+            },
+          };
+
+          setMessages((prev) => {
+            const messagesOnly = prev.filter(
+              (item) => item.type !== "date-divider"
+            );
+            const newMessages = [...messagesOnly, formatted];
+            return addDateDividers(newMessages);
+          });
+        }
       }
     });
 
+    // Cleanup
     return () => {
+      socket.emit("leave_room", { roomId });
       socket.off("connect");
       socket.off("new_message");
     };
-  }, [userId, doctorId]);
+  }, [roomId, userId, doctorId]);
 
   useEffect(() => {
     fetchChats();
@@ -186,8 +216,8 @@ function ChatScreen() {
   const onSend = useCallback(
     (messageText?: string) => {
       const textToSend = messageText || inputText.trim();
-      
-      if (!textToSend) {
+
+      if (!textToSend || !isChatAllowed ) {
         console.warn("No text to send");
         return;
       }
@@ -204,11 +234,13 @@ function ChatScreen() {
       };
 
       setMessages((prev) => {
-        const messagesOnly = prev.filter(item => item.type !== 'date-divider');
+        const messagesOnly = prev.filter(
+          (item) => item.type !== "date-divider"
+        );
         const newMessages = [...messagesOnly, message];
         return addDateDividers(newMessages);
       });
-      
+
       setInputText(""); // Clear input after sending
 
       // Send via socket
@@ -217,6 +249,7 @@ function ChatScreen() {
         doctorId: doctorId, // Doctor ID
         senderId: userId, // Patient is sending
         text: textToSend,
+        role: "patient",
       });
 
       // Save to database
@@ -243,7 +276,7 @@ function ChatScreen() {
 
   const renderItem = ({ item }) => {
     // Render date divider
-    if (item.type === 'date-divider') {
+    if (item.type === "date-divider") {
       return (
         <View style={styles.dateDividerContainer}>
           <View style={styles.dateDividerLine} />
@@ -261,16 +294,24 @@ function ChatScreen() {
           item.user._id === userId ? styles.myMessage : styles.otherMessage,
         ]}
       >
-        <Text style={[
-          styles.messageText,
-          item.user._id === userId ? styles.myMessageText : styles.otherMessageText
-        ]}>
+        <Text
+          style={[
+            styles.messageText,
+            item.user._id === userId
+              ? styles.myMessageText
+              : styles.otherMessageText,
+          ]}
+        >
           {item.text}
         </Text>
-        <Text style={[
-          styles.timestamp,
-          item.user._id === userId ? styles.myTimestamp : styles.otherTimestamp
-        ]}>
+        <Text
+          style={[
+            styles.timestamp,
+            item.user._id === userId
+              ? styles.myTimestamp
+              : styles.otherTimestamp,
+          ]}
+        >
           {formatTime(item.createdAt)}
         </Text>
       </View>
@@ -305,13 +346,10 @@ function ChatScreen() {
           onSubmitEditing={handleSend}
           returnKeyType="send"
         />
-        <TouchableOpacity 
-          onPress={handleSend} 
-          style={[
-            styles.sendButton, 
-            { opacity: inputText.trim() ? 1 : 0.5 }
-          ]}
-          disabled={!inputText.trim()}
+        <TouchableOpacity
+          onPress={handleSend}
+          style={[styles.sendButton, { opacity: inputText.trim()&& isChatAllowed  ? 1 : 0.5 }]}
+          disabled={!inputText.trim() || !isChatAllowed }
         >
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
@@ -375,26 +413,26 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   dateDividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 20,
     marginHorizontal: 20,
   },
   dateDividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
   },
   dateDividerText: {
-    backgroundColor: '#F5F5F5',
-    color: '#666',
+    backgroundColor: "#F5F5F5",
+    color: "#666",
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
     marginHorizontal: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",

@@ -1,4 +1,11 @@
-import { View, Text, FlatList, Image, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BackButton from "@/features/Home/Components/BackButton";
@@ -30,7 +37,9 @@ export default function SpecialistConsultantPage() {
 
   const fetchSpecialistData = async () => {
     if (!specialist_Id) throw new Error("Specialist ID is missing.");
-    const response = await fetch(`${ApiUrl}/api/doctors/doctor/${specialist_Id}`);
+    const response = await fetch(
+      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
+    );
     if (!response.ok) throw new Error("Failed to fetch specialist data.");
     return await response.json();
   };
@@ -51,7 +60,10 @@ export default function SpecialistConsultantPage() {
       try {
         const res = await fetch(`${ApiUrl}/api/favorites/${userId}`);
         const data = await res.json();
-        if (res.ok && data?.favorites?.doctors?.some((doc) => doc._id === specialist_Id)) {
+        if (
+          res.ok &&
+          data?.favorites?.doctors?.some((doc) => doc._id === specialist_Id)
+        ) {
           setIsFavorited(true);
         } else {
           setIsFavorited(false);
@@ -63,12 +75,18 @@ export default function SpecialistConsultantPage() {
     if (userId && specialist_Id) checkFavorites();
   }, [userId, specialist_Id]);
 
+  console.log("specialistData", specialistData);
+
   const handleAddToFavorites = async () => {
     try {
       const response = await fetch(`${ApiUrl}/api/favorites/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, itemId: specialist_Id, type: "doctors" }),
+        body: JSON.stringify({
+          userId,
+          itemId: specialist_Id,
+          type: "doctors",
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to add");
@@ -84,7 +102,11 @@ export default function SpecialistConsultantPage() {
       const response = await fetch(`${ApiUrl}/api/favorites/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, itemId: specialist_Id, type: "doctors" }),
+        body: JSON.stringify({
+          userId,
+          itemId: specialist_Id,
+          type: "doctors",
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to remove");
@@ -122,14 +144,18 @@ export default function SpecialistConsultantPage() {
           name={specialistData?.data?.full_name}
           className="size-32"
         />
-        <Text className="text-xl font-semibold ">{specialistData?.data?.full_name ?? "No name found"}</Text>
+        <Text className="text-xl font-semibold ">
+          {specialistData?.data?.full_name ?? "No name found"}
+        </Text>
         <Text className="text-sm text-neutral-600 text-center font-normal w-2/3">
           {specialistData?.data?.specialization ?? "Specialist"}
         </Text>
 
         <TouchableOpacity
           className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md"
-          onPress={isFavorited ? handleRemoveFromFavorites : handleAddToFavorites}
+          onPress={
+            isFavorited ? handleRemoveFromFavorites : handleAddToFavorites
+          }
         >
           <Like1
             size={24}
@@ -138,35 +164,52 @@ export default function SpecialistConsultantPage() {
           />
         </TouchableOpacity>
 
-
-        <View className="mt-4 flex-row w-full">
-          {[
-            { title: "Rating", value: specialistData?.data?.rating ?? "0", icon: Star1 },
-            { title: "Experience", value: specialistData?.data?.experience ?? "0", icon: IdCard },
-            { title: "Session Type", value: specialistData?.data?.sessionType ?? "0", icon: HeartSearch },
-          ].map((item) => (
-            <View key={item.title} className="flex-1 items-center">
-              <View className="bg-blue-50/30 rounded-full p-2">
-                <item.icon size={22} color="#222" />
+        <View className="mt-4">
+          <View className="flex-row w-full">
+            {[
+              {
+                title: "Rating",
+                value: specialistData?.data?.rating ?? "0",
+                icon: Star1,
+              },
+              {
+                title: "Experience",
+                value: specialistData?.data?.experience ?? "0",
+                icon: IdCard,
+              },
+              {
+                title: "Session Type",
+                value: specialistData?.data?.sessionType ?? "0",
+                icon: HeartSearch,
+              },
+            ].map((item) => (
+              <View
+                className="flex-col justify-center items-center mb-4 flex-1 w-full"
+                key={item.title}
+              >
+                <View className="bg-blue-50/30 rounded-full p-2">
+                  <item.icon size={22} color="#222" />
+                </View>
+                <Text className="text-sm text-gray-600">{item.title}</Text>
+                <Text className="text-sm font-bold">{item.value}</Text>
               </View>
-              <Text className="text-sm text-gray-600">{item.title}</Text>
-              <Text className="text-sm font-bold">{item.value}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View className="flex-row gap-2 px-4 mt-2">
-          <View className="bg-blue-50/30 rounded-full p-2">
-            <Hourglass size={22} color="#222" />
+            ))}
           </View>
-          <View>
-            <Text className="text-sm text-gray-600">Response time</Text>
-            <Text className="text-sm font-bold">{specialistData.responseTime ?? "N/A"}</Text>
+          <View className="flex-row gap-2 px-4">
+            <View className="bg-blue-50/30 rounded-full p-2">
+              <Hourglass size={22} color="#222" />
+            </View>
+            <View>
+              <Text className="text-sm text-gray-600">Response time</Text>
+              <Text className="text-sm font-bold">
+                {specialistData?.data?.responseTime ?? "N/A"}
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* Expertise Section */}
-        {specialistData.expertise && (
+        {/* {specialistData.expertise && (
           <View className="mt-4 bg-white p-4 rounded-2xl gap-4 w-full">
             <View className="flex-row gap-2 items-center">
               <View className="bg-blue-50/30 rounded-full p-2">
@@ -182,10 +225,10 @@ export default function SpecialistConsultantPage() {
               ))}
             </View>
           </View>
-        )}
+        )} */}
 
         {/* Feedback Section */}
-        {specialistData.feedback && (
+        {/* {specialistData.feedback && (
           <View className="mt-4 bg-white p-4 rounded-2xl w-full gap-2">
             <View className="flex-row justify-between items-center">
               <View className="flex-row gap-2 items-center">
@@ -220,18 +263,28 @@ export default function SpecialistConsultantPage() {
               <Text className="text-sm text-center text-neutral-600">No feedback available</Text>
             )}
           </View>
-        )}
+        )} */}
       </View>
 
       {/* Book Now */}
-      < Button
+      <Button
         className="mt-4 bg-purple-600 mb-6"
-        onPress={() => router.push(`/consult/s/${specialist_Id}/session`)}
+        onPress={() =>
+          router.push({
+            pathname: `/consult/s/${specialist_Id}/session`,
+            params: {
+              doctorFees: specialistData?.data?.fees?.toString() || "0",
+            },
+          })
+        }
       >
         <Text className="text-white font-bold">
-          Book now {specialistData.fees != 0 ? currencyFormatter(specialistData.fees ?? 0) : "for free"}
+          Book now{" "}
+          {specialistData?.data?.fees != 0
+            ? currencyFormatter(specialistData?.data?.fees ?? 0)
+            : "for free"}
         </Text>
       </Button>
-    </ScrollView >
+    </ScrollView>
   );
 }

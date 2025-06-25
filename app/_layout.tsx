@@ -2,6 +2,8 @@ import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import * as Linking from "expo-linking";
+
 import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
@@ -28,7 +30,14 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import i18n from "@/lib/i18n";
 import { I18nextProvider } from "react-i18next";
-import { ActivityIndicator, I18nManager, PermissionsAndroid, Platform, View, Alert } from "react-native";
+import {
+  ActivityIndicator,
+  I18nManager,
+  PermissionsAndroid,
+  Platform,
+  View,
+  Alert,
+} from "react-native";
 
 import {
   ClerkProvider,
@@ -44,10 +53,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 
 import messaging from "@react-native-firebase/messaging";
-import firebase from '@react-native-firebase/app';
-import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import firebase from "@react-native-firebase/app";
+import notifee, { AndroidImportance, EventType } from "@notifee/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { handleDeepLink } from "@/utils/deeplink";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -68,7 +78,8 @@ interface Logger {
 
 const logger: Logger = {
   info: (message, data) => __DEV__ && console.log(`[INFO] ${message}`, data),
-  error: (message, error) => __DEV__ && console.error(`[ERROR] ${message}`, error),
+  error: (message, error) =>
+    __DEV__ && console.error(`[ERROR] ${message}`, error),
 };
 // Initialize Firebase
 if (!firebase.apps.length) {
@@ -95,7 +106,7 @@ const InitialLayout = () => {
   // Add this loading spinner component
   // Android 13+ Notification Permission Helper (unchanged)
   const requestNotificationPermission = async () => {
-    if (Platform.OS === 'android' && Platform.Version >= 33) {
+    if (Platform.OS === "android" && Platform.Version >= 33) {
       try {
         const hasPermission = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
@@ -108,7 +119,7 @@ const InitialLayout = () => {
         }
         return true;
       } catch (error) {
-        logger.error('Notification permission error:', error);
+        logger.error("Notification permission error:", error);
         return false;
       }
     }
@@ -131,14 +142,17 @@ const InitialLayout = () => {
       // Check if response status is NOT 2xx
       if (response.status < 200 || response.status >= 300) {
         const errorBody = await response.text();
-        logger.error('API Error:', `Status: ${response.status}, Body: ${errorBody}`);
+        logger.error(
+          "API Error:",
+          `Status: ${response.status}, Body: ${errorBody}`
+        );
         throw new Error(`HTTP ${response.status}: ${errorBody}`);
       }
 
-      logger.info('Token saved successfully', token);
-      await AsyncStorage.setItem('lastFcmToken', token);
+      logger.info("Token saved successfully", token);
+      await AsyncStorage.setItem("lastFcmToken", token);
     } catch (error) {
-      logger.error('Token upload failed:', error);
+      logger.error("Token upload failed:", error);
     }
   };
 
@@ -156,28 +170,28 @@ const InitialLayout = () => {
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
       if (!enabled) {
-        console.log('Notifications disabled by user');
+        console.log("Notifications disabled by user");
         return;
       }
 
       // 3. Get current token and check if changed
       const currentToken = await messaging().getToken();
-      const lastStoredToken = await AsyncStorage.getItem('lastFcmToken');
+      const lastStoredToken = await AsyncStorage.getItem("lastFcmToken");
 
       if (currentToken !== lastStoredToken) {
-        logger.info('New/updated FCM token detected');
+        logger.info("New/updated FCM token detected");
         await sendTokenToBackend(currentToken);
       }
     } catch (error) {
-      logger.error('Notification setup error:', error);
+      logger.error("Notification setup error:", error);
     }
   };
 
   // Channel creation
   useEffect(() => {
     notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
+      id: "default",
+      name: "Default Channel",
       importance: AndroidImportance.HIGH,
     });
   }, []);
@@ -193,40 +207,47 @@ const InitialLayout = () => {
 
         // Token refresh handler
         unsubscribeTokenRefresh = messaging().onTokenRefresh(async () => {
-          logger.info('FCM token refresh triggered');
+          logger.info("FCM token refresh triggered");
           await setupNotifications();
         });
 
         // Message handler
         unsubscribeMessage = messaging().onMessage(async (remoteMessage) => {
           if (!remoteMessage.notification) {
-            console.warn("Received message without notification payload", remoteMessage);
+            console.warn(
+              "Received message without notification payload",
+              remoteMessage
+            );
             return;
           }
 
           const { title, body } = remoteMessage.notification;
           const deepLink = remoteMessage.data?.deepLink;
-          const deepLinkString = typeof deepLink === 'string' ? deepLink : JSON.stringify(deepLink || '');
-          console.log("deepLinkString", deepLinkString)
+          const deepLinkString =
+            typeof deepLink === "string"
+              ? deepLink
+              : JSON.stringify(deepLink || "");
+          console.log("deepLinkString", deepLinkString);
 
           await notifee.displayNotification({
             title: title ?? "New Notification",
             body: body ?? "You have a new message",
             android: {
-              channelId: 'default',
+              channelId: "default",
               importance: AndroidImportance.HIGH,
-              smallIcon: 'ic_launcher',
-              ...(deepLinkString && deepLinkString !== '{}' && {
-                actions: [
-                  {
-                    title: 'Join Room',
-                    pressAction: {
-                      id: 'join-room',
-                      launchActivity: 'default',
+              smallIcon: "ic_launcher",
+              ...(deepLinkString &&
+                deepLinkString !== "{}" && {
+                  actions: [
+                    {
+                      title: "Join Room",
+                      pressAction: {
+                        id: "join-room",
+                        launchActivity: "default",
+                      },
                     },
-                  }
-                ],
-              }),
+                  ],
+                }),
             },
             data: {
               deepLink: deepLinkString,
@@ -234,7 +255,7 @@ const InitialLayout = () => {
           });
         });
       } catch (error) {
-        logger.error('FCM initialization failed:', error);
+        logger.error("FCM initialization failed:", error);
       }
     };
 
@@ -246,10 +267,32 @@ const InitialLayout = () => {
     };
   }, []);
 
+  // In app/(tabs)/_layout.tsx or app/_layout.tsx
+  useEffect(() => {
+    const subscription = Linking.addEventListener("url", (event) => {
+      console.log("URL received in tabs layout:", event.url);
+      handleDeepLink(event.url);
+    });
+
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log("Initial URL in tabs layout:", url);
+        // Add a longer delay for initial URL to ensure tabs are mounted
+        setTimeout(() => {
+          handleDeepLink(url);
+        }, 500);
+      }
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
   // Notification handlers setup
   useEffect(() => {
     // Foreground handler
-    const unsubscribeForeground = notifee.onForegroundEvent(handleNotificationEvent);
+    const unsubscribeForeground = notifee.onForegroundEvent(
+      handleNotificationEvent
+    );
 
     // Background handler
     notifee.onBackgroundEvent(handleNotificationEvent);
@@ -262,35 +305,40 @@ const InitialLayout = () => {
   // Unified notification handler
   const handleNotificationEvent = async ({ type, detail }: Event) => {
     const handleDeepLink = (link?: string) => {
-      console.log("initailixeeeee>>>deep")
+      console.log("initailixeeeee>>>deep");
 
       try {
         if (!link) {
-          console.warn('Received empty deep link');
-          router.push('/');
+          console.warn("Received empty deep link");
+          router.push("/");
           return;
         }
 
         // Validate URI format
-        const isValidUri = /^baserti:\/\/(joinroom|other-route)\/[\w-]+$/.test(link);
-        console.log("deep link url is ", isValidUri)
+        const isValidUri = /^baserti:\/\/(joinroom|other-route)\/[\w-]+$/.test(
+          link
+        );
+        console.log("deep link url is ", isValidUri);
         if (!isValidUri) {
-          Alert.alert('Invalid Link', 'The provided link is not formatted correctly');
-          router.push('/(stacks)/joinroom/the%20room%20url%20is%20broken');
+          Alert.alert(
+            "Invalid Link",
+            "The provided link is not formatted correctly"
+          );
+          router.push("/(stacks)/joinroom/the%20room%20url%20is%20broken");
           return;
         }
 
         // Convert to Expo Router path
         const expoPath = link
-          .replace('baserti://', '')
-          .replace('joinroom/', 'joinroom/')
-          .replace('other-route/', 'other/');
-        console.log('link', link)
-        router.push(`/${expoPath}` as import('expo-router').Href);
+          .replace("baserti://", "")
+          .replace("joinroom/", "joinroom/")
+          .replace("other-route/", "other/");
+        console.log("link", link);
+        router.push(`/${expoPath}` as import("expo-router").Href);
         console.log("deep link done");
       } catch (error) {
-        console.error('Deep link handling failed:', error);
-        router.push('/(auth)/sign-in');
+        console.error("Deep link handling failed:", error);
+        router.push("/(auth)/sign-in");
       }
     };
 
@@ -325,7 +373,10 @@ const InitialLayout = () => {
               <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
               <Stack.Screen name="(modals)" options={{ headerShown: false }} />
               <Stack.Screen name="consult" options={{ headerShown: false }} />
-              <Stack.Screen name="instant-booking" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="instant-booking"
+                options={{ headerShown: false }}
+              />
             </Stack>
           </SafeAreaProvider>
           <Toaster position="top-center" />

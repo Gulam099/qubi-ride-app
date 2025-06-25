@@ -17,11 +17,6 @@ const relationshipOptions = [
   { label: "Spouse", value: "spouse" },
   { label: "Son", value: "son" },
   { label: "Daughter", value: "daughter" },
-  { label: "Father", value: "father" },
-  { label: "Mother", value: "mother" },
-  { label: "Brother", value: "brother" },
-  { label: "Sister", value: "sister" },
-  { label: "Other", value: "other" }
 ];
 
 function FamilyPage() {

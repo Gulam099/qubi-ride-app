@@ -73,6 +73,8 @@ const JoinRoom = () => {
     }
   };
 
+  console.log("fees>>>>>>>>",roomData);
+
   console.log("room data", roomData);
 
   // Handle session end (show rating modal)
@@ -208,10 +210,7 @@ const JoinRoom = () => {
       const userId = roomData?.patientId ?? roomData?.patient?._id;
       const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
       const amount = roomData?.doctorId?.fees;
-      console.log("userId", "doctorId", userId, doctorId, roomData?.bookingId);
-
-
-
+      
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,

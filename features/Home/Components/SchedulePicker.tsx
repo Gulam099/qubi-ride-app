@@ -37,6 +37,7 @@ interface SchedulePickerProps {
   CalenderHeading?: string;
   TimeSliderHeading?: string;
   numberOfSessions?: number;
+  time?: number;
 }
 
 export const SchedulePickerButton = ({
@@ -63,7 +64,9 @@ export const SchedulePickerButton = ({
   const formatLocalDate = (utcDate: string) => {
     const date = new Date(utcDate);
     // Add the timezone offset to convert to local time
-    const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    const localDate = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000
+    );
     return format(localDate, "EEEE  , dd MMMM yyyy , hh : mm a");
   };
 
@@ -77,8 +80,8 @@ export const SchedulePickerButton = ({
         {selectedSlots.length === 0
           ? "Please Select Date time"
           : selectedSlots.length === 1
-            ? formatLocalDate(selectedSlots[0])
-            : `${selectedSlots.length} slots selected on ${format(
+          ? formatLocalDate(selectedSlots[0])
+          : `${selectedSlots.length} slots selected on ${format(
               new Date(selectedSlots[0]),
               "EEEE  , dd MMMM yyyy"
             )}`}
@@ -100,6 +103,7 @@ export const SchedulePickerSheet = forwardRef<
       CalenderHeading,
       TimeSliderHeading,
       numberOfSessions = 1,
+      time,
     },
     ref
   ) => {
@@ -116,6 +120,7 @@ export const SchedulePickerSheet = forwardRef<
       selectedDateTime ?? null
     );
 
+    console.log("bookedSlots", bookedSlots);
     // Parse and manage multiple selected slots
     const [selectedSlots, setSelectedSlots] = useState<string[]>(() => {
       if (!selectedDateTime) return [];
@@ -126,6 +131,8 @@ export const SchedulePickerSheet = forwardRef<
         return [selectedDateTime];
       }
     });
+
+    console.log("bookedSlots", bookedSlots);
 
     // Calculate min and max dates from available schedule
     const { minDate, maxDate } = useMemo(() => {
@@ -162,13 +169,13 @@ export const SchedulePickerSheet = forwardRef<
       selectedSlots.length > 0
         ? selectedSlots.length === 1
           ? format(
-            new Date(selectedSlots[0]),
-            "EEEE  , dd MMMM yyyy , hh : mm a"
-          )
+              new Date(selectedSlots[0]),
+              "EEEE  , dd MMMM yyyy , hh : mm a"
+            )
           : `${selectedSlots.length} slots selected on ${format(
-            new Date(selectedSlots[0]),
-            "EEEE  , dd MMMM yyyy"
-          )}`
+              new Date(selectedSlots[0]),
+              "EEEE  , dd MMMM yyyy"
+            )}`
         : "";
 
     console.log(
@@ -218,7 +225,14 @@ export const SchedulePickerSheet = forwardRef<
 
         const dateStr = format(new Date(selectedDate), "yyyy-MM-dd");
         const response = await fetch(
-          `${ApiUrl}/api/bookings/slots/${doctorId}?date=${dateStr}`
+          `${ApiUrl}/api/bookings/slots/${doctorId}?date=${dateStr}`,
+          {
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }
         );
 
         if (!response.ok) {
@@ -239,56 +253,103 @@ export const SchedulePickerSheet = forwardRef<
 
     const flatBookedSlotIsos = useMemo(() => {
       if (!bookedSlots || bookedSlots.length === 0) return [];
-      return bookedSlots.flatMap((booking) => booking?.date);
+      return bookedSlots.map((booking) => ({
+        start: new Date(booking.date[0]), // or booking.startTime
+        duration: booking.duration || 30, // fallback to 30 if not present
+      }));
     }, [bookedSlots]);
 
     // ✅ Generate time slots for selected date
-    const timesForSelectedDate = useMemo(() => {
-      if (!selectedDate || !doctorSchedule || !(selectedDate in doctorSchedule)) {
-        return [];
+    const { availableSlots, bookedSlots: bookedSlotsForDate } = useMemo(() => {
+      if (
+        !selectedDate ||
+        !doctorSchedule ||
+        !(selectedDate in doctorSchedule)
+      ) {
+        console.log("No selected date or doctor schedule");
+        return { availableSlots: [], bookedSlots: [] };
       }
 
       const { isHoliday, start, end } = doctorSchedule[selectedDate];
 
       if (isHoliday || !start || !end) {
-        return [];
+        console.log("Holiday or missing start/end times");
+        return { availableSlots: [], bookedSlots: [] };
       }
 
       try {
-        // Create dates in local timezone
-        const startDate = new Date(selectedDate + 'T' + start.split('T')[1]);
-        const endDate = new Date(selectedDate + 'T' + end.split('T')[1]);
+        // Create start and end date using selected date
+        const startDate = new Date(selectedDate + "T" + start.split("T")[1]);
+        const endDate = new Date(selectedDate + "T" + end.split("T")[1]);
 
         let current = new Date(startDate);
-        const slots = [];
+        const allSlots = [];
+        const available = [];
+        const booked = [];
 
         const now = new Date();
         const isToday = format(now, "yyyy-MM-dd") === selectedDate;
-
         while (isBefore(current, endDate)) {
-          if (!isToday || current > now) {
-            // Store as ISO string but keep local time
-            const localTime = new Date(
-              current.getTime() - current.getTimezoneOffset() * 60000
-            ).toISOString();
+          const slotEnd = addMinutes(current, time || 30);
 
-            slots.push({
-              time: localTime,
-              isBooked: flatBookedSlotIsos.includes(localTime),
-            });
+          const overlappingBooking = flatBookedSlotIsos.find(
+            ({ start, duration }) => {
+              const bookedStart = new Date(start); // ensure it's Date object
+              const bookedEnd = addMinutes(bookedStart, duration);
+
+              // Overlap condition
+              return current < bookedEnd && slotEnd > bookedStart;
+            }
+          );
+
+          if (overlappingBooking) {
+            // Skip to end of conflicting booking
+            current = addMinutes(
+              overlappingBooking.start,
+              overlappingBooking.duration
+            );
+            continue;
           }
-          current = addMinutes(current, 30);
+
+          const slotIso = current.toISOString();
+          const slotData = {
+            iso: slotIso,
+            isBooked: false,
+            startTime: format(current, "h:mm a"),
+            endTime: format(slotEnd, "h:mm a"),
+            duration: time || 30,
+            displayText: `${format(current, "h:mm a")} - ${format(
+              slotEnd,
+              "h:mm a"
+            )} (${time || 30} min)`,
+            formattedTime: format(current, "h:mm a"),
+          };
+
+          available.push(slotData);
+          allSlots.push(slotData);
+          current = slotEnd;
         }
 
-        return slots;
+        allSlots.forEach((slot) => {
+          if (slot.isBooked) {
+            booked.push(slot);
+          } else {
+            available.push(slot);
+          }
+        });
+
+        return {
+          availableSlots: available,
+          bookedSlots: booked,
+        };
       } catch (error) {
-        console.error("Error generating time slots:", error);
-        return [];
+        console.error("Error generating scheduled slots:", error);
+        return { availableSlots: [], bookedSlots: [] };
       }
-    }, [selectedDate, doctorSchedule, flatBookedSlotIsos]);
+    }, [selectedDate, doctorSchedule, flatBookedSlotIsos, time]);
 
     return (
-       <BottomSheet
+      <BottomSheet
         ref={internalSheetRef}
         index={-1}
         enableDynamicSizing={false}
@@ -326,7 +387,7 @@ export const SchedulePickerSheet = forwardRef<
                   </Text>
                 )}
               </View>
-              
+
               {/* Calendar */}
               <Calendar
                 minDate={minDate}
@@ -391,7 +452,7 @@ export const SchedulePickerSheet = forwardRef<
                   );
                 }}
               />
-              
+
               {/* Time Slots */}
               {selectedDate && (
                 <View>
@@ -400,107 +461,124 @@ export const SchedulePickerSheet = forwardRef<
                     {numberOfSessions > 1 && (
                       <Text className="text-sm text-gray-600 font-normal">
                         {" "}
-                        (Select {numberOfSessions} slots - {selectedSlots.length}/
-                        {numberOfSessions} selected)
+                        (Select {numberOfSessions} slots -{" "}
+                        {selectedSlots.length}/{numberOfSessions} selected)
                       </Text>
                     )}
                   </Text>
-                  {timesForSelectedDate.length > 0 ? (
-                    <View className="flex-row flex-wrap gap-2">
-                      {timesForSelectedDate.map((slot) => {
-                        const time = format(new Date(slot.time), "h:mm a");
-                        const isSelected = selectedSlots.includes(slot.time);
-                        const isBooked = slot.isBooked;
-                        const canSelect =
-                          !isBooked &&
-                          (selectedSlots.length < numberOfSessions ||
-                            isSelected);
 
-                        return (
-                          <Button
-                            key={slot.time}
-                            onPress={() => {
-                              if (canSelect) {
-                                let newSelectedSlots;
-                                if (isSelected) {
-                                  // Remove slot if already selected
-                                  newSelectedSlots = selectedSlots.filter(
-                                    (s) => s !== slot.time
-                                  );
-                                } else {
-                                  // Add slot if under the limit
-                                  if (selectedSlots.length < numberOfSessions) {
-                                    newSelectedSlots = [
-                                      ...selectedSlots,
-                                      slot.time,
-                                    ].sort();
+                  {/* Available Slots Section */}
+                  {availableSlots.length > 0 ? (
+                    <View className="mb-4">
+                      <Text className="text-sm text-green-600 font-medium mb-2">
+                        Available Slots ({availableSlots.length})
+                      </Text>
+                      <View className="flex-row flex-wrap gap-2">
+                        {availableSlots.map((slot) => {
+                          const isSelected = selectedSlots.includes(slot.iso);
+                          const canSelect =
+                            selectedSlots.length < numberOfSessions ||
+                            isSelected;
+                          return (
+                            <Button
+                              key={slot.iso}
+                              onPress={() => {
+                                if (canSelect) {
+                                  let newSelectedSlots;
+                                  if (isSelected) {
+                                    // Remove slot if already selected
+                                    newSelectedSlots = selectedSlots.filter(
+                                      (s) => s !== slot.time
+                                    );
                                   } else {
-                                    return;
+                                    // Add slot if under the limit
+                                    if (
+                                      selectedSlots.length < numberOfSessions
+                                    ) {
+                                      newSelectedSlots = [
+                                        ...selectedSlots,
+                                        slot.iso,
+                                      ].sort();
+                                    } else {
+                                      return;
+                                    }
                                   }
-                                }
 
-                                setSelectedSlots(newSelectedSlots);
-                                // Update the parent component with JSON string of selected slots
-                                setSelectedDateTime(
-                                  JSON.stringify(newSelectedSlots)
-                                );
+                                  setSelectedSlots(newSelectedSlots);
+                                  setSelectedDateTime(
+                                    JSON.stringify(newSelectedSlots)
+                                  );
+                                }
+                              }}
+                              disabled={
+                                !isSelected &&
+                                selectedSlots.length >= numberOfSessions
                               }
-                            }}
-                            disabled={
-                              isBooked ||
-                              (!isSelected &&
-                                selectedSlots.length >= numberOfSessions)
-                            }
-                            className={`mb-2 ${
-                              isBooked
-                                ? "bg-red-100 border-red-300 opacity-60"
-                                : isSelected
-                                ? "bg-blue-600 border-blue-600"
-                                : !canSelect &&
-                                  selectedSlots.length >= numberOfSessions
+                              className={`mb-2 ${
+                                isSelected
+                                  ? "bg-blue-600 border-blue-600"
+                                  : !canSelect &&
+                                    selectedSlots.length >= numberOfSessions
                                   ? "bg-gray-100 border-gray-200 opacity-50"
                                   : "border-gray-300"
                               }`}
-                            variant={
-                              isBooked
-                                ? "outline"
-                                : isSelected
-                                  ? "default"
-                                  : "outline"
-                            }
-                            style={{
-                              minWidth: 90,
-                              marginRight: 8,
-                              marginBottom: 8,
-                            }}
-                          >
-                            <Text
-                              className={`font-medium ${isBooked
-                                ? "text-red-600"
-                                : isSelected
-                                  ? "text-white"
-                                  : !canSelect &&
-                                    selectedSlots.length >= numberOfSessions
+                              variant={isSelected ? "default" : "outline"}
+                              style={{
+                                minWidth: 90,
+                                marginRight: 8,
+                                marginBottom: 8,
+                              }}
+                            >
+                              <Text
+                                className={`font-medium ${
+                                  isSelected
+                                    ? "text-white"
+                                    : !canSelect &&
+                                      selectedSlots.length >= numberOfSessions
                                     ? "text-gray-400"
                                     : "text-gray-700"
                                 }`}
-                            >
-                              {time}
-                              {isBooked && " (Booked)"}
-                            </Text>
-                          </Button>
-                        );
-                      })}
+                              >
+                                {slot.formattedTime}
+                              </Text>
+                            </Button>
+                          );
+                        })}
+                      </View>
                     </View>
                   ) : (
                     <Text className="text-gray-500 text-center py-4">
                       No available time slots for this date
                     </Text>
                   )}
+                  {bookedSlotsForDate.length > 0 && (
+                    <View className="mt-4">
+                      <Text className="text-sm text-red-600 font-medium mb-2">
+                        Booked Slots ({bookedSlotsForDate.length})
+                      </Text>
+                      <View className="flex-row flex-wrap gap-2">
+                        {bookedSlotsForDate.map((slot) => (
+                          <View
+                            key={slot.iso}
+                            className="bg-red-50 border border-red-200 px-3 py-2 rounded-md"
+                            style={{
+                              minWidth: 90,
+                              marginRight: 8,
+                              marginBottom: 8,
+                            }}
+                          >
+                            <Text className="text-red-600 font-medium text-center">
+                              {slot.formattedTime}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
-            
+
             {/* Done Button - Now inside the scrollable area */}
             <Button
               onPress={() => {

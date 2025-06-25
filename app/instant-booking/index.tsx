@@ -11,7 +11,7 @@ type UserScheduleType = {
   email: string;
   firstName: string;
   lastName: string;
-  scheduleDate: string; 
+  scheduleDate: string;
   schedule: {
     isHoliday: boolean;
     start: string;
@@ -93,49 +93,49 @@ export default function UsersTodayPage() {
       </View>
     );
   }
-
+  console.log("usersData schedule", filteredUsers);
   return (
     <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
-      <Input
-        placeholder="Search for a doctor"
-        value={searchText}
-        onChangeText={setSearchText}
-      />
-
-      {filteredUsers.length > 0 ? (
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SpecialistCard
-              key={item.id}
-              name={`${item.firstName} ${item.lastName}`.trim()}
-              title={item.email}
-              price={`${item.scheduleDate} | ${
-                item.schedule?.start?.split("T")[1]?.slice(0, 5) || ""
-              } - ${item.schedule?.end?.split("T")[1]?.slice(0, 5) || ""}`}
-              likes={0}
-              imageUrl={item.image}
-              shareLink={item.id}
-              onPress={() => {
-                router.push({
-                  pathname: `/instant-booking/s/${item.id}`,
-                  params: {
-                    schedule: JSON.stringify(item.schedule),
-                    scheduleDate: item.scheduleDate,
-                  },
-                });
-              }}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="flex flex-col gap-3 pb-16"
+      <View className="flex-col gap-3">
+        <Input
+          placeholder="Search for a doctor"
+          value={searchText}
+          onChangeText={setSearchText}
         />
-      ) : (
-        <Text className="text-center text-gray-500">
-          {getEmptyStateMessage()}
-        </Text>
-      )}
+
+        {filteredUsers.length > 0 ? (
+          <FlatList
+            data={filteredUsers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <SpecialistCard
+                key={item.id}
+                name={`${item.firstName} ${item.lastName}`.trim()}
+                title={item.specialization}
+                price={item.fees}
+                likes={0}
+                imageUrl={item.image}
+                shareLink={item.id}
+                onPress={() => {
+                  router.push({
+                    pathname: `/instant-booking/s/${item.id}`,
+                    params: {
+                      todaySchedule: JSON.stringify(item.schedule),
+                      doctorFees: "0",
+                    },
+                  });
+                }}
+              />
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerClassName="flex flex-col gap-3 pb-16"
+          />
+        ) : (
+          <Text className="text-center text-gray-500">
+            {getEmptyStateMessage()}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
