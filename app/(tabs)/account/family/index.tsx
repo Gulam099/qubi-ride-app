@@ -12,14 +12,11 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { X, ChevronDown } from "lucide-react-native";
 import { ApiUrl } from "@/const";
 import axios from "axios";
-
-const relationshipOptions = [
-  { label: "Spouse", value: "spouse" },
-  { label: "Son", value: "son" },
-  { label: "Daughter", value: "daughter" },
-];
+import { useTranslation } from "react-i18next";
 
 function FamilyPage() {
+  const { t } = useTranslation();
+
   const { user } = useUser();
   const phoneNumber = user?.phoneNumbers?.[0]?.phoneNumber;
   const [familyMembers, setFamilyMembers] = useState<FamilyType[]>([]);
@@ -39,6 +36,11 @@ function FamilyPage() {
   const relationshipValue = watch("relationship");
   const AddFamilyMemberFormBottomSheetRef = useRef<BottomSheet>(null);
 
+  const relationshipOptions = [
+ { label: t("spouse"), value: "spouse" },
+  { label: t("son"), value: "son" },
+  { label: t("daughter"), value: "daughter" },
+];
   useEffect(() => {
     if (phoneNumber) fetchFamilyMembers();
   }, [phoneNumber]);
@@ -151,14 +153,14 @@ function FamilyPage() {
         AddFamilyMemberFormBottomSheetRef.current?.expand();
       }}
     >
-      <Text className="text-white font-medium">Add a new member</Text>
+      <Text className="text-white font-medium">{t("addNewMember")}</Text>
     </Button>
   );
 
   const ListEmptyComponent = () => (
     <View className="flex-1 justify-center items-center mt-20">
       <Text className="font-semibold text-center">
-        No Family Member Added
+       {t("noFamilyMembers")}
       </Text>
     </View>
   );
@@ -212,14 +214,14 @@ function FamilyPage() {
 
             {/* Name Field */}
             <View>
-              <Label>Name</Label>
+              <Label>{t("name")}</Label>
               <Controller
                 name="name"
                 control={control}
-                rules={{ required: "Name is required" }}
+                rules={{ required:  t("nameRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <Input
-                    placeholder="Name"
+                    placeholder={t("namePlaceholder")}
                     value={value}
                     onChangeText={onChange}
                     className="mb-3"
@@ -233,14 +235,14 @@ function FamilyPage() {
 
             {/* ID Number Field */}
             <View>
-              <Label>Id Number</Label>
+              <Label>{t("idNumber")}</Label>
               <Controller
                 name="idNumber"
                 control={control}
-                rules={{ required: "Id Number is required" }}
+                rules={{ required: t("idNumberRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <Input
-                    placeholder="54674832465854"
+                    placeholder={t("idPlaceholder")}
                     value={value}
                     onChangeText={onChange}
                     className="mb-3"
@@ -254,14 +256,14 @@ function FamilyPage() {
 
             {/* Age Field */}
             <View>
-              <Label>Age</Label>
+              <Label>{t("age")}</Label>
               <Controller
                 name="age"
                 control={control}
-                rules={{ required: "Age is required" }}
+                rules={{ required: t("ageRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <Input
-                    placeholder="Example: 12 years old"
+                    placeholder={t("agePlaceholder")}
                     value={value?.toString()}
                     onChangeText={(text) => onChange(Number(text))}
                     className="mb-3"
@@ -276,14 +278,14 @@ function FamilyPage() {
 
             {/* File Number Field */}
             <View>
-              <Label>File Number</Label>
+              <Label>{t("fileNumber")}</Label>
               <Controller
                 name="fileNo"
                 control={control}
-                rules={{ required: "File Number is required" }}
+                rules={{ required: t("fileNumberRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <Input
-                    placeholder="Example: 13234345"
+                    placeholder={t("filePlaceholder")}
                     value={value}
                     onChangeText={onChange}
                     className="mb-3"
@@ -297,11 +299,11 @@ function FamilyPage() {
 
             {/* Relationship Dropdown Field */}
             <View>
-              <Label>Relative Relation</Label>
+              <Label>{t("relationship")}</Label>
               <Controller
                 name="relationship"
                 control={control}
-                rules={{ required: "Relationship is required" }}
+                rules={{ required: t("relationshipRequired") }}
                 render={({ field: { onChange, value } }) => (
                   <View className="relative">
                     <TouchableOpacity
@@ -309,7 +311,7 @@ function FamilyPage() {
                       className="border border-gray-300 rounded-md p-3 mb-3 flex-row justify-between items-center bg-white"
                     >
                       <Text className={`${value ? 'text-black' : 'text-gray-400'}`}>
-                        {value ? relationshipOptions.find(opt => opt.value === value)?.label : "Select relationship"}
+                        {value ? relationshipOptions.find(opt => opt.value === value)?.label :  t("selectRelationship")}
                       </Text>
                       <ChevronDown size={20} color="#666" />
                     </TouchableOpacity>
@@ -337,7 +339,7 @@ function FamilyPage() {
 
             <Button className="mt-4" onPress={handleSubmit(onSubmit)}>
               <Text className="text-white font-medium">
-                {isEditing ? "Update" : "Add"}
+               {isEditing ? t("update") : t("add")}
               </Text>
             </Button>
           </View>

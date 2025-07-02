@@ -9,14 +9,14 @@
 //   return (
 //     <Stack
 //     >
-//       <Stack.Screen
-//         name="index"
-//         options={{
-//           headerTitle: () => (
-//             <Text className="font-semibold text-lg">My Notification</Text>
-//           ),
-//         }}
-//       />
+    //   <Stack.Screen
+    //     name="index"
+    //     options={{
+    //       headerTitle: () => (
+    //         <Text className="font-semibold text-lg">My Notification</Text>
+    //       ),
+    //     }}
+    //   />
 //     </Stack>
 //   );
 // }

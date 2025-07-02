@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, Linking, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+  StatusBar,
+} from "react-native";
 import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Link, RelativePathString } from "expo-router";
@@ -39,11 +46,13 @@ import {
   DeleteAccountButton,
   DeleteAccountSheet,
 } from "@/features/account/components/AccountDeleteButton";
+import { useTranslation } from "react-i18next";
 
 export default function AccountPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
   const router = useRouter();
+  const { t } = useTranslation();
 
   const contactUsBottomSheetRef = useRef<BottomSheet>(null);
   const signOutRef = useRef(null);
@@ -76,7 +85,7 @@ export default function AccountPage() {
 
   const [sections, setSections] = useState([
     {
-      title: "Medical file",
+      title: t("Medicalfile"),
       shadowColor: colors.blue[100],
       className: "",
       backgroundColor: "white",
@@ -84,38 +93,44 @@ export default function AccountPage() {
       items: [
         {
           link: "/account/appointment",
-          label: "My bookings",
+          label: t("Mybooking"),
           icon: ClipboardText,
         },
         // { link: "/account/report", label: "My reports", icon: Book },
-        { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
-        { link: "/account/scale", label: "Metrics", icon: Clipboard },
+        // { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
+        { link: "/account/scale", label: t("Mymetrics"), icon: Clipboard },
       ],
     },
     {
-      title: "My information",
+      title: t("Myinformation"),
       shadowColor: colors.blue[100],
       className: "",
       backgroundColor: "white",
       iconColor: colors.gray[700],
       items: [
-        { link: "/account/payment", label: "Payment", icon: EmptyWalletTime },
-        { link: "/account/favorite", label: "My favorites", icon: Like1 },
-        { link: "/account/chat", label: "My chats", icon: Message },
-        { link: "/account/invoice", label: "My bills", icon: Receipt },
-        { link: "/account/family", label: "My family", icon: Profile2User },
-        { link: "/account/setting", label: "My settings", icon: Setting2 },
+        // { link: "/account/payment", label: "Payment", icon: EmptyWalletTime },
+        { link: "/account/favorite", label: t("Myfavorites"), icon: Like1 },
+        { link: "/account/chat", label: t("Mychats"), icon: Message },
+        { link: "/account/invoice", label: t("Mybills"), icon: Receipt },
+        { link: "/account/family", label: t("Myfamily"), icon: Profile2User },
+        { link: "/account/setting", label: t("Mysetting"), icon: Setting2 },
+        {
+          link: "/contact", // link used for routing
+          label: "Contact us",
+          icon: Messages,
+          customPress: () => contactUsBottomSheetRef.current?.expand(),
+        },
       ],
     },
   ]);
 
-  const ContactUsCard = {
-    shadowColor: colors.blue[100],
-    className: "",
-    backgroundColor: "white",
-    iconColor: colors.gray[700],
-    item: { link: "/contact", label: "Contact us", icon: Messages },
-  };
+  // const ContactUsCard = {
+  //   shadowColor: colors.blue[100],
+  //   className: "",
+  //   backgroundColor: "white",
+  //   iconColor: colors.gray[700],
+  //   item: { link: "/contact", label: "Contact us", icon: Messages },
+  // };
 
   const handleCall = (phoneNumber: string) => {
     const phoneUrl = `tel:${phoneNumber}`;
@@ -123,7 +138,6 @@ export default function AccountPage() {
       console.error("Failed to open dialer:", err)
     );
   };
-
 
   const handleAccountCardPress = (link: string) => {
     console.log(`Card pressed: ${link}`);
@@ -140,9 +154,12 @@ export default function AccountPage() {
   }
 
   return (
-   <View style={{ flex: 1, backgroundColor: colors.primary[800] }}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary[800]} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+    <View style={{ flex: 1, backgroundColor: colors.primary[800] }}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.primary[800]}
+      />
+      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1 }}
@@ -157,7 +174,7 @@ export default function AccountPage() {
               </Text>
               <Link href={"/account/profile"}>
                 <Text className="text-blue-100 text-sm underline">
-                  View Profile
+                  {t("ViewProfile")}
                 </Text>
               </Link>
             </View>
@@ -179,14 +196,17 @@ export default function AccountPage() {
               <View className="flex justify-center items-center flex-row flex-wrap gap-4">
                 {/* Interests section - uncomment if needed */}
               </View>
-              
+
               <View className="flex w-full pb-4">
                 {sections.map((section) => (
-                  <View key={section.title} className="flex flex-col gap-4 py-4">
+                  <View
+                    key={section.title}
+                    className="flex flex-col gap-4 py-4"
+                  >
                     <H4 className="font-semibold text-gray-800">
                       {section.title}
                     </H4>
-                    <View className="flex flex-row flex-wrap justify-between gap-4">
+                    <View className="flex flex-row flex-wrap gap-4">
                       {section.items.map((item) => (
                         <AccountCard
                           key={item.link + section.title}
@@ -198,13 +218,14 @@ export default function AccountPage() {
                           icon={item.icon}
                           label={item.label}
                           link={item.link}
+                          onPress={item.customPress}
                         />
                       ))}
                     </View>
                   </View>
                 ))}
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() => contactUsBottomSheetRef.current?.expand()}
                 >
                   <AccountCard2
@@ -217,7 +238,7 @@ export default function AccountPage() {
                     label={ContactUsCard.item.label}
                     link={ContactUsCard.item.link}
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               <SignOutButton sheetRef={signOutRef} />
@@ -248,10 +269,10 @@ export default function AccountPage() {
 
               <View className="flex flex-col justify-center items-center w-full gap-4 py-8">
                 <H3 className="border-none text-lg text-neutral-700 text-center">
-                  Welcome! Baserah team is here to serve you
+                  {t("contactUsTitle")}
                 </H3>
                 <Text className="text-base text-neutral-500">
-                  The usual response time for us is a few minutes
+                  {t("contactUsSubtitle")}
                 </Text>
 
                 <Button
@@ -262,13 +283,15 @@ export default function AccountPage() {
                   className="w-full"
                 >
                   <Text className="text-white font-semibold">
-                    Add a ticket directly
+                    {t("addTicket")}
                   </Text>
                 </Button>
-                <Text className="text-base text-neutral-500">or</Text>
+                <Text className="text-base text-neutral-500">{t("or")}</Text>
                 <View className="mt-4 w-full">
                   <Button className="w-full">
-                    <TouchableOpacity onPress={() => handleCall("+9665555550100")}>
+                    <TouchableOpacity
+                      onPress={() => handleCall("+9665555550100")}
+                    >
                       <Text className="text-white font-semibold">
                         Call +966 5555550100
                       </Text>

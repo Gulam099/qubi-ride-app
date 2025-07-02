@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Repeat, Trash } from "iconsax-react-native";
 import colors from "@/utils/colors";
 import { FamilyType } from "../types/FamilyType";
+import { useTranslation } from "react-i18next";
 
 interface FamilyMemberCardProps {
   item: FamilyType;
@@ -12,18 +13,20 @@ interface FamilyMemberCardProps {
 }
 
 export default function FamilyMemberCard({
+  
   item,
   handleEdit,
   handleDelete,
 }: FamilyMemberCardProps) {
+const { t } = useTranslation();
 
   return (
     <View className="p-4 bg-white rounded-2xl shadow-md flex-row ">
       <View className="flex-col gap-4 flex-1">
         <Text className="font-medium text-xl">{item.name}</Text>
-        <Text>Age: {item.age}</Text>
-        <Text>File Number: {item.fileNo}</Text>
-        <Text>Relationship: {item.relationship}</Text>
+        <Text>{t("age")}: {item.age}</Text>
+        <Text>{t("fileNumber")}: {item.fileNo}</Text>
+        <Text>{t("relationship")}: {item.relationship}</Text>
       </View>
       <View className="flex-col gap-1">
         <Button
@@ -31,7 +34,7 @@ export default function FamilyMemberCard({
           className="flex-row gap-2"
           onPress={() => handleEdit(item)}
         >
-          <Text className="">Edit</Text>
+          <Text className="">{t("edit")}</Text>
           <Repeat size="20" color={colors.red[500]} />
         </Button>
         <Button
@@ -39,7 +42,7 @@ export default function FamilyMemberCard({
           className="flex-row gap-2"
           onPress={() => handleDelete(item._id)}
         >
-          <Text className="">Delete</Text>
+          <Text className="">{t("delete")}</Text>
           <Trash size="20" color={"#000"} />
         </Button>
       </View>

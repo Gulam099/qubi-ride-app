@@ -22,6 +22,7 @@ import { Text } from "react-native";
 import { StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 const socket = io(`${apiNewUrl}`, {
   transports: ["websocket"],
@@ -38,6 +39,7 @@ function ChatScreen() {
   const doctorId = id as string;
   const navigation = useNavigation();
 
+const { t } = useTranslation();
 
   const isChatAllowed = canChat === "true"; 
 
@@ -341,10 +343,10 @@ function ChatScreen() {
           style={styles.textInput}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Type a message"
+          placeholder={t("typeMessage")}
           multiline
           onSubmitEditing={handleSend}
-          returnKeyType="send"
+          returnKeyType={t("send")}
         />
         <TouchableOpacity
           onPress={handleSend}

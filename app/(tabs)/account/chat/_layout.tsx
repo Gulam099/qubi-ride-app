@@ -5,9 +5,12 @@ import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 export default function ChatLayout() {
 const { name } = useLocalSearchParams();
+  const { t } = useTranslation();
+
   return (
     <Stack
       screenOptions={{
@@ -20,7 +23,7 @@ const { name } = useLocalSearchParams();
         name="chatlist"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">My Chats</Text>
+            <Text className="font-semibold text-lg">{t("Mychats")}</Text>
           ),
         }}
       />

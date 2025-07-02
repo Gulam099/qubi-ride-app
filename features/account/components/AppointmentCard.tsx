@@ -18,14 +18,14 @@ import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
 import { Ellipsis, Headset } from "lucide-react-native";
 import Drawer from "@/components/ui/Drawer";
-import { AppointmentCardProps } from "../types/appointment.type";
 import { useRouter } from "expo-router";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { useTranslation } from "react-i18next";
 
 // Helper function to safely format dates
 const formatDate = (dateValue, formatString = "dd MMM yyyy") => {
   if (!dateValue) return "N/A";
-  
+
   try {
     const date = new Date(dateValue);
     if (isNaN(date.getTime())) return "Invalid Date";
@@ -39,20 +39,29 @@ const formatDate = (dateValue, formatString = "dd MMM yyyy") => {
 // Helper function to get the correct date field
 const getAppointmentDate = (appointment) => {
   // Check for multiple possible date field names
-  return appointment.appointmentDate || 
-         appointment.date || 
-         appointment.scheduledDate || 
-         appointment.appointmentTime;
+  return (
+    appointment.appointmentDate ||
+    appointment.date ||
+    appointment.scheduledDate ||
+    appointment.appointmentTime
+  );
 };
 
 const getBookingDate = (appointment) => {
-  return appointment.appointmentDate || 
-         appointment.date || 
-         appointment.scheduledDate || 
-         appointment.appointmentTime ||
-         appointment.selectedDateTime;
+  return (
+    appointment.appointmentDate ||
+    appointment.date ||
+    appointment.scheduledDate ||
+    appointment.appointmentTime ||
+    appointment.selectedDateTime
+  );
 };
 
+const isValidDate = (dateValue) => {
+  if (!dateValue) return false;
+  const date = new Date(dateValue);
+  return !isNaN(date.getTime());
+};
 export default function AppointmentCard({ appointment, type }: any) {
   const {
     _id,
@@ -64,131 +73,110 @@ export default function AppointmentCard({ appointment, type }: any) {
     overview,
     isImmediate,
   } = appointment;
-  
+
   const router = useRouter();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  console.log('appointment', appointment);
+  console.log("appointment", appointment);
   // Safe access to selectedSlots
-  console.log('selectedSlots', appointment?.selectedSlots);
-  console.log('first selectedSlot', appointment?.selectedSlots?.[0]);
+  console.log("selectedSlots", appointment?.selectedSlots);
+  console.log("first selectedSlot", appointment?.selectedSlots?.[0]);
+  const { t } = useTranslation(); 
 
   // Get the correct date values
   const appointmentDate = getAppointmentDate(appointment);
   const bookingDate = getBookingDate(appointment);
-
-  // Safe access to selectedSlots with proper null checking
-  const selectedSlot = appointment?.selectedSlots?.[0] || null;
-  const selectedSlotTime = appointment?.selectedSlots?.[1] || null;
-
-  
-
-  
   // Function to get the display date/time
-  const getDisplayDateTime = () => {
-    if (selectedSlot) {
-      return formatDate(selectedSlot, "dd MMM yyyy, hh:mm a");
+  const getAllDisplayDateTime = () => {
+    const dates = [];
+
+    // Check if selectedSlots array exists and has items
+    if (
+      appointment?.selectedSlots &&
+      Array.isArray(appointment.selectedSlots) &&
+      appointment.selectedSlots.length > 0
+    ) {
+      appointment.selectedSlots.forEach((slot, index) => {
+        if (slot) {
+          if (isValidDate(slot)) {
+            dates.push(formatDate(slot, "dd MMM yyyy, hh:mm a"));
+          } else if (typeof slot === "string") {
+            dates.push(slot);
+          }
+        }
+      });
     }
-    if (selectedSlotTime) {
-      return selectedSlotTime;
+
+    // If no valid dates from selectedSlots, fall back to other date fields
+    if (dates.length === 0) {
+      if (appointmentDate && isValidDate(appointmentDate)) {
+        dates.push(formatDate(appointmentDate, "dd MMM yyyy, hh:mm a"));
+      } else if (appointmentDate && typeof appointmentDate === "string") {
+        dates.push(appointmentDate);
+      }
     }
-    if (appointmentDate) {
-      return formatDate(appointmentDate, "dd MMM yyyy, hh:mm a");
-    }
-    return "N/A";
+
+    return dates.length > 0 ? dates : ["N/A"];
   };
-
+  const allDisplayDates = getAllDisplayDateTime();
   return (
-      <View className="bg-white overflow-hidden rounded-2xl">
-        <View>
-          {/* Header with appointment number */}
-          <View className="flex-row justify-start items-center gap-2 p-4">
-            <Text className="font-medium text-neutral-800">Appointment :</Text>
-            <CopyToClipboard
-              data={_id}
-              variant="secondary"
-              size={"sm"}
-              className="flex-row items-center justify-center gap-1"
-            >
-              <Text className="font-semibold text-primary-500 text-xs leading-8">
-                {_id}
-              </Text>
-              <Copy size="16" color={colors.primary[300]} />
-            </CopyToClipboard>
-          </View>
-          <Separator />
+    <View className="bg-white overflow-hidden rounded-2xl">
+      <View>
+        {/* Header with appointment number */}
+        <View className="items-center p-4">
+          <Text className="font-medium text-neutral-800">
+             {t("appointmentDetails")}
+          </Text>
+        </View>
 
-          {/* Common Appointment Details */}
-          <View className="flex-row gap-0">
-            {type === "upcoming" && (
-              <View className="bg-green-100 w-1/3 justify-center items-center px-4 py-6">
-                <Text className="font-semibold text-green-700 text-balance text-base">
-                  Appointment Date:
-                </Text>
-                <Text className="text-base text-green-700 text-center">
-                  {getDisplayDateTime()}
-                </Text>
-              </View>
+        <Separator />
+
+        {/* Common Appointment Details */}
+        <View className="flex-row gap-0">
+          <View className="flex-1 p-4 pb-6 gap-3">
+            <Text className="text-gray-600 text-base">
+              {t("customerName")}:{" "}
+              {appointment.user?.name || appointment.patientId?.name || "N/A"}
+            </Text>
+            <Text className="text-gray-600 text-base">
+             {t(" Duration")}: {appointment?.duration}
+            </Text>
+            <Text className="text-gray-600 text-base">
+               {t("session")}; {appointment?.numberOfSessions}
+            </Text>
+            <Text className="text-gray-600 text-base">
+              {t("bookingDate")}:{" "}
+              {formatDate(bookingDate || appointment.createdAt, "dd MMM yyyy")}
+            </Text>
+
+            {appointment?.isForFamilyMember === true && (
+              <Text className="text-gray-600 text-base">
+                {t("familyMemberName")}: {appointment?.familyMemberDetails?.name}
+              </Text>
             )}
 
-            <View className="flex-1 p-4 pb-6 gap-3">
+            <View className="text-gray-600 text-base">
               <Text className="text-gray-600 text-base">
-                Customer Name: {appointment.user?.name || appointment.patientId?.name || "N/A"}
+                {t("appointmentDateTime")}:
               </Text>
-              
-              <Text className="text-gray-600 text-base">
-                Appointment Date And Time: {getDisplayDateTime()}
-              </Text>
-              
-              <Text className="text-gray-600 text-base">
-                Booking Date: {formatDate(bookingDate || appointment.createdAt, "dd MMM yyyy")}
-              </Text>
-
-              {type !== "urgent" && (
-                <Text className="text-gray-600 text-base">
-                  Session: {sessionCount ?? "N/A"}
+              {allDisplayDates.map((date, index) => (
+                <Text key={index} className="text-gray-600 text-base ml-2">
+                  • {date}
                 </Text>
-              )}
-
-              {/* Urgent-Specific Details */}
-              {type === "urgent" && (
-                <>
-                  {appointment.specialization && (
-                    <Text className="text-gray-600 text-base">
-                      Specialization: {appointment.specialization}
-                    </Text>
-                  )}
-                  {appointment.category && (
-                    <Text className="text-gray-600 text-base">
-                      Category: {appointment.category}
-                    </Text>
-                  )}
-                  {specialistRequired && (
-                    <Text className="text-gray-600 text-base">
-                      Specialist Required: {specialistRequired}
-                    </Text>
-                  )}
-                  {genderSpecialistRequired && (
-                    <Text className="text-gray-600 text-base">
-                      Gender Specialist Required: {genderSpecialistRequired}
-                    </Text>
-                  )}
-                </>
-              )}
+              ))}
             </View>
           </View>
         </View>
-        
-        {isImmediate && (
-          <View className="bg-red-100/50 p-2 rounded-b-2xl mt-2 flex-row justify-center items-center gap-2">
-            <Warning2 size="18" color={colors.red[600]} variant="Bulk" />
-            <Text className="text-red-600 font-medium">
-              This client has suicidal thoughts
-            </Text>
-          </View>
-        )}
-
-      
       </View>
+
+      {isImmediate && (
+        <View className="bg-red-100/50 p-2 rounded-b-2xl mt-2 flex-row justify-center items-center gap-2">
+          <Warning2 size="18" color={colors.red[600]} variant="Bulk" />
+          <Text className="text-red-600 font-medium">
+            This client has suicidal thoughts
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }

@@ -9,12 +9,15 @@ import colors from "@/utils/colors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 function ChatListPage() {
   const { user } = useUser();
   const [value, setValue] = useState("specific_specialists");
   const [doctors, setDoctors] = useState([]);
   const router = useRouter();
+  const { t } = useTranslation();
+
   const userId = user?.publicMetadata?.dbPatientId as string;
   console.log("userId", userId);
   useEffect(() => {
@@ -143,7 +146,7 @@ function ChatListPage() {
                     {/* Experience or additional info */}
                     {item.experience && (
                       <Text className="text-xs text-gray-500">
-                        {item.experience} years experience
+                        {item.experience} {t("yearsExperience")}
                       </Text>
                     )}
 
@@ -168,7 +171,7 @@ function ChatListPage() {
             ListEmptyComponent={() => (
               <View className="flex-1 justify-center items-center py-10">
                 <Text className="text-gray-500 text-center">
-                  No doctors available
+                  {t("noDoctors" )}
                 </Text>
               </View>
             )}

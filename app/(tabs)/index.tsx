@@ -11,10 +11,12 @@ import { cn } from "@/lib/utils";
 import { Text } from "@/components/ui/Text";
 import { useEffect } from "react";
 import * as Updates from 'expo-updates';
+import { useTranslation } from "react-i18next";
 
 export default function PatientPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation();
 
   const reloadApp = async () => {
     try {
@@ -37,15 +39,15 @@ export default function PatientPage() {
         className={cn("w-full h-[undefined] aspect-[375/295]")}
       />
       <View className="flex gap-6 flex-col px-4">
-        <H3 className="text-center">What type of consultation do you need?</H3>
+        <H3 className="text-center">{t("What type of consultation do you need?")}</H3>
 
         <TouchableOpacity onPress={() => router.push("/instant-booking")}>
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">
-              <H3 className="font-normal">Instant</H3>
+              <H3 className="font-normal">{t("Instant")}</H3>
               <Text className=" text-base font-normal">
-                Immediate sessions with a specialist
+                {t("Immediate sessions with a specialist")}
               </Text>
             </View>
             <View className="flex justify-end w-1/3  items-end">
@@ -61,9 +63,9 @@ export default function PatientPage() {
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
             <View className="w-2/3 flex flex-col justify-end">
-              <H3 className="font-normal">Scheduled</H3>
+              <H3 className="font-normal">{t("Scheduled")}</H3>
               <Text className=" text-base font-normal">
-                Book your appointment with the appropriate specialist for you
+                {t("Book your appointment with the appropriate specialist for you")}
               </Text>
             </View>
           </View>

@@ -13,16 +13,18 @@ import { cn } from "@/lib/utils";
 import { View } from "react-native";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 
 
 export default function PatientLayout() {
   const { user } = useUser();
+  const { t } = useTranslation();
 
   const tabConfig = [
   {
     name: "index",
-    title: "Home",
+    title: t("Home"),
     icon: Home,
     headerLeft: ({ user }: any) => (
       <View className="pl-4">
@@ -39,7 +41,7 @@ export default function PatientLayout() {
     headerTitle: ({ user }: any) => (
       <Link href={"/account"} className="ml-2">
         <Text className="font-semibold text-lg text-white">
-          Hello, {user?.firstName ?? "User"}
+          {t("Hello")}, {user?.firstName ?? "User"}
         </Text>
       </Link>
     ),
@@ -50,19 +52,19 @@ export default function PatientLayout() {
   },
   {
     name: "program",
-    title: "Programs",
+    title: t("Program"),
     icon: ShieldTick,
     headerShown: false,
   },
   {
     name: "library",
-    title: "Library",
+    title: t("Library"),
     icon: Notepad,
     headerShown: false,
   },
   {
     name: "account",
-    title: "File",
+    title: t("File"),
     icon: DocumentText1,
     headerShown: false,
   },

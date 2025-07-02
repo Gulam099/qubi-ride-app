@@ -12,6 +12,7 @@ import { toast } from "sonner-native";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
 import { SearchNormal1, ArrowDown2 } from "iconsax-react-native";
+import { useTranslation } from "react-i18next";
 
 type ConsultType = {
   _id: string;
@@ -103,6 +104,7 @@ export default function ConsultPage() {
     duration,
     ClosestAppointment,
   } = useLocalSearchParams();
+const { t } = useTranslation();
 
   const [searchText, setSearchText] = useState("");
   const [selectedSpecialistType, setSelectedSpecialistType] = useState("All Specialists");
@@ -129,7 +131,7 @@ export default function ConsultPage() {
   // Handle search and dropdown filtering
   const filteredConsult = consultData?.filter((consultant: ConsultType) => {
     const name = consultant.full_name?.toLowerCase() || "";
-    const specialization = consultant.specialization?.toLowerCase() || "";
+    const specialization = consultant.specialist?.toLowerCase() || "";
     
     // Text search filter
     const matchesSearch = 
@@ -147,7 +149,7 @@ export default function ConsultPage() {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <Text className="text-gray-500">{t("Loading")}</Text>
       </View>
     );
   }
@@ -165,7 +167,7 @@ export default function ConsultPage() {
       <View className="flex-col gap-3">
         {/* Search Input */}
         <Input
-          placeholder="Search for a consultant"
+          placeholder={t("Search for a doctor")}
           value={searchText}
           onChangeText={setSearchText}
         />

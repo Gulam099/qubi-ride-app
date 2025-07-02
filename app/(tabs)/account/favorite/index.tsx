@@ -18,15 +18,18 @@ import { UserType } from "@/features/user/types/user.type";
 import { useSelector } from "react-redux";
 import { useUser } from "@clerk/clerk-expo";
 import { ApiUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 export default function AccountFavoritePage() {
+    const { t } = useTranslation(); 
+  
   const tabs = [
     // { type: "program", name: "Programs", api: "/api/favorites/programs/" },
-    { type: "consult", name: "Consultants", api: "/api/favorites/doctors/" },
+    { type: "consult", name: t("consultants"), api: "/api/favorites/doctors/" },
     // { type: "group", name: "Groups", api: "/api/favorites/groups/" },
     {
       type: "culturalContent",
-      name: "Libraries",
+      name: t("libraries"),
       api: "/api/favorites/culturalContent/",
     },
   ];
@@ -93,7 +96,7 @@ export default function AccountFavoritePage() {
     if (!data.length) {
       return (
         <View className="flex justify-center items-center mt-4">
-          <Text className="text-neutral-500">No items available</Text>
+          <Text className="text-neutral-500">{t("noItemAvailable")}</Text>
         </View>
       );
     }

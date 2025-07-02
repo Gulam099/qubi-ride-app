@@ -5,11 +5,13 @@ import { useUser } from "@clerk/clerk-expo";
 import { Stack, useRouter } from "expo-router";
 import { apiNewUrl } from "@/const";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function AccountNotificationPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,14 +41,13 @@ export default function AccountNotificationPage() {
     }
   }, [userId]);
 
-  console.log("notifications", notifications);
   return (
     <>
-      <View className="p-4 flex-1 bg-white">
+      <View className="p-4 flex-1 bg-neutral-200">
         {loading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#0000ff" />
-            <Text className="mt-2">Loading notifications...</Text>
+            <Text className="mt-2">{t("loadingNotifications")}</Text>
           </View>
         ) : error ? (
           <View className="flex-1 justify-center items-center">
@@ -54,14 +55,14 @@ export default function AccountNotificationPage() {
           </View>
         ) : notifications.length === 0 ? (
           <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500">No notifications.</Text>
+            <Text className="text-gray-500">{t("noNotifications")}</Text>
           </View>
         ) : (
           <FlatList
             data={notifications}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
-              <View className="shadow-sm bg-gray-100 rounded-xl p-3 my-2">
+              <View className="shadow-sm bg-white rounded-xl p-3 my-2">
                 <Text className="text-blue-600 font-semibold">{item.date}</Text>
                 <Text className="text-neutral-700 text-base">
                   {item.message}
@@ -73,7 +74,7 @@ export default function AccountNotificationPage() {
                     onPress={() => router.push(`/joinroom/${item.roomId}`)}
                   >
                     <Text className="font-medium text-neutral-700">
-                      Open Room
+                       {t("openRoom")}
                     </Text>
                   </Button>
                 )}

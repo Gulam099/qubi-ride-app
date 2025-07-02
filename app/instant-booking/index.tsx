@@ -5,6 +5,7 @@ import SpecialistCard from "@/features/account/components/SpecialistCard";
 import { Input } from "@/components/ui/Input";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 type UserScheduleType = {
   id: string;
@@ -24,6 +25,7 @@ type UserScheduleType = {
 export default function UsersTodayPage() {
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
+  const { t } = useTranslation();
 
   const {
     data: usersData,
@@ -81,7 +83,7 @@ export default function UsersTodayPage() {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <Text className="text-gray-500">{t("Loading")}</Text>
       </View>
     );
   }
@@ -98,7 +100,7 @@ export default function UsersTodayPage() {
     <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
       <View className="flex-col gap-3">
         <Input
-          placeholder="Search for a doctor"
+          placeholder={t("Search for a doctor")}
           value={searchText}
           onChangeText={setSearchText}
         />

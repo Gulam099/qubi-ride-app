@@ -15,6 +15,7 @@ import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { ApiUrl } from "@/const";
 import { toast } from "sonner-native";
+import { useTranslation } from "react-i18next";
 
 const TreatmentsListScreen = () => {
   const { user } = useUser();
@@ -23,6 +24,7 @@ const TreatmentsListScreen = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTreatment, setSelectedTreatment] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchTreatments();
@@ -88,32 +90,38 @@ const TreatmentsListScreen = () => {
         </View>
       )}
       <Text style={styles.doctorName}>
-        Doctor: {item.doctor?.full_name || "Unknown"}
+        {t("Doctor")}: {item.doctor?.full_name || t("unknown")}
       </Text>
       <Text style={styles.doctorDetail}>
-        Specialization: {item.doctor?.specialization || "N/A"}
+        {t("Specialization")}:{" "}
+        {item.doctor?.specialization || t("notAvailable")}
       </Text>
       <Text style={styles.doctorDetail}>
-        SubSpecialization: {item.doctor?.sub_specialization || "N/A"}
+        {t("SubSpecialization")}:{" "}
+        {item.doctor?.sub_specialization || t("notAvailable")}
       </Text>
       <Text style={styles.doctorDetail}>
-        Experience:{" "}
-        {item.doctor?.experience ? `${item.doctor.experience} years` : "N/A"}
+        {t("Treatments")}:{" "}
+        {item.doctor?.experience
+          ? `${item.doctor.experience} years`
+          : t("notAvailable")}
       </Text>
 
       {/* List Treatments for this Doctor */}
-      <Text style={styles.treatmentTitle}>Treatments:</Text>
+      <Text style={styles.treatmentTitle}>{t("Treatments")}:</Text>
       {item.treatments.map((treatment) => (
         <View key={treatment._id} style={styles.treatmentItem}>
-          <Text style={styles.itemName}>• {treatment.diagnosis || "N/A"}</Text>
+          <Text style={styles.itemName}>
+            • {treatment.diagnosis || t("notAvailable")}
+          </Text>
           <Text style={styles.itemDetail}>
-            Status: {treatment.status || "N/A"}
+            {t("Status")}: {treatment.status || t("notAvailable")}
           </Text>
           <TouchableOpacity
             style={styles.button}
             onPress={() => openModal(treatment)}
           >
-            <Text style={styles.buttonText}>View Details</Text>
+            <Text style={styles.buttonText}>{t("View Details")}</Text>
           </TouchableOpacity>
         </View>
       ))}
@@ -136,7 +144,7 @@ const TreatmentsListScreen = () => {
       ) : (
         <View className="flex-1 justify-center items-center">
           <Text className="text-lg font-semibold text-gray-600">
-            No treatment found
+            {t("No treatment found")}
           </Text>
         </View>
       )}
@@ -146,53 +154,59 @@ const TreatmentsListScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <ScrollView>
-              <Text style={styles.modalTitle}>Treatment Details</Text>
+              <Text style={styles.modalTitle}>{t("Treatment Details")}</Text>
               {selectedTreatment ? (
                 <>
-                  <Text>Diagnosis: {selectedTreatment.diagnosis || "N/A"}</Text>
-                  <Text>Status: {selectedTreatment.status || "N/A"}</Text>
-                  <Text>Type: {selectedTreatment.type || "N/A"}</Text>
                   <Text>
-                    Is Follow Up: {selectedTreatment.isFollowUp ? "Yes" : "No"}
+                    {t("Diagnosis")}:{" "}
+                    {selectedTreatment.diagnosis || t("notAvailable")}
                   </Text>
                   <Text>
-                    Empty Stomach:{" "}
-                    {selectedTreatment.isEmptyStomach ? "Yes" : "No"}
+                    {t("Empty Stomach")}:{" "}
+                    {selectedTreatment.isEmptyStomach ? t("Yes") : t("No")}
                   </Text>
-                  <Text style={styles.modalSubTitle}>Treatment Items:</Text>
+                  <Text style={styles.modalSubTitle}>
+                    {t("Treatment Items")}:
+                  </Text>
                   {selectedTreatment.treatmentItems &&
                   selectedTreatment.treatmentItems.length > 0 ? (
                     selectedTreatment.treatmentItems.map((item, idx) => (
                       <View key={idx} style={styles.treatmentItem}>
                         <Text style={styles.itemName}>
-                          • {item.name || "N/A"}
+                          • {item.name || t("notAvailable")}
                         </Text>
                         <Text style={styles.itemDetail}>
-                          Description: {item.description || "N/A"}
+                          {t("Description")}:{" "}
+                          {item.description || t("notAvailable")}
                         </Text>
                         <Text style={styles.itemDetail}>
-                          Quantity: {item.quantity || "N/A"}
+                          {t("Quantity")}:{item.quantity || t("notAvailable")}
                         </Text>
                         <Text style={styles.itemDetail}>
-                          Frequency: {item.frequency || "N/A"}
+                          {t("Frequency")}:{" "}
+                          {item.frequency || t("notAvailable")}
                         </Text>
                         <Text style={styles.itemDetail}>
-                          Duration: {item.duration || "N/A"}
-                        </Text>
-                        <Text style={styles.itemDetail}>
-                          Instructions: {item.instructions || "N/A"}
+                          {t("Duration")}: {item.duration || t("notAvailable")}
                         </Text>
                       </View>
                     ))
                   ) : (
-                    <Text>No treatment items available</Text>
+                    <Text>{t("No treatment items available")}</Text>
+                  )}
+                  {selectedTreatment.photo && (
+                    <Image
+                      source={{ uri: selectedTreatment.photo }}
+                      style={styles.treatmentImage}
+                      resizeMode="contain"
+                    />
                   )}
                 </>
               ) : (
-                <Text>Loading treatment details...</Text>
+                <Text>{t("Loading treatment details...")}</Text>
               )}
               <Pressable style={styles.closeButton} onPress={closeModal}>
-                <Text style={styles.buttonText}>Close</Text>
+                <Text style={styles.buttonText}>{t("Close")}</Text>
               </Pressable>
             </ScrollView>
           </View>
@@ -226,6 +240,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: "bold",
   },
+  treatmentImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginVertical: 10,
+  },
+
   doctorDetail: {
     fontSize: 14,
     marginBottom: 4,

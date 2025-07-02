@@ -48,6 +48,7 @@ type Comment = {
 import { apiNewUrl, ApiUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
 import { toast } from "sonner-native";
+import { useTranslation } from "react-i18next";
 
 type LibraryCardProps = {
   contentId: string;
@@ -68,6 +69,8 @@ type LibraryCardProps = {
 export default function LibraryCard(props: LibraryCardProps) {
   const router = useRouter();
   const { user } = useUser();
+  const { t } = useTranslation();
+
   const userId = user?.publicMetadata?.dbPatientId as string;
   const {
     title,
@@ -93,6 +96,8 @@ export default function LibraryCard(props: LibraryCardProps) {
   const [localShareCount, setLocalShareCount] = useState(shareCount);
   const [isSharing, setIsSharing] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+
+  console.log('localComments',localComments)
 
   // Define icons based on type
   const IconList: Record<string, React.ElementType> = {
@@ -394,7 +399,7 @@ export default function LibraryCard(props: LibraryCardProps) {
               <View className="w-11 h-11 rounded-full bg-purple-100 justify-center items-center">
                 <People size="22" color={colors.primary[500]} />
               </View>
-              <Text className="text-xs mt-1">{seenCount} seen</Text>
+              <Text className="text-xs mt-1">{seenCount} {t("seen")}</Text>
             </View>
           </View>
         </CardFooter>
@@ -411,12 +416,12 @@ export default function LibraryCard(props: LibraryCardProps) {
           {/* Modal Header */}
           <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
             <TouchableOpacity onPress={() => setCommentModalVisible(false)}>
-              <Text className="text-purple-600 text-lg">Cancel</Text>
+              <Text className="text-purple-600 text-lg">{t("Cancel")}</Text>
             </TouchableOpacity>
-            <Text className="text-lg font-semibold">Comments</Text>
+            <Text className="text-lg font-semibold">{t("Comments")}</Text>
             <TouchableOpacity onPress={handleAddComment}>
               <Text className="text-purple-600 text-lg font-semibold">
-                Post
+                {t("Post")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -426,7 +431,7 @@ export default function LibraryCard(props: LibraryCardProps) {
             {localComments.length === 0 ? (
               <View className="items-center justify-center py-8">
                 <Text className="text-gray-500 text-center">
-                  No comments yet. Be the first to comment!
+                  {t("noComments")}
                 </Text>
               </View>
             ) : (
@@ -440,7 +445,7 @@ export default function LibraryCard(props: LibraryCardProps) {
                       {comment?.userId?.name || comment?.user || "Anonymous"}
                     </Text>
                     <Text className="text-xs text-gray-500">
-                      {formatTimeAgo(comment.timestamp)}
+                      {formatTimeAgo(comment?.createdAt)}
                     </Text>
                   </View>
                   <Text className="text-gray-700">
@@ -456,7 +461,7 @@ export default function LibraryCard(props: LibraryCardProps) {
             <TextInput
               value={commentText}
               onChangeText={setCommentText}
-              placeholder="Add a comment..."
+              placeholder= {t("addCommentPlaceholder")}
               multiline
               className="border border-gray-300 rounded-lg p-3 max-h-24"
               style={{ textAlignVertical: "top" }}

@@ -15,7 +15,7 @@ import {
   fetchInstantAppointments,
 } from "@/features/util/constHome";
 import AppointmentCard from "@/features/account/components/AppointmentCard";
-
+import { useTranslation } from "react-i18next";
 type TabType = "scheduled" | "instant" | "calendar";
 
 export default function AppointmentUpcomingList() {
@@ -23,6 +23,7 @@ export default function AppointmentUpcomingList() {
   const userId = user?.publicMetadata?.dbPatientId as string;
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
+    const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<TabType>("scheduled");
   const [scheduledAppointments, setScheduledAppointments] = useState<any[]>([]);
@@ -232,7 +233,7 @@ export default function AppointmentUpcomingList() {
               className={`text-center font-medium ${activeTab === tab ? "text-white" : "text-gray-600"
                 }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+               {t(tab)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -286,7 +287,7 @@ export default function AppointmentUpcomingList() {
           />
         ) : currentAppointments.length === 0 ? (
           <Text className="text-center text-gray-500">
-            No {activeTab} appointments available.
+            {t("noAppointmentsAvailable", { type: t(activeTab) })}
           </Text>
         ) : (
           <FlatList
@@ -312,10 +313,10 @@ export default function AppointmentUpcomingList() {
 
         {/* Error display */}
         {activeTab === "scheduled" && scheduledError && (
-          <Text className="text-red-500 text-center mt-4">{scheduledError}</Text>
+          <Text className="text-red-500 text-center mt-4">{t("loadingFailedScheduled")}</Text>
         )}
         {activeTab === "instant" && instantError && (
-          <Text className="text-red-500 text-center mt-4">{instantError}</Text>
+          <Text className="text-red-500 text-center mt-4"> {t("loadingFailedInstant")}</Text>
         )}
       </View>
     </View>

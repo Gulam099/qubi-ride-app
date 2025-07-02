@@ -23,7 +23,9 @@ export default function ProfileImage(props: {
           }}
         />
       )}
-      <AvatarFallback className="bg-primary-600">
+      <AvatarFallback
+        className={cn("size-24 border-2 bg-primary-600", className)}
+      >
         <Text
           className={cn(
             "text-3xl text-center font-semibold text-white font-sans",

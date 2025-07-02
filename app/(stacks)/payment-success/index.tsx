@@ -1,11 +1,14 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
-import { TickCircle } from 'iconsax-react-native';
+import { TickCircle } from "iconsax-react-native";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 export default function PaymentSuccess() {
-  const { amount, status } = useLocalSearchParams();
+  const { totalFee, status } = useLocalSearchParams();
+  const { t } = useTranslation();
+
   const router = useRouter();
 
   return (
@@ -17,17 +20,21 @@ export default function PaymentSuccess() {
       />
       <View style={styles.container}>
         <TickCircle size={64} color="#10B981" />
-        <Text style={styles.title}>Payment Successful</Text>
-        <Text style={styles.amount}>Amount: SAR {amount}</Text>
-        <Text style={styles.status}>Status: {status}</Text>
+        <Text style={styles.title}>{t("paymentSuccess")}</Text>
+        <Text style={styles.amount}>
+          {t("amount")}: SAR {totalFee}
+        </Text>
+        <Text style={styles.status}>
+          {t("status")}: {status}
+        </Text>
 
         <Button
           className="mt-6"
           onPress={() => {
-            router.replace("/(tabs)"); 
+            router.replace("/(tabs)");
           }}
         >
-          <Text className="text-white font-medium">Go to Home</Text>
+          <Text className="text-white font-medium">{t("goToHome")}</Text>
         </Button>
       </View>
     </>

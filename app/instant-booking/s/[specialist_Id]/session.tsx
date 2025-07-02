@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format, isBefore, addMinutes, parse, isSameDay } from "date-fns";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
-// import useFreshUser from "@/hooks/useFreshUser";
+import { useTranslation } from "react-i18next";
 
 const InstantBookingContent = () => {
   const router = useRouter();
@@ -25,6 +25,7 @@ const InstantBookingContent = () => {
     left: 12,
     right: 12,
   };
+  const { t } = useTranslation();
 
   const { specialist_Id, todaySchedule, doctorFees } = useLocalSearchParams();
   const { user } = useUser();
@@ -143,9 +144,9 @@ const InstantBookingContent = () => {
   }, [todaySchedule]);
 
   const numberOfSessionsOptions = [
-    { label: "1 session", value: 1 },
-    { label: "2 sessions", value: 2 },
-    { label: "3 sessions", value: 3 },
+    { label: `1 ${t("session")}`, value: 1 },
+    { label: `2 ${t("sessions")}`, value: 2 },
+    { label: `3 ${t("sessions")}`, value: 3 },
   ];
   const isSlotAvailable = (slotTime, duration) => {
     if (!selectedDate || !doctorSchedule) return false;
@@ -219,17 +220,38 @@ const InstantBookingContent = () => {
       console.log("Is today?", isToday);
       console.log("Current time:", now.toISOString());
 
-      // STEP 1: Get booked slots for the selected date (with their original duration)
+      // Helper function to check if two time slots overlap
+      const doSlotsOverlap = (
+        slot1Start,
+        slot1Duration,
+        slot2Start,
+        slot2Duration
+      ) => {
+        const slot1End = addMinutes(new Date(slot1Start), slot1Duration);
+        const slot2End = addMinutes(new Date(slot2Start), slot2Duration);
+
+        return (
+          new Date(slot1Start) < slot2End && slot1End > new Date(slot2Start)
+        );
+      };
+
+      // STEP 1: Process booked slots for the selected date (with their original duration)
       const bookedSlotsForSelectedDate = flatBookedSlotIsos.filter(
         (bookedSlot) => {
-          const bookedDate = new Date(bookedSlot.iso);
+          const bookedDate = new Date(
+            typeof bookedSlot === "object" && bookedSlot.iso
+              ? bookedSlot.iso
+              : bookedSlot
+          );
           return isSameDay(bookedDate, selectedDate);
         }
       );
 
       console.log("Booked slots for date:", bookedSlotsForSelectedDate);
 
-      // Create booked slot display objects with their ORIGINAL duration
+      // Process booked slots and create display objects with their ORIGINAL duration
+      const processedBookedSlots = [];
+
       bookedSlotsForSelectedDate.forEach((bookedSlot) => {
         let slotTime, originalDuration;
 
@@ -237,7 +259,7 @@ const InstantBookingContent = () => {
           // If booked slot has duration information
           slotTime = new Date(bookedSlot.iso);
           originalDuration =
-            bookedSlot.duration || bookedSlot.originalDuration || 30; // fallback to 30 if not specified
+            bookedSlot.duration || bookedSlot.originalDuration || 30;
         } else {
           // If it's just an ISO string, assume default duration
           slotTime = new Date(bookedSlot);
@@ -258,9 +280,15 @@ const InstantBookingContent = () => {
               "h:mm a"
             )} (${originalDuration} min)`,
             formattedTime: format(slotTime, "h:mm a"),
+            startDateTime: slotTime,
           };
 
           booked.push(bookedSlotData);
+          processedBookedSlots.push({
+            startTime: slotTime,
+            duration: originalDuration,
+            iso: slotTime.toISOString(),
+          });
         }
       });
 
@@ -271,7 +299,7 @@ const InstantBookingContent = () => {
         const slotTime = new Date(current);
         const slotEndTime = addMinutes(slotTime, selectedDuration);
 
-        // For today, only show future slots with 5-minute buffer
+        // For today, only show future slots
         if (isToday && slotTime < now) {
           current = addMinutes(current, selectedDuration);
           continue;
@@ -283,10 +311,18 @@ const InstantBookingContent = () => {
           continue;
         }
 
-        const slotIso = slotTime.toISOString();
-        const isAvailable = isSlotAvailable(slotTime, selectedDuration);
+        // Check if this new slot would overlap with any existing booked slot
+        const hasOverlap = processedBookedSlots.some((bookedSlot) => {
+          return doSlotsOverlap(
+            slotTime,
+            selectedDuration,
+            bookedSlot.startTime,
+            bookedSlot.duration
+          );
+        });
 
-        if (isAvailable) {
+        if (!hasOverlap) {
+          const slotIso = slotTime.toISOString();
           const slotData = {
             iso: slotIso,
             isBooked: false,
@@ -500,13 +536,13 @@ const InstantBookingContent = () => {
       >
         {/* Language Selection */}
         <View>
-          <Text className="font-semibold mb-2">Language</Text>
+          <Text className="font-semibold mb-2">{t("Language")}</Text>
           <View className="flex-row gap-2">
             {["Arabic", "English", "French"].map((language) => (
               <Controller
                 key={language}
                 control={control}
-                rules={{ required: "Language is required." }}
+                rules={{ required: t("languageRequired") }}
                 name="language"
                 render={({ field: { onChange, value } }) => (
                   <Button
@@ -519,7 +555,7 @@ const InstantBookingContent = () => {
                         value === language ? "text-white" : "text-gray-800"
                       }
                     >
-                      {language}
+                      {t(language)}
                     </Text>
                   </Button>
                 )}
@@ -535,14 +571,16 @@ const InstantBookingContent = () => {
 
         {/* Number of sessions */}
         <View>
-          <Text className="text-lg font-medium mb-1">Number of sessions</Text>
+          <Text className="text-lg font-medium mb-1">
+            {t("Number of sessions")}
+          </Text>
           <View className="flex-row gap-2 mb-4">
             {numberOfSessionsOptions.map(({ label, value }) => (
               <Controller
                 key={value}
                 control={control}
                 name="numberOfSessions"
-                rules={{ required: "Number of sessions is required" }}
+                rules={{ required: t("numberOfSessionsRequired") }}
                 render={({ field: { onChange, value: selectedValue } }) => (
                   <Button
                     className="flex-1"
@@ -577,29 +615,33 @@ const InstantBookingContent = () => {
 
         {/* Duration Selection */}
         <View>
-          <Text className="font-semibold mb-2">Duration</Text>
+          <Text className="font-semibold mb-2">{t("Duration")}</Text>
           <View className="flex-row gap-2">
-            {["30 minutes", "45 minutes", "60 minutes"].map((duration) => (
+            {[
+              { key: "30 minutes", label: `30 ${t("minutes")}` },
+              { key: "45 minutes", label: `45 ${t("minutes")}` },
+              { key: "60 minutes", label: `60 ${t("minutes")}` },
+            ].map((duration) => (
               <Controller
-                key={duration}
+                key={duration.key}
                 control={control}
-                rules={{ required: "Duration is required." }}
+                rules={{ required: t("Duration is required") }}
                 name="duration"
                 render={({ field: { onChange, value } }) => (
                   <Button
                     className="flex-1"
-                    variant={value === duration ? "default" : "outline"}
+                    variant={value === duration.key ? "default" : "outline"}
                     onPress={() => {
-                      onChange(duration); // Update form
-                      handleDurationChange(duration); // Update slots
+                      onChange(duration.key); // Update form
+                      handleDurationChange(duration.key); // Update slots
                     }}
                   >
                     <Text
                       className={
-                        value === duration ? "text-white" : "text-gray-800"
+                        value === duration.key ? "text-white" : "text-gray-800"
                       }
                     >
-                      {duration}
+                      {duration.label}
                     </Text>
                   </Button>
                 )}
@@ -617,23 +659,23 @@ const InstantBookingContent = () => {
         {selectedDate && (
           <View>
             <Text className="font-semibold mb-2">
-              Available Times
+              {t("Available Times")}
               {selectedNumberOfSessions > 1 && (
                 <Text className="text-sm text-gray-600">
                   {" "}
-                  (Select {selectedNumberOfSessions} slots)
+                  ({t("Select")} {selectedNumberOfSessions} {t("Slots")})
                 </Text>
               )}
             </Text>
             <Text className="text-sm text-gray-600 mb-2">
-              Selected: {selectedSlots.length}/{selectedNumberOfSessions}
+              {t("Selected")}: {selectedSlots.length}/{selectedNumberOfSessions}
             </Text>
 
             {/* Available Slots Section */}
             {availableSlots.length > 0 ? (
               <View className="mb-4">
                 <Text className="text-sm text-green-600 font-medium mb-2">
-                  Available Slots ({availableSlots.length})
+                  {t("Available Slots")} ({availableSlots.length})
                 </Text>
                 <ScrollView
                   horizontal
@@ -679,13 +721,13 @@ const InstantBookingContent = () => {
               </View>
             ) : (
               <Text className="text-gray-500 text-center py-4">
-                No available time slots for this date
+                {t("No available time slots for this date")}
               </Text>
             )}
             {bookedSlotsForDate.length > 0 && (
               <View className="mt-4">
                 <Text className="text-sm text-red-600 font-medium mb-2">
-                  Booked Slots ({bookedSlotsForDate.length})
+                  {t("Booked Slots")} ({bookedSlotsForDate.length})
                 </Text>
                 <ScrollView
                   horizontal
@@ -702,9 +744,6 @@ const InstantBookingContent = () => {
                         <Text className="text-red-600 font-medium text-center text-sm">
                           {slot.formattedTime}
                         </Text>
-                        <Text className="text-red-500 text-xs text-center">
-                          (Booked)
-                        </Text>
                       </View>
                     ))}
                   </View>
@@ -717,15 +756,17 @@ const InstantBookingContent = () => {
         {/* Fee Calculation */}
         {selectedSlots.length > 0 && (
           <View className="bg-blue-50 p-4 rounded-lg">
-            <Text className="font-semibold text-lg mb-2">Fee Calculation</Text>
-            <Text className="text-gray-700">
-              Base Fee: {currencyFormatter(baseFee)}
+            <Text className="font-semibold text-lg mb-2">
+              {t("Fee Calculation")}
             </Text>
             <Text className="text-gray-700">
-              Selected Sessions: {selectedSlots.length}
+              {t("Base Fee")}: {currencyFormatter(baseFee)}
+            </Text>
+            <Text className="text-gray-700">
+              {"Selected Sessions"}: {selectedSlots.length}
             </Text>
             <Text className="font-bold text-lg text-blue-600">
-              Total: {currencyFormatter(totalFee)}
+              {t("Total")}: {currencyFormatter(totalFee)}
             </Text>
           </View>
         )}
@@ -733,7 +774,7 @@ const InstantBookingContent = () => {
         {/* Overview of the Consultation */}
         <View>
           <Text className="font-semibold mb-2">
-            Overview of the Consultation
+            {t("Overview of the Consultation")}
           </Text>
           <Controller
             control={control}
@@ -741,7 +782,7 @@ const InstantBookingContent = () => {
             rules={{ required: "Overview is required." }}
             render={({ field: { onChange, value } }) => (
               <Textarea
-                placeholder="Write a brief overview for the specialist about the consultation"
+                placeholder={t("consultationOverviewHint")}
                 value={value}
                 onChangeText={onChange}
               />
@@ -755,7 +796,7 @@ const InstantBookingContent = () => {
         </View>
 
         {/* Closest Appointment */}
-        <View className="flex-row items-center justify-between">
+        {/* <View className="flex-row items-center justify-between">
           <Text className="font-semibold">Closest Appointment</Text>
           <Controller
             control={control}
@@ -764,7 +805,7 @@ const InstantBookingContent = () => {
               <Switch checked={value} onCheckedChange={onChange} />
             )}
           />
-        </View>
+        </View> */}
 
         <View className="mb-6 mt-6">
           <Pressable
@@ -783,7 +824,7 @@ const InstantBookingContent = () => {
               )}
             </View>
             <Text className="text-base font-medium">
-              Booking for a family member
+              {t("Booking for a family member")}
             </Text>
           </Pressable>
         </View>
@@ -792,40 +833,78 @@ const InstantBookingContent = () => {
         {isForFamilyMember && (
           <View className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
             <Text className="text-lg font-semibold mb-4 text-blue-600">
-              Select Family Member
+              {t("Select Family Member")}
             </Text>
 
             <Controller
               control={control}
-              name="familyMemberName" // Changed from familyMemberId to familyMemberName
+              name="familyMemberName"
               rules={{
-                required: "Please select a family member",
+                required: t("select a family member"),
               }}
-              render={({ field: { onChange, value } }) => (
-                <View className="border border-gray-300 rounded-lg px-3 py-2">
-                  {userFamily?.map((member) => (
+              render={({ field: { onChange, value } }) => {
+                const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+                return (
+                  <View className="relative">
+                    {/* Dropdown Button */}
                     <Pressable
-                      key={member._id}
-                      onPress={() => onChange(member.name)} // Pass only the name
-                      className={`py-2 ${
-                        value === member.name ? "bg-blue-100" : "bg-white" // Compare with name
-                      }`}
+                      onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="border border-gray-300 rounded-lg px-3 py-3 bg-white flex-row justify-between items-center"
                     >
                       <Text
                         className={`text-base ${
-                          value === member.name
-                            ? "text-blue-700 font-semibold"
-                            : ""
+                          !value ? "text-gray-500" : "text-gray-900"
                         }`}
                       >
-                      {member.name}
+                        {value || t("selectFamilyMember")}
+                      </Text>
+                      <Text
+                        className={`text-gray-500 transform ${
+                          isDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      >
+                        ▼
                       </Text>
                     </Pressable>
-                  ))}
-                </View>
-              )}
+
+                    {/* Dropdown Options */}
+                    {isDropdownOpen && (
+                      <View className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg">
+                        {userFamily?.map((member, index) => (
+                          <Pressable
+                            key={member._id}
+                            onPress={() => {
+                              onChange(member.name);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`px-3 py-3 ${
+                              index !== userFamily.length - 1
+                                ? "border-b border-gray-200"
+                                : ""
+                            } ${
+                              value === member.name ? "bg-blue-50" : "bg-white"
+                            } hover:bg-gray-50`}
+                          >
+                            <Text
+                              className={`text-base ${
+                                value === member.name
+                                  ? "text-blue-700 font-semibold"
+                                  : "text-gray-900"
+                              }`}
+                            >
+                              {member.name}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              }}
             />
-            {errors.familyMemberName && ( // Changed error field name
+
+            {errors.familyMemberName && (
               <Text className="text-red-500 text-sm mt-1">
                 {errors.familyMemberName.message}
               </Text>
@@ -841,8 +920,10 @@ const InstantBookingContent = () => {
         >
           <Text className="text-white font-semibold">
             {isSubmitting
-              ? "Processing..."
-              : `Book now ${totalFee > 0 ? currencyFormatter(totalFee) : ""}`}
+              ? t("Processing...")
+              : `${t("Book now")} ${
+                  totalFee > 0 ? currencyFormatter(totalFee) : ""
+                }`}
           </Text>
         </Button>
       </ScrollView>

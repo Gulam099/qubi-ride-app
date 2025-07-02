@@ -25,7 +25,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation(); 
   const dispatch = useDispatch();
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
@@ -53,8 +53,8 @@ export default function SettingsPage() {
       if (language === label) {
         toast(
           label === "ar"
-            ? "Language already is Arabic"
-            : "Language already is English"
+            ? t("alreadyArabic") 
+            :  t("alreadyEnglish")
         );
         return;
       }
@@ -64,11 +64,11 @@ export default function SettingsPage() {
         setLayoutDirection(label);
         toast.success(
           label === "ar"
-            ? "Language Changed Successful to Arabic"
-            : "Language Changed Successful to English"
+            ? t("languageChangedToArabic")
+            : t("languageChangedToEnglish")
         );
       } catch (error) {
-        toast.error("Error Changing in Language");
+        toast.error(t("languageChangeError"));
       }
     };
   }
@@ -104,19 +104,19 @@ export default function SettingsPage() {
           passcode: passcode,
         },
       });
-      toast.success("Passcode updated successfully");
+      toast.success(t("passcodeUpdated"));
     } catch (error) {
       console.error("Error setting passcode:", error);
-      toast.error("Error setting passcode");
+      toast.error(t("passcodeError"));
     }
   }
 
   return (
     <ScrollView>
       <View className="bg-blue-50/20 h-full p-4 flex-col gap-4">
-        <Text className="font-semibold text-xl">My settings</Text>
+        <Text className="font-semibold text-xl">{t("mySettings")}</Text>
         <View className="bg-background rounded-2xl p-4 flex-col gap-3">
-          <Text className="text-lg font-semibold">Language</Text>
+          <Text className="text-lg font-semibold">{t("language")}</Text>
 
           <RadioGroup
             value={language === "ar" ? "Arabic" : "English"}
@@ -124,11 +124,11 @@ export default function SettingsPage() {
             className="gap-2"
           >
             <RadioGroupItemWithLabel
-              value="Arabic"
+              value={t("Arabic")}
               onLabelPress={onLabelPress("ar")}
             />
             <RadioGroupItemWithLabel
-              value="English"
+              value={t("English")}
               onLabelPress={onLabelPress("en")}
             />
           </RadioGroup>
@@ -136,7 +136,7 @@ export default function SettingsPage() {
 
         {/* Accessibility Settings */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">Accessibility</Text>
+          <Text className="text-lg font-semibold mb-3">{t("accessibility")}</Text>
           <RadioGroup
             value={accessibility}
             onValueChange={(value) => {
@@ -152,28 +152,28 @@ export default function SettingsPage() {
             className="gap-2"
           >
             <RadioGroupItemWithLabel
-              value="Stop"
+              value={t("stop")}
               onLabelPress={() => {
                 setAccessibility("Stop");
                 updateState("accessibility", "Stop");
               }}
             />
             <RadioGroupItemWithLabel
-              value="Dim Light"
+              value= {t("dimLight")}
               onLabelPress={() => {
                 setAccessibility("Dim Light");
                 updateState("accessibility", "Dim Light");
               }}
             />
             <RadioGroupItemWithLabel
-              value="Invert Colors"
+              value={t("invertColors")}
               onLabelPress={() => {
                 setAccessibility("Invert Colors");
                 updateState("accessibility", "Invert Colors");
               }}
             />
             <RadioGroupItemWithLabel
-              value="White & Black"
+              value={t("whiteBlack")}
               onLabelPress={() => {
                 setAccessibility("White & Black");
                 updateState("accessibility", "White & Black");
@@ -184,9 +184,9 @@ export default function SettingsPage() {
 
         {/* Permissions Settings */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">Permissions</Text>
+          <Text className="text-lg font-semibold mb-3">{t("permissions")}</Text>
           <SwitchWithLabel
-            label="Activate Camera"
+            label={t("activateCamera")}
             value={activateCamera}
             onValueChange={(value: boolean) => {
               setActivateCamera(value);
@@ -194,7 +194,7 @@ export default function SettingsPage() {
             }}
           />
           <SwitchWithLabel
-            label="Access the Studio"
+            label={t("accessStudio")}
             value={accessStudio}
             onValueChange={(value: boolean) => {
               setAccessStudio(value);
@@ -205,9 +205,9 @@ export default function SettingsPage() {
 
         {/* Notifications Settings */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">Notifications</Text>
+          <Text className="text-lg font-semibold mb-3">{t("notifications")}</Text>
           <SwitchWithLabel
-            label="Enable Notifications"
+            label={t("enableNotifications")}
             value={notifications}
             onValueChange={(value: boolean) => {
               setNotifications(value);
@@ -218,9 +218,9 @@ export default function SettingsPage() {
 
         {/* Profile Passcode */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">Profile Passcode </Text>
+          <Text className="text-lg font-semibold mb-3">{t("profilePasscode")} </Text>
           <SwitchWithLabel
-            label="Enable Passcode"
+            label={t("enablePasscode")}
             value={profilePasscode !== null}
             onValueChange={(value: boolean) => PassCodeToggle(value)}
           />
@@ -232,14 +232,14 @@ export default function SettingsPage() {
           variant={"secondary"}
           className="bg-white"
         >
-          <Text className="text-neutral-700  font-semibold ">Rate the App</Text>
+          <Text className="text-neutral-700  font-semibold ">{t("rateApp")}</Text>
         </Button>
         <Button
           onPress={() => router.push("/(stacks)/help")}
           variant={"secondary"}
           className="bg-white"
         >
-          <Text className="text-neutral-700  font-semibold ">Help Center</Text>
+          <Text className="text-neutral-700  font-semibold ">{t("helpCenter")}</Text>
         </Button>
       </View>
       <BottomSheet
@@ -249,7 +249,7 @@ export default function SettingsPage() {
         snapPoints={["100"]}
       >
         <BottomSheetView className="flex flex-col flex-1 justify-center items-center w-full gap-4 px-6">
-          <H3 className="border-none ">Enter your Passcode</H3>
+          <H3 className="border-none ">{t("enterPasscode")}</H3>
           <OtpInput
             numberOfDigits={4}
             focusColor={colors.primary[500]}
@@ -276,14 +276,14 @@ export default function SettingsPage() {
             }}
           />
           <Button onPress={handlePasscodeSubmit} className="w-full">
-            <Text className="text-white font-semibold">Save Passcode</Text>
+            <Text className="text-white font-semibold">{t("savePasscode")}</Text>
           </Button>
           <Button
             onPress={() => setIsPassCodeDrawer(false)}
             variant={"ghost"}
             className="w-full"
           >
-            <Text className="text-neutral-500 font-semibold">Cancel</Text>
+            <Text className="text-neutral-500 font-semibold">{t("cancel")}</Text>
           </Button>
         </BottomSheetView>
       </BottomSheet>

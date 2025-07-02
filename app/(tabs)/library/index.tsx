@@ -5,14 +5,16 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { H3 } from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import LibraryCard from "@/features/culturalLibrary/components/LibraryCard";
 import { toast } from "sonner-native";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiUrl } from "@/const";
+import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 10;
 
@@ -35,6 +37,8 @@ const fetchLibrary = async ({ pageParam = 1 }) => {
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState("All");
+  const queryClient = useQueryClient();
+const { t } = useTranslation();
 
   const {
     data,
@@ -43,6 +47,8 @@ export default function LibraryPage() {
     isFetchingNextPage,
     isLoading,
     isError,
+    refetch,
+    isRefetching,
   } = useInfiniteQuery({
     queryKey: ["library"],
     queryFn: fetchLibrary,
@@ -50,17 +56,20 @@ export default function LibraryPage() {
     getNextPageParam: (lastPage) =>
       lastPage.hasNext ? lastPage.nextPage : undefined,
   });
-
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries(["library"]);
+    }, [])
+  );
   const allContent = data?.pages.flatMap((page) => page.data) ?? [];
 
-  console.log("allcontent", allContent);
 
   const filteredContent =
     activeTab === "All"
       ? allContent
       : allContent.filter(
-        (item) => item.type?.toLowerCase() === activeTab.toLowerCase()
-      );
+          (item) => item.type?.toLowerCase() === activeTab.toLowerCase()
+        );
 
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -68,15 +77,6 @@ export default function LibraryPage() {
     }
   };
 
-  const handleShareUpdate = (contentId) => {
-    // Update the specific item's share count in the cached data
-    // This is a local update to provide immediate feedback
-    console.log(`Share count updated for content: ${contentId}`);
-    // Optionally refetch data to get the latest counts
-    // refetch();
-  };
-
-  console.log('filteredContent',filteredContent)
   const renderFooter = () =>
     isFetchingNextPage ? (
       <View className="py-4">
@@ -88,7 +88,7 @@ export default function LibraryPage() {
     return (
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator />
-        <Text className="text-gray-500 mt-2">Loading...</Text>
+        <Text className="text-gray-500 mt-2">{t("Loading")}</Text>
       </View>
     );
   }
@@ -97,7 +97,7 @@ export default function LibraryPage() {
     toast.error("Failed to load content.");
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Something went wrong.</Text>
+        <Text className="text-gray-500">{t("SomethingWentWrong")}</Text>
       </View>
     );
   }
@@ -128,7 +128,7 @@ export default function LibraryPage() {
                 <Text
                   className={cn(isActiveTab ? "text-white" : "", "font-medium")}
                 >
-                  {tab}
+                  {t(tab)}
                 </Text>
               </Button>
             );
@@ -146,8 +146,8 @@ export default function LibraryPage() {
               image={item.thumbnail || "https://placehold.co/200"}
               link={`/library/${item._id}`}
               type={item.type}
-              seenCount={item.seenCount}
-              likeCount={item.likeCount}
+              seenCount={item.seenCount || 0}
+              likeCount={item.likeCount || 0}
               rating={item.rating || 0}
               comments={item.comments || []} // Pass real comments from DB
               shareCount={item.shareCount || 0} // Pass real share count from DB
@@ -155,16 +155,17 @@ export default function LibraryPage() {
               onAddComment={(comment) => {
                 // Handle comment addition if needed
               }}
-              onShare={() => handleShareUpdate(item._id)}
             />
           )}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
+          onRefresh={refetch}
+          refreshing={isRefetching}
           contentContainerClassName="gap-4 pb-8"
           ListEmptyComponent={() => (
             <Text className="text-gray-500 text-center">
-              No content available.
+              {t("NoContentAvailable")}
             </Text>
           )}
         />

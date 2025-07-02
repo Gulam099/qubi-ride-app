@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 
 export default function SessionConsultPage() {
   const { user } = useUser();
@@ -36,8 +37,10 @@ export default function SessionConsultPage() {
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [doctorSchedule, setDoctorSchedule] = useState("");
   const [isForFamilyMember, setIsForFamilyMember] = useState(false);
-  const [userFamily, setUserFamily] = useState();
+  const [userFamily, setUserFamily] = useState([]);
+  const { t } = useTranslation();
 
+  const baseFee = parseFloat(doctorFees as string) || 0;
   console.log("userFamily", userFamily);
 
   const SchedulePickerRef = useRef(null);
@@ -85,14 +88,14 @@ export default function SessionConsultPage() {
   };
 
   const numberOfSessionsOptions = [
-    { label: "1 session", value: 1 },
-    { label: "2 sessions", value: 2 },
-    { label: "3 sessions", value: 3 },
+    { label: `1 ${t("session")}`, value: 1 },
+    { label: `2 ${t("sessions")}`, value: 2 },
+    { label: `3 ${t("sessions")}`, value: 3 },
   ];
   const sessionDurations = [
-    { label: "30 min", value: 30 },
-    { label: "45 min", value: 45 },
-    { label: "60 min", value: 60 },
+    { label: `30 ${t("minutes")}`, value: "30 minutes" },
+    { label: `45 ${t("minutes")}`, value: "45 minutes" },
+    { label: `60 ${t("minutes")}`, value: "60 minutes" },
   ];
 
   useEffect(() => {
@@ -142,11 +145,12 @@ export default function SessionConsultPage() {
       const bookingPayload = {
         userId: userId,
         doctorId: doctorId,
-        date: selectedDateTime,
+        selectedSlots: selectedDateTime,
         duration: data.sessionDuration,
-        sessionCount: data.numberOfSessions,
+        numberOfSessions: data.numberOfSessions,
         language: data.language,
         gender: data.gender, // Added gender field
+        totalFee: baseFee * data.numberOfSessions,
         paymentStatus: "pending",
         ...(isForFamilyMember && {
           isForFamilyMember: true,
@@ -173,7 +177,7 @@ export default function SessionConsultPage() {
         userId: userId,
         doctorId: doctorId,
         bookingId: bookingResult?.booking?._id,
-        amount: doctorFees,
+        amount: baseFee * data.numberOfSessions,
         currency: "SAR",
         description: "Medical consultation session", // Fixed: removed undefined reference
         status: "initiated",
@@ -217,6 +221,7 @@ export default function SessionConsultPage() {
           selectedDateTime: bookingData.selectedDateTime,
           sessionDuration: bookingData.sessionDuration.toString(),
           numberOfSessions: bookingData.numberOfSessions.toString(),
+          totalFee: totalFee.toString(),
           bookingId: bookingId || "",
         }).toString();
         router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
@@ -236,10 +241,15 @@ export default function SessionConsultPage() {
     bookSession(data);
   };
 
+  const totalFee = useMemo(() => {
+    const sessions = numberOfSessionsValue || 1;
+    return baseFee * sessions;
+  }, [baseFee, numberOfSessionsValue]);
+
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text>Loading...</Text>
+        <Text>{t("Loading")}</Text>
       </View>
     );
   }
@@ -265,13 +275,13 @@ export default function SessionConsultPage() {
         >
           {/* Language Selection */}
           <View>
-            <Text className="font-semibold mb-2">Language</Text>
+            <Text className="font-semibold mb-2">{t("Language")}</Text>
             <View className="flex-row gap-2">
               {["Arabic", "English", "French"].map((language) => (
                 <Controller
                   key={language}
                   control={control}
-                  rules={{ required: "Language is required." }}
+                  rules={{ required: t("languageRequired") }}
                   name="language"
                   render={({ field: { onChange, value } }) => (
                     <Button
@@ -284,7 +294,7 @@ export default function SessionConsultPage() {
                           value === language ? "text-white" : "text-gray-800"
                         }
                       >
-                        {language}
+                        {t(language)}
                       </Text>
                     </Button>
                   )}
@@ -297,16 +307,18 @@ export default function SessionConsultPage() {
               </Text>
             )}
           </View>
-
+          {/* Number of sessions*/}
           <View>
-            <Text className="text-lg font-medium mb-4">Number of sessions</Text>
-            <View className="flex-row gap-2 mb-4">
+            <Text className="font-semibold mb-2">
+              {t("Number of sessions")}
+            </Text>
+            <View className="flex-row gap-2">
               {numberOfSessionsOptions.map(({ label, value }) => (
                 <Controller
                   key={value}
                   control={control}
                   name="numberOfSessions"
-                  rules={{ required: "Number of sessions is required" }}
+                  rules={{ required: t("numberOfSessionsRequired") }}
                   render={({ field: { onChange, value: selectedValue } }) => (
                     <Button
                       className={`flex-1 `}
@@ -333,16 +345,16 @@ export default function SessionConsultPage() {
               </Text>
             )}
           </View>
-
+          {/* Number of duration*/}
           <View>
-            <Text className="text-lg font-medium mb-4">Duration sessions</Text>
-            <View className="flex-row gap-2 mb-4">
+            <Text className="font-semibold mb-2">{t("Duration")}</Text>
+            <View className="flex-row gap-2">
               {sessionDurations.map(({ label, value }) => (
                 <Controller
                   key={value}
                   control={control}
                   name="sessionDuration"
-                  rules={{ required: "Session duration is required" }}
+                  rules={{ required: t("Duration is required") }}
                   render={({ field: { onChange, value: selectedValue } }) => (
                     <Button
                       className={`flex-1 `}
@@ -372,13 +384,13 @@ export default function SessionConsultPage() {
 
           {/* gender Selection */}
           <View>
-            <Text className="font-semibold mb-2">Gender</Text>
+            <Text className="font-semibold mb-2">{t("Gender")}</Text>
             <View className="flex-row gap-2">
               {["Male", "Female", "Rather not say"].map((gender) => (
                 <Controller
                   key={gender}
                   control={control}
-                  rules={{ required: "Gender is required." }}
+                  rules={{ required: t("genderRequired") }}
                   name="gender"
                   render={({ field: { onChange, value } }) => (
                     <Button
@@ -391,7 +403,7 @@ export default function SessionConsultPage() {
                           value === gender ? "text-white" : "text-gray-800"
                         }
                       >
-                        {gender}
+                        {t(gender)}
                       </Text>
                     </Button>
                   )}
@@ -422,7 +434,7 @@ export default function SessionConsultPage() {
                 )}
               </View>
               <Text className="text-base font-medium">
-                Booking for a family member
+                {t("Booking for a family member")}
               </Text>
             </Pressable>
           </View>
@@ -431,44 +443,101 @@ export default function SessionConsultPage() {
           {isForFamilyMember && (
             <View className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
               <Text className="text-lg font-semibold mb-4 text-blue-600">
-                Select Family Member
+                {t("Select Family Member")}
               </Text>
 
               <Controller
                 control={control}
-                name="familyMemberName" // Changed from familyMemberId to familyMemberName
+                name="familyMemberName"
                 rules={{
-                  required: "Please select a family member",
+                  required: t("select a family member"),
                 }}
-                render={({ field: { onChange, value } }) => (
-                  <View className="border border-gray-300 rounded-lg px-3 py-2">
-                    {userFamily?.map((member) => (
+                render={({ field: { onChange, value } }) => {
+                  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+                  return (
+                    <View className="relative">
+                      {/* Dropdown Button */}
                       <Pressable
-                        key={member._id}
-                        onPress={() => onChange(member.name)} // Pass only the name
-                        className={`py-2 ${
-                          value === member.name ? "bg-blue-100" : "bg-white" // Compare with name
-                        }`}
+                        onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="border border-gray-300 rounded-lg px-3 py-3 bg-white flex-row justify-between items-center"
                       >
                         <Text
                           className={`text-base ${
-                            value === member.name
-                              ? "text-blue-700 font-semibold"
-                              : ""
+                            !value ? "text-gray-500" : "text-gray-900"
                           }`}
                         >
-                          {member.relationship} - {member.name}
+                          {value || t("selectFamilyMember")}
+                        </Text>
+                        <Text
+                          className={`text-gray-500 transform ${
+                            isDropdownOpen ? "rotate-180" : ""
+                          }`}
+                        >
+                          ▼
                         </Text>
                       </Pressable>
-                    ))}
-                  </View>
-                )}
+
+                      {/* Dropdown Options */}
+                      {isDropdownOpen && (
+                        <View className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg">
+                          {userFamily?.map((member, index) => (
+                            <Pressable
+                              key={member._id}
+                              onPress={() => {
+                                onChange(member.name);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`px-3 py-3 ${
+                                index !== userFamily?.length - 1
+                                  ? "border-b border-gray-200"
+                                  : ""
+                              } ${
+                                value === member.name
+                                  ? "bg-blue-50"
+                                  : "bg-white"
+                              } hover:bg-gray-50`}
+                            >
+                              <Text
+                                className={`text-base ${
+                                  value === member.name
+                                    ? "text-blue-700 font-semibold"
+                                    : "text-gray-900"
+                                }`}
+                              >
+                                {member.name}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  );
+                }}
               />
-              {errors.familyMemberName && ( // Changed error field name
+
+              {errors.familyMemberName && (
                 <Text className="text-red-500 text-sm mt-1">
                   {errors.familyMemberName.message}
                 </Text>
               )}
+            </View>
+          )}
+
+          {numberOfSessionsValue && (
+            <View className="bg-blue-50 p-4 rounded-lg mb-4">
+              <Text className="font-semibold text-lg mb-2">
+                {t("Fee Calculation")}
+              </Text>
+              <Text className="text-gray-700">
+                {t("Base Fee")}: {baseFee} SAR
+              </Text>
+              <Text className="text-gray-700">
+                {t("Number of Sessions")}: {numberOfSessionsValue}
+              </Text>
+              <Text className="font-bold text-lg text-blue-600">
+                {t("Total")}: {totalFee} SAR
+              </Text>
             </View>
           )}
 
@@ -484,7 +553,7 @@ export default function SessionConsultPage() {
             className="mt-4 mb-4"
           >
             <Text className="text-white font-medium">
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting ? t("Submitting...") : t("Submit")}
             </Text>
           </Button>
         </ScrollView>

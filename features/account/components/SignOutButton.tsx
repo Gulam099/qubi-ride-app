@@ -7,6 +7,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { X } from "lucide-react-native";
 import React, { forwardRef, useRef, useImperativeHandle } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 type SignOutSheetRef = {
@@ -15,13 +16,15 @@ type SignOutSheetRef = {
 };
 
 export const SignOutButton = ({ sheetRef }: { sheetRef: React.RefObject<SignOutSheetRef> }) => {
+    const { t } = useTranslation();
+  
   return (
     <Button
       variant={"default"}
       className="w-full my-2 z-0"
       onPress={() => sheetRef.current?.open()}
     >
-      <Text>Sign out</Text>
+      <Text>{t("Signout")}</Text>
     </Button>
   );
 };

@@ -4,8 +4,11 @@ import { Stack, useRouter } from "expo-router";
 import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
+import { useTranslation } from "react-i18next";
 
 export default function AccountLayout() {
+  const { t } = useTranslation();
+
   const router = useRouter();
   return (
     <Stack
@@ -24,39 +27,51 @@ export default function AccountLayout() {
       />
       <Stack.Screen
         name="notification/index"
-        options={{
-          title: "Notifications",
+         options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{t("notifications")}</Text>
+          ),
         }}
       />
-      
+
       <Stack.Screen
         name="calendar/index"
-        options={{
-          title: "Calender",
+         options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{t("calendar")}</Text>
+          ),
         }}
       />
       <Stack.Screen
         name="appointment/index"
-        options={{
-          title: "Appointments",
+         options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{t("appointments")}</Text>
+          ),
         }}
       />
       <Stack.Screen
         name="favorite/index"
         options={{
-          title: "Favorites",
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{t("favorites")}</Text>
+          ),
         }}
       />
       <Stack.Screen
         name="family/index"
-        options={{
-          title: "Family",
+         options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{t("family")}</Text>
+          ),
         }}
       />
       <Stack.Screen
         name="profile/index"
         options={{
-          title: "Profile",
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">{t("profile")}</Text>
+          ),
         }}
       />
 
@@ -70,14 +85,18 @@ export default function AccountLayout() {
       />
       <Stack.Screen
         name="report/index"
-        options={{
-          title: "Profile Verification Code",
+         options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("profileVerificationCode")}
+            </Text>
+          ),
         }}
       />
       <Stack.Screen
         name="setting/index"
         options={{
-          title: "Settings",
+          headerTitle: () => <Text className="font-semibold text-lg ">{t("settings")}</Text>,
         }}
       />
       {/* <Stack.Screen

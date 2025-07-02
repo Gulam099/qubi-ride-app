@@ -4,8 +4,11 @@ import { Stack } from "expo-router";
 import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
+import { useTranslation } from "react-i18next";
 
 export default function ProgramLayout() {
+  const { t } = useTranslation();
+
   return (
     <Stack
       screenOptions={{
@@ -18,7 +21,7 @@ export default function ProgramLayout() {
         name="index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg  px-2">Programs</Text>
+            <Text className="font-semibold text-lg  px-2">{t("Programs")}</Text>
           ),
         }}
       />

@@ -23,11 +23,15 @@ import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { toast } from "sonner-native";
 import { ApiUrl, apiNewUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Value } from "@rn-primitives/select";
 
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { specialist_Id, todaySchedule   } = params;
+  const { t } = useTranslation();
+  
   // Fetch function
   const fetchSpecialistData = async () => {
     if (!specialist_Id) {
@@ -67,10 +71,7 @@ export default function SpecialistConsultantPage() {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text>Loading ...</Text>
-        <Text className="text-sm text-gray-500 mt-2">
-          ID: {specialist_Id || "undefined"}
-        </Text>
+        <Text>{t("Loading")}</Text>
       </View>
     );
   }
@@ -138,20 +139,25 @@ export default function SpecialistConsultantPage() {
             <View className="flex-row w-full">
               {[
                 {
-                  title: "Rating",
+                  title: t("Rating"),
                   value: specialistData?.data?.rating ?? "0",
                   icon: Star1,
                 },
                 {
-                  title: "Experience",
+                  title: t("Experience"),
                   value: specialistData?.data?.experience ?? "0",
                   icon: IdCard,
                 },
                 {
-                  title: "Session Type",
+                  title: t("Session Type"),
                   value: specialistData?.data?.sessionType ?? "0",
                   icon: HeartSearch,
                 },
+                {
+                  title: t("Response time"),
+                  value: specialistData?.data?.responseTime ?? t("notAvailable"),
+                  icon: Hourglass,
+                }
               ].map((item) => (
                 <View
                   className="flex-col justify-center items-center mb-4 flex-1 w-full"
@@ -165,7 +171,7 @@ export default function SpecialistConsultantPage() {
                 </View>
               ))}
             </View>
-            <View className="flex-row gap-2 px-4">
+            {/* <View className="flex-row gap-2 px-4">
               <View className="bg-blue-50/30 rounded-full p-2">
                 <Hourglass size={22} color="#222" />
               </View>
@@ -175,7 +181,7 @@ export default function SpecialistConsultantPage() {
                   {specialistData?.data?.responseTime ?? "N/A"}
                 </Text>
               </View>
-            </View>
+            </View> */}
           </View>
 
           {/* Specialties Section */}
@@ -267,7 +273,7 @@ export default function SpecialistConsultantPage() {
           }
         >
           <Text className="text-white font-bold">
-            Book now{" "}
+            {t("Book now")}{" "}
             {specialistData?.data?.fees != 0
               ? currencyFormatter(specialistData?.data?.fees ?? 0)
               : "for free"}
