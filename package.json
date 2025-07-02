@@ -36,6 +36,7 @@
     "@rn-primitives/dialog": "^1.1.0",
     "@rn-primitives/dropdown-menu": "^1.1.0",
     "@rn-primitives/label": "^1.1.0",
+    "@rn-primitives/portal": "^1.3.0",
     "@rn-primitives/progress": "^1.1.0",
     "@rn-primitives/radio-group": "^1.1.0",
     "@rn-primitives/select": "^1.1.0",
@@ -55,6 +56,7 @@
     "date-fns": "^4.1.0",
     "expo": "^53.0.15",
     "expo-audio": "~0.4.7",
+    "expo-auth-session": "^6.2.0",
     "expo-av": "~15.1.7",
     "expo-blur": "~14.1.5",
     "expo-camera": "~16.1.10",
@@ -126,7 +128,8 @@
     "tailwindcss-rtl": "^0.9.0",
     "twilio-video": "^2.29.0",
     "uuid": "^11.1.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "expo-crypto": "~14.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

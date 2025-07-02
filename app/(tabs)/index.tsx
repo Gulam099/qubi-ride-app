@@ -10,10 +10,10 @@ import { Image } from "react-native";
 import { cn } from "@/lib/utils";
 import { Text } from "@/components/ui/Text";
 import { useEffect } from "react";
-import * as Updates from 'expo-updates';
+import * as Updates from "expo-updates";
 import { useTranslation } from "react-i18next";
 
-export default function PatientPage() {
+const PatientPage = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useTranslation();
@@ -39,7 +39,9 @@ export default function PatientPage() {
         className={cn("w-full h-[undefined] aspect-[375/295]")}
       />
       <View className="flex gap-6 flex-col px-4">
-        <H3 className="text-center">{t("What type of consultation do you need?")}</H3>
+        <H3 className="text-center">
+          {t("What type of consultation do you need?")}
+        </H3>
 
         <TouchableOpacity onPress={() => router.push("/instant-booking")}>
           <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
@@ -65,7 +67,9 @@ export default function PatientPage() {
             <View className="w-2/3 flex flex-col justify-end">
               <H3 className="font-normal">{t("Scheduled")}</H3>
               <Text className=" text-base font-normal">
-                {t("Book your appointment with the appropriate specialist for you")}
+                {t(
+                  "Book your appointment with the appropriate specialist for you"
+                )}
               </Text>
             </View>
           </View>
@@ -82,4 +86,6 @@ export default function PatientPage() {
       </View>
     </View>
   );
-}
+};
+
+export default PatientPage;

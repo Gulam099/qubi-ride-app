@@ -120,7 +120,7 @@ export default function UsersTodayPage() {
                 shareLink={item.id}
                 onPress={() => {
                   router.push({
-                    pathname: `/instant-booking/s/${item.id}`,
+                    pathname: `/instant-booking/i/${item.id}`,
                     params: {
                       todaySchedule: JSON.stringify(item.schedule),
                       doctorFees: "0",

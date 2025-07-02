@@ -299,7 +299,16 @@
  "contactUsTitle": "Welcome! Baserah team is here to serve you",
   "contactUsSubtitle": "The usual response time for us is a few minutes",
   "addTicket": "Add a ticket directly",
-  "or": "or"
+  "or": "or",
+  "welcomeBack": "Welcome back to Baserah",
+  "continue": "Continue",
+  "enterVerificationCode": "Enter Verification Code",
+  "verificationSentTo": "Verification code sent to {{phone}}",
+  "verifyOtp": "Verify OTP",
+  "dontHaveAccount": "Don't have an account?",
+  "signUp": "Sign up",
+  "failedToSendOtp": "Failed to send OTP",
+  "failedToVerifyOtp": "Failed to verify OTP"
 
 
 

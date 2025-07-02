@@ -297,7 +297,16 @@
 "submit": "إرسال","contactUsTitle": "مرحبًا! فريق بصيرة هنا لخدمتك",
   "contactUsSubtitle": "عادةً ما يكون وقت الاستجابة لدينا بضع دقائق",
   "addTicket": "أضف تذكرة مباشرة",
-  "or": "أو"
+  "or": "أو",
+   "welcomeBack": "مرحبًا بك مرة أخرى في بصيرة",
+  "continue": "استمرار",
+  "enterVerificationCode": "أدخل رمز التحقق",
+  "verificationSentTo": "تم إرسال رمز التحقق إلى {{phone}}",
+  "verifyOtp": "تحقق من الرمز",
+  "dontHaveAccount": "ليس لديك حساب؟",
+  "signUp": "سجل الآن",
+  "failedToSendOtp": "فشل في إرسال رمز التحقق",
+  "failedToVerifyOtp": "فشل في التحقق من الرمز"
 
 
 

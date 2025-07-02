@@ -264,7 +264,7 @@ export default function SpecialistConsultantPage() {
           className="mt-4 bg-purple-600 mb-6"
           onPress={() =>
             router.push({
-              pathname: `/instant-booking/s/${specialist_Id}/session`,
+              pathname: `/instant-booking/i/${specialist_ID}/session`,
               params: {
                 todaySchedule: JSON.stringify(todaySchedule),
                 doctorFees: specialistData?.data?.fees?.toString() || "0",

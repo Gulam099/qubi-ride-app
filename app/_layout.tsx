@@ -97,7 +97,7 @@ if (!firebase.apps.length) {
 // Main App Component
 const InitialLayout = () => {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
 
   const { isLoaded, isSignedIn } = useAuth();
   const language = useSelector((state: any) => state.appState.language);
@@ -361,8 +361,10 @@ const InitialLayout = () => {
     }
   }, [isLoaded]);
 
+  if (!userLoaded) return null;
+
   return (
-    <QueryClientProvider client={queryClient}>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ThemeProvider>
         <GestureHandlerRootView>
           <SafeAreaProvider>
@@ -384,7 +386,7 @@ const InitialLayout = () => {
           <PortalHost />
         </GestureHandlerRootView>
       </ThemeProvider>
-    </QueryClientProvider>
+    </ClerkProvider>
   );
 };
 
@@ -414,24 +416,26 @@ const RootLayout = () => {
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <ClerkLoading>
-        <View className="w-full h-full justify-center items-center">
-          <ActivityIndicator size={48} color={colors.primary[500]} />
-        </View>
-      </ClerkLoading>
+      <QueryClientProvider client={queryClient}>
+        <ClerkLoading>
+          <View className="w-full h-full justify-center items-center">
+            <ActivityIndicator size={48} color={colors.primary[500]} />
+          </View>
+        </ClerkLoading>
 
-      <ClerkLoaded>
-        <Provider store={store}>
-          <PersistGate
-            loading={<Text>Loading App Data...</Text>}
-            persistor={persistor}
-          >
-            <I18nextProvider i18n={i18n}>
-              <InitialLayout />
-            </I18nextProvider>
-          </PersistGate>
-        </Provider>
-      </ClerkLoaded>
+        <ClerkLoaded>
+          <Provider store={store}>
+            <PersistGate
+              loading={<Text>Loading App Data...</Text>}
+              persistor={persistor}
+            >
+              <I18nextProvider i18n={i18n}>
+                <InitialLayout />
+              </I18nextProvider>
+            </PersistGate>
+          </Provider>
+        </ClerkLoaded>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 };

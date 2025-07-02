@@ -30,7 +30,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 export default function SessionConsultPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const userId = user?.publicMetadata.dbPatientId as string;
   const { specialist_Id, doctorFees } = useLocalSearchParams();
@@ -263,6 +263,8 @@ export default function SessionConsultPage() {
       </View>
     );
   }
+
+  if (!isLoaded) return null;
 
   return (
     <>
