@@ -81,6 +81,7 @@ const logger: Logger = {
   error: (message, error) =>
     __DEV__ && console.error(`[ERROR] ${message}`, error),
 };
+
 // Initialize Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -94,17 +95,15 @@ if (!firebase.apps.length) {
   });
 }
 
-// Main App Component
-const InitialLayout = () => {
+// Separate component that uses Clerk hooks - this will be INSIDE ClerkProvider
+const AppContent = () => {
   const router = useRouter();
-  const { user, isLoaded: userLoaded } = useUser();
-
+  const { user, isLoaded: userLoaded } = useUser(); // Now this is inside ClerkProvider
   const { isLoaded, isSignedIn } = useAuth();
   const language = useSelector((state: any) => state.appState.language);
   const isRTL = language === "ar";
 
-  // Add this loading spinner component
-  // Android 13+ Notification Permission Helper (unchanged)
+  // Android 13+ Notification Permission Helper
   const requestNotificationPermission = async () => {
     if (Platform.OS === "android" && Platform.Version >= 33) {
       try {
@@ -267,7 +266,7 @@ const InitialLayout = () => {
     };
   }, []);
 
-  // In app/(tabs)/_layout.tsx or app/_layout.tsx
+  // Deep link handling
   useEffect(() => {
     const subscription = Linking.addEventListener("url", (event) => {
       console.log("URL received in tabs layout:", event.url);
@@ -277,7 +276,6 @@ const InitialLayout = () => {
     Linking.getInitialURL().then((url) => {
       if (url) {
         console.log("Initial URL in tabs layout:", url);
-        // Add a longer delay for initial URL to ensure tabs are mounted
         setTimeout(() => {
           handleDeepLink(url);
         }, 500);
@@ -304,7 +302,7 @@ const InitialLayout = () => {
 
   // Unified notification handler
   const handleNotificationEvent = async ({ type, detail }: Event) => {
-    const handleDeepLink = (link?: string) => {
+    const handleDeepLinkInternal = (link?: string) => {
       console.log("initailixeeeee>>>deep");
 
       try {
@@ -344,11 +342,12 @@ const InitialLayout = () => {
 
     if ([EventType.ACTION_PRESS, EventType.PRESS].includes(type)) {
       const deepLink = detail.notification?.data?.deepLink;
-      handleDeepLink(deepLink as string | undefined);
+      handleDeepLinkInternal(deepLink as string | undefined);
     }
   };
+
   useEffect(() => {
-    i18n.changeLanguage(language); // Sync language with Redux
+    i18n.changeLanguage(language);
     I18nManager.forceRTL(isRTL);
     I18nManager.allowRTL(isRTL);
   }, [language]);
@@ -364,29 +363,27 @@ const InitialLayout = () => {
   if (!userLoaded) return null;
 
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <ThemeProvider>
-        <GestureHandlerRootView>
-          <SafeAreaProvider>
-            <Stack>
-              <Stack.Screen name="+not-found" />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
-              <Stack.Screen name="(modals)" options={{ headerShown: false }} />
-              <Stack.Screen name="consult" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="instant-booking"
-                options={{ headerShown: false }}
-              />
-            </Stack>
-          </SafeAreaProvider>
-          <Toaster position="top-center" />
-          <StatusBar style="light" backgroundColor={colors.blue[700]} />
-          <PortalHost />
-        </GestureHandlerRootView>
-      </ThemeProvider>
-    </ClerkProvider>
+    <ThemeProvider>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <Stack>
+            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
+            <Stack.Screen name="(modals)" options={{ headerShown: false }} />
+            <Stack.Screen name="consult" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="instant-booking"
+              options={{ headerShown: false }}
+            />
+          </Stack>
+        </SafeAreaProvider>
+        <Toaster position="top-center" />
+        <StatusBar style="light" backgroundColor={colors.blue[700]} />
+        <PortalHost />
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 };
 
@@ -412,7 +409,6 @@ const RootLayout = () => {
   if (!loaded && !error) {
     return null;
   }
-  // console.log("Clerk Key:", publishableKey);
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
@@ -430,7 +426,7 @@ const RootLayout = () => {
               persistor={persistor}
             >
               <I18nextProvider i18n={i18n}>
-                <InitialLayout />
+                <AppContent />
               </I18nextProvider>
             </PersistGate>
           </Provider>

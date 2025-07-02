@@ -10,7 +10,7 @@ import {
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import colors from "@/utils/colors";
 import { cn } from "@/lib/utils";
-import { View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
 import { useTranslation } from "react-i18next";
@@ -68,7 +68,14 @@ const PatientLayout = () => {
     },
   ];
 
-  if (!isLoaded) return null;
+  // Show loading spinner while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color={colors.blue[600]} />
+      </View>
+    );
+  }
 
   return (
     <Tabs
