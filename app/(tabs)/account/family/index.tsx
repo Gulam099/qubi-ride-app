@@ -8,7 +8,7 @@ import { toast } from "sonner-native";
 import { FamilyFormType, FamilyType } from "@/features/family/types/FamilyType";
 import { Label } from "@/components/ui/Label";
 import { useUser } from "@clerk/clerk-expo";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetScrollView, BottomSheetView } from "@gorhom/bottom-sheet";
 import { X, ChevronDown } from "lucide-react-native";
 import { ApiUrl } from "@/const";
 import axios from "axios";
@@ -195,7 +195,7 @@ function FamilyPage() {
         enablePanDownToClose
         snapPoints={["70%", "100%"]}
       >
-        <BottomSheetView className="w-full flex-1 bg-white">
+        <BottomSheetScrollView className="w-full flex-1 bg-white">
           <View className="flex flex-col w-full gap-4 p-6 pt-12">
             <Button
               size="icon"
@@ -343,7 +343,7 @@ function FamilyPage() {
               </Text>
             </Button>
           </View>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheet>
     </View>
   );

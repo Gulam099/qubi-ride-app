@@ -305,8 +305,19 @@
   "verifyOtp": "تحقق من الرمز",
   "dontHaveAccount": "ليس لديك حساب؟",
   "signUp": "سجل الآن",
+  "createAccount": "إنشاء حساب",
+
+  "alreadyHaveAccount": "لديك حساب بالفعل؟",
+  "signIn": "تسجيل الدخول",
+  "otpSentSuccess": "تم إرسال رمز التحقق بنجاح",
   "failedToSendOtp": "فشل في إرسال رمز التحقق",
-  "failedToVerifyOtp": "فشل في التحقق من الرمز"
+  "failedToVerifyOtp": "فشل في التحقق من الرمز",
+
+  "errorFetchUsers": "فشل في جلب المستخدمين.",
+  "noDoctorsAvailable": "لا يوجد أطباء متاحون فوراً. يرجى حجز موعد مجدول.",
+  "noDoctorsMatchSearch": "لا يوجد أطباء يطابقون بحثك."
+
+
 
 
 

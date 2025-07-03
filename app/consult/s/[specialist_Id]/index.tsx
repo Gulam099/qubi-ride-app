@@ -77,8 +77,6 @@ export default function SpecialistConsultantPage() {
     if (userId && specialist_Id) checkFavorites();
   }, [userId, specialist_Id]);
 
-  console.log("specialistData", specialistData);
-
   const handleAddToFavorites = async () => {
     try {
       const response = await fetch(`${ApiUrl}/api/favorites/add`, {
@@ -171,7 +169,7 @@ export default function SpecialistConsultantPage() {
             {[
               {
                 title: t("Rating"),
-                value: specialistData?.data?.rating ?? "0",
+                value: specialistData?.data?.averageRating ?? "0",
                 icon: Star1,
               },
               {

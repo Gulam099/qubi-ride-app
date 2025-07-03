@@ -31,7 +31,7 @@ const socket = io(`${apiNewUrl}`, {
 
 function ChatScreen() {
   const { user } = useUser();
-  const { id, name ,canChat } = useLocalSearchParams();
+  const { id, name, canChat } = useLocalSearchParams();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -39,11 +39,11 @@ function ChatScreen() {
   const doctorId = id as string;
   const navigation = useNavigation();
 
-const { t } = useTranslation();
+  const { t } = useTranslation();
 
-  const isChatAllowed = canChat === "true"; 
+  const isChatAllowed = canChat === "true";
 
-  console.log('canChat',canChat)
+  console.log("canChat", canChat);
   useLayoutEffect(() => {
     if (name) {
       navigation.setOptions({
@@ -219,7 +219,7 @@ const { t } = useTranslation();
     (messageText?: string) => {
       const textToSend = messageText || inputText.trim();
 
-      if (!textToSend || !isChatAllowed ) {
+      if (!textToSend || !isChatAllowed) {
         console.warn("No text to send");
         return;
       }
@@ -350,8 +350,11 @@ const { t } = useTranslation();
         />
         <TouchableOpacity
           onPress={handleSend}
-          style={[styles.sendButton, { opacity: inputText.trim()&& isChatAllowed  ? 1 : 0.5 }]}
-          disabled={!inputText.trim() || !isChatAllowed }
+          style={[
+            styles.sendButton,
+            { opacity: inputText.trim() && isChatAllowed ? 1 : 0.5 },
+          ]}
+          disabled={!inputText.trim() || !isChatAllowed}
         >
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>

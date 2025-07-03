@@ -28,33 +28,13 @@ const JoinRoom = () => {
   const [reviewText, setReviewText] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
-  const [totalFee,setTotalFee] = useState(null)
+  const [totalFee, setTotalFee] = useState(null);
   const intervalRef = useRef(null);
   const { t } = useTranslation();
 
   const roomUrl = `https://baseerah.daily.co/${roomId}`;
 
-   useEffect(() => {
-    const fetchBooking = async () => {
-      try {
-        const response = await fetch(`apiNewUrl/api/instantbookings/${roomData?.bookingId}`);
-        const data = await response.json();
-
-        if (response.ok) {
-          setTotalFee(data?.booking?.totalFee);
-        } else {
-          setError(data.message || "Failed to fetch booking");
-        }
-      } catch (err) {
-        console.error("Error fetching booking:", err);
-        setError("Network or server error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBooking();
-  }, [roomData?.bookingId]);
+  console.log("roomId", roomId);
 
   // Fetch room data
   const fetchRoomData = async () => {
@@ -64,6 +44,9 @@ const JoinRoom = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         },
       });
 
@@ -98,7 +81,34 @@ const JoinRoom = () => {
     }
   };
 
-  console.log("fees>>>>>>>>", totalFee);
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+         if (!roomData?.bookingId) {
+        setLoading(false);
+        return;
+      }
+        const response = await fetch(
+          `${apiNewUrl}/api/instantbookings/${roomData?.bookingId}`
+        );
+        const data = await response.json();
+
+        if (response.ok) {
+          setTotalFee(data?.booking?.totalFee);
+        } else {
+          setError(data.message || "Failed to fetch booking");
+        }
+      } catch (err) {
+        console.error("Error fetching booking:", err);
+        setError("Network or server error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [roomData?.bookingId]);
+
 
   // Handle session end (show rating modal)
   const handleSessionEnd = () => {
@@ -234,7 +244,7 @@ const JoinRoom = () => {
       const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
       const amount = roomData?.doctorId?.fees;
 
-      console.log('amount',amount)
+      console.log("amount", amount);
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,

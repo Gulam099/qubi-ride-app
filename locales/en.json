@@ -308,7 +308,15 @@
   "dontHaveAccount": "Don't have an account?",
   "signUp": "Sign up",
   "failedToSendOtp": "Failed to send OTP",
-  "failedToVerifyOtp": "Failed to verify OTP"
+  "failedToVerifyOtp": "Failed to verify OTP",
+  
+  "createAccount": "Create account",
+  "alreadyHaveAccount": "Already have an account?",
+  "signIn": "Sign in",
+  "otpSentSuccess": "OTP sent successfully",
+  "errorFetchUsers": "Failed to fetch users.",
+  "noDoctorsAvailable": "No doctors available instantly. Please book a scheduled appointment.",
+  "noDoctorsMatchSearch": "No doctors match your search."
 
 
 

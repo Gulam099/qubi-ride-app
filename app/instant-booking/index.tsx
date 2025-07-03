@@ -1,6 +1,6 @@
 import { View, Text, FlatList } from "react-native";
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import { RelativePathString, useRouter } from "expo-router";
 import SpecialistCard from "@/features/account/components/SpecialistCard";
 import { Input } from "@/components/ui/Input";
 import { ApiUrl } from "@/const";
@@ -72,10 +72,10 @@ export default function UsersTodayPage() {
 
   const getEmptyStateMessage = () => {
     if (!availableUsers || availableUsers.length === 0) {
-      return "No doctors available instantly please book scheduled appointment.";
+      return t("noDoctorsAvailable");
     }
     if (searchText.trim() && filteredUsers.length === 0) {
-      return "No doctors match your search.";
+      return t("noDoctorsMatchSearch");
     }
     return "";
   };
@@ -91,7 +91,7 @@ export default function UsersTodayPage() {
   if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Failed to fetch users.</Text>
+        <Text className="text-red-500">{t("errorFetchUsers")}</Text>
       </View>
     );
   }
@@ -120,7 +120,7 @@ export default function UsersTodayPage() {
                 shareLink={item.id}
                 onPress={() => {
                   router.push({
-                    pathname: `/instant-booking/i/${item.id}`,
+                    pathname: `/instant-booking/i/${item.id}` as RelativePathString,
                     params: {
                       todaySchedule: JSON.stringify(item.schedule),
                       doctorFees: "0",

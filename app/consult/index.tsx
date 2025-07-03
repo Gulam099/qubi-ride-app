@@ -157,7 +157,7 @@ const { t } = useTranslation();
   if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Failed to fetch consultants.</Text>
+        <Text className="text-red-500">{t("errorFetchUsers")}</Text>
       </View>
     );
   }
@@ -205,7 +205,7 @@ const { t } = useTranslation();
           />
         ) : (
           <Text className="text-center text-gray-500">
-            No consultants match your search criteria.
+            {t("noDoctorsMatchSearch")}
           </Text>
         )}
       </View>

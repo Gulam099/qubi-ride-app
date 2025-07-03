@@ -16,6 +16,7 @@ import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
 import { toast } from "sonner-native";
 import { ApiUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 export default function Page() {
   const { signUp, setActive, isLoaded } = useSignUp();
@@ -29,6 +30,7 @@ export default function Page() {
   );
   const [fcmTokenFirebase, setfcmTokenFirebase] = useState("");
   const [verifying, setVerifying] = React.useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const getFcmToken = async () => {
@@ -81,12 +83,12 @@ export default function Page() {
       });
 
       await signUp.preparePhoneNumberVerification();
-      toast.success("OTP sent successfully");
+      toast.success(t("otpSentSuccess"));
 
       setVerifying(true);
     } catch (err: any) {
       // console.error("Error:", JSON.stringify(err, null, 2));
-      toast.error(err.message || "Failed to send OTP");
+      toast.error(err.message || t("failedToSendOtp"));
     }
   };
 
@@ -119,7 +121,7 @@ export default function Page() {
       }
     } catch (err: any) {
       console.error("Error:", JSON.stringify(err, null, 2));
-      toast.error(err.message || "Failed to verify OTP");
+      toast.error(err.message ||  t("failedToVerifyOtp"));
     }
   };
 
@@ -134,7 +136,7 @@ export default function Page() {
         </View>
         <View className="bg-background h-full pt-16 rounded-t-[50px] px-4 gap-6">
           <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
-            Create account
+            {t("createAccount")}
           </Text>
           {!verifying ? (
             <>
@@ -150,18 +152,18 @@ export default function Page() {
                 defaultCountry="SA"
               />
               <Button onPress={onSignUpPress}>
-                <Text className="text-secondary font-semibold">Continue</Text>
+                <Text className="text-secondary font-semibold">{t("continue")}</Text>
               </Button>
             </>
           ) : (
             <>
 
               <Text className="text-lg font-semibold">
-                Enter Verification Code
+                {t("enterVerificationCode")}
               </Text>
               <TouchableOpacity onPress={() => setVerifying(false)}>
                 <Text className="text-blue-600 underline">
-                  Verification code sent to {phone}
+                 {t("verificationSentTo", { phone })}
                 </Text>
               </TouchableOpacity>
               <OtpInput
@@ -178,7 +180,7 @@ export default function Page() {
 
               <Button onPress={handleVerification}>
                 <Text className="text-secondary font-semibold">
-                  Verify OTP
+                  {t("verifyOtp")}
                 </Text>
               </Button>
               {/* <Button
@@ -192,9 +194,9 @@ export default function Page() {
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">
-            <Text>Already have an account?</Text>
+            <Text>{t("alreadyHaveAccount")}</Text>
             <Link href="/sign-in">
-              <Text className="text-primary-500">Sign in</Text>
+              <Text className="text-primary-500">{t("signIn")}</Text>
             </Link>
           </View>
         </View>

@@ -29,22 +29,22 @@ import { Value } from "@rn-primitives/select";
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { specialist_Id, todaySchedule   } = params;
+  const { specialist_ID, todaySchedule   } = params;
   const { t } = useTranslation();
   
   // Fetch function
   const fetchSpecialistData = async () => {
-    if (!specialist_Id) {
+    if (!specialist_ID) {
       throw new Error("Specialist ID is missing.");
     }
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_ID}`
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("API Error Response:", errorText);
-      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_Id}). Status: ${response.status}`;
+      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_ID}). Status: ${response.status}`;
       throw new Error(errorMessage);
     }
 
@@ -63,9 +63,9 @@ export default function SpecialistConsultantPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["doctor", specialist_Id],
+    queryKey: ["doctor", specialist_ID],
     queryFn: fetchSpecialistData,
-    enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
+    enabled: !!specialist_ID, // Ensure specialist_Id exists before fetching
   });
 
   if (isLoading) {
@@ -84,7 +84,7 @@ export default function SpecialistConsultantPage() {
         </Text>
         <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
         <Text className="text-xs text-gray-500 mb-4">
-          specialist_Id: {specialist_Id || "undefined"}
+          specialist_Id: {specialist_ID || "undefined"}
         </Text>
         <Text className="text-xs text-gray-500 mb-4">
           All params: {JSON.stringify(params)}
@@ -104,7 +104,7 @@ export default function SpecialistConsultantPage() {
         </Text>
         <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
         <Text className="text-xs text-gray-500 mb-4">
-          specialist_Id: {specialist_Id || "undefined"}
+          specialist_Id: {specialist_ID || "undefined"}
         </Text>
         <Text className="text-xs text-gray-500 mb-4">
           specialistData: {JSON.stringify(specialistData)}
@@ -140,7 +140,7 @@ export default function SpecialistConsultantPage() {
               {[
                 {
                   title: t("Rating"),
-                  value: specialistData?.data?.rating ?? "0",
+                  value: specialistData?.data?.averageRating ?? "0",
                   icon: Star1,
                 },
                 {
