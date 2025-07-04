@@ -12,8 +12,14 @@ import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { Loader } from "@/components/loader";
 import { ApiUrl } from "@/const";
+import Logo from "@/features/Home/Components/Logo";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { useTranslation } from "react-i18next";
 
 export default function InvoiceIdPerPage() {
+  const { t } = useTranslation();
+
   const { invoice_Id } = useLocalSearchParams();
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
@@ -37,8 +43,26 @@ export default function InvoiceIdPerPage() {
 
   console.log("invoice", invoice);
 
-  const handlePrint = () => {
-    console.log("Printing Invoice...");
+  const handledownload = async () => {
+    if (!invoice_Id) return;
+
+    const downloadUrl = `${ApiUrl}/api/payments/${invoice_Id}/pdf`;
+    const fileUri = FileSystem.documentDirectory + `invoice_${invoice_Id}.pdf`;
+
+    try {
+      const downloadResumable = FileSystem.createDownloadResumable(
+        downloadUrl,
+        fileUri
+      );
+
+      const { uri } = await downloadResumable.downloadAsync();
+      console.log("Downloaded to:", uri);
+
+      // Share the PDF (e.g., open with other apps like WhatsApp, Drive, etc.)
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.error("Failed to download PDF:", error);
+    }
   };
 
   const getStatusStyle = (status: string) => {
@@ -57,14 +81,14 @@ export default function InvoiceIdPerPage() {
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
       <View className="flex flex-row justify-between items-center">
-        <H3 className="text-xl flex-1">My Invoices</H3>
+        <H3 className="text-xl flex-1">{t("myInvoices")}</H3>
         <Button
-          onPress={handlePrint}
+          onPress={handledownload}
           disabled={isLoading || isError}
           className="bg-purple-200 flex flex-row gap-2 items-center"
         >
           <Printer size="22" color={colors.primary[500]} />
-          <Text className="text-primary-500 font-medium">Print</Text>
+          <Text className="text-primary-500 font-medium">{t("download")}</Text>
         </Button>
       </View>
 
@@ -75,6 +99,9 @@ export default function InvoiceIdPerPage() {
           <>
             <View className=" items-start justify-start flex-row  gap-3">
               <View className="flex-1 flex-col gap-2">
+                <View className="flex justify-center items-center">
+                  <Logo size={100} />
+                </View>
                 <Text className="font-semibold text-lg text-gray-800">
                   {invoice.description}
                 </Text>
@@ -82,7 +109,7 @@ export default function InvoiceIdPerPage() {
                   {invoice.doctorId?.full_name}
                 </Text>
                 <Text className="text-sm text-gray-600">
-                  Payment Id : {invoice._id}
+                  {t("paymentId")}: {invoice._id}
                 </Text>
               </View>
 
@@ -94,9 +121,7 @@ export default function InvoiceIdPerPage() {
                 >
                   {invoice.status}
                 </Text>
-                <Text className="text-xs text-gray-500">
-                  {invoice.date}
-                </Text>
+                <Text className="text-xs text-gray-500">{invoice.date}</Text>
               </View>
             </View>
 
@@ -123,19 +148,19 @@ export default function InvoiceIdPerPage() {
 
             <View className="  gap-3">
               <Text className="font-bold text-base text-gray-800">
-                Total cost
+                {t("totalCost")}
               </Text>
               <Text className="text-sm text-gray-600">
-                Program price: {invoice.amount}
+                 {t("programPrice")}: {invoice.amount}
               </Text>
               {/* <Text className="text-sm text-gray-600">
                 VAT 15%: {invoice.totalCost.vat}
               </Text> */}
               <Text className="text-sm text-gray-600 font-semibold">
-                Total cost: {invoice.amount}
+                {t("totalCost")}: {invoice.amount}
               </Text>
               <Text className="text-sm text-gray-600">
-                Paid by: {invoice.userId?.name}
+                {t("paidBy")}: {invoice.userId?.name}
               </Text>
             </View>
           </>

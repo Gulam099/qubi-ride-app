@@ -20,19 +20,23 @@ import colors from "@/utils/colors";
 import VideoPlayer from "@/features/Home/Components/VideoPlayer";
 import AudioPlayer from "@/features/Home/Components/AudioPlayer";
 import { apiNewUrl } from "@/const";
-
+import { useUser } from "@clerk/clerk-expo";
 
 export default function LibraryPage() {
   const { library } = useLocalSearchParams();
   const [libraryItem, setLibraryItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { user } = useUser();
+  const userId = user?.publicMetadata?.dbPatientId as string;
 
   useEffect(() => {
     const fetchLibraryContent = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiNewUrl}/api/library/getbyid/${library}`);
+        const response = await fetch(
+          `${apiNewUrl}/api/library/getbyid/${library}`
+        );
         const result = await response.json();
 
         if (response.ok && result.status === 200) {
@@ -52,26 +56,25 @@ export default function LibraryPage() {
     fetchLibraryContent();
   }, [library]);
 
-   useEffect(() => {
-      const incrementSeen = async () => {
-        try {
-          const response = await fetch(`${apiNewUrl}/api/library/seen`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ library }),
-          });
-  
-        } catch (error) {
-          console.error("Failed to update seen count:", error);
-        }
-      };
-  
-      if (library) {
-        incrementSeen();
+  useEffect(() => {
+    const incrementSeen = async () => {
+      try {
+        const response = await fetch(`${apiNewUrl}/api/library/seen`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ library, userId }),
+        });
+      } catch (error) {
+        console.error("Failed to update seen count:", error);
       }
-    }, [library]);
+    };
+
+    if (library && userId) {
+      incrementSeen();
+    }
+  }, [library, userId]);
 
   if (loading) {
     return (

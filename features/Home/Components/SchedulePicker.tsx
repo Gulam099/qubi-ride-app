@@ -16,6 +16,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { ApiUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 type SchedulePickerSheetRef = {
   open: () => void;
@@ -37,6 +38,7 @@ interface SchedulePickerProps {
   CalenderHeading?: string;
   TimeSliderHeading?: string;
   numberOfSessions?: number;
+  time?: string;
 }
 
 export const SchedulePickerButton = ({
@@ -56,6 +58,7 @@ export const SchedulePickerButton = ({
       return [dateTimeStr];
     }
   };
+  const { t } = useTranslation();
 
   const selectedSlots = parseSelectedSlots(selectedDateTime);
 
@@ -63,8 +66,10 @@ export const SchedulePickerButton = ({
   const formatLocalDate = (utcDate: string) => {
     const date = new Date(utcDate);
     // Add the timezone offset to convert to local time
-    const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-    return format(localDate, "EEEE  , dd MMMM yyyy , hh : mm a");
+    const localDate = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000
+    );
+    return format(localDate, "EEEE, dd MMMM yyyy, hh:mm a");
   };
 
   return (
@@ -75,12 +80,12 @@ export const SchedulePickerButton = ({
     >
       <Text className="text-neutral-600">
         {selectedSlots.length === 0
-          ? "Please Select Date time"
+          ? t("Please Select Date time")
           : selectedSlots.length === 1
-            ? formatLocalDate(selectedSlots[0])
-            : `${selectedSlots.length} slots selected on ${format(
+          ? formatLocalDate(selectedSlots[0])
+          : `${selectedSlots.length} ${t("slots selected on")} ${format(
               new Date(selectedSlots[0]),
-              "EEEE  , dd MMMM yyyy"
+              "EEEE, dd MMMM yyyy"
             )}`}
       </Text>
     </Button>
@@ -100,17 +105,19 @@ export const SchedulePickerSheet = forwardRef<
       CalenderHeading,
       TimeSliderHeading,
       numberOfSessions = 1,
+      time,
     },
     ref
   ) => {
     const internalSheetRef = useRef<BottomSheet>(null);
-    console.log("selected", selectedDateTime);
 
     // expose methods to parent
     useImperativeHandle(ref, () => ({
       open: () => internalSheetRef.current?.expand(),
       close: () => internalSheetRef.current?.close(),
     }));
+    const { t } = useTranslation();
+
     const [bookedSlots, setBookedSlots] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(
       selectedDateTime ?? null
@@ -126,6 +133,8 @@ export const SchedulePickerSheet = forwardRef<
         return [selectedDateTime];
       }
     });
+
+    console.log("bookedSlots", bookedSlots);
 
     // Calculate min and max dates from available schedule
     const { minDate, maxDate } = useMemo(() => {
@@ -161,14 +170,11 @@ export const SchedulePickerSheet = forwardRef<
     const formattedDateTime =
       selectedSlots.length > 0
         ? selectedSlots.length === 1
-          ? format(
-            new Date(selectedSlots[0]),
-            "EEEE  , dd MMMM yyyy , hh : mm a"
-          )
+          ? format(new Date(selectedSlots[0]), "EEEE, dd MMMM yyyy, hh:mm a")
           : `${selectedSlots.length} slots selected on ${format(
-            new Date(selectedSlots[0]),
-            "EEEE  , dd MMMM yyyy"
-          )}`
+              new Date(selectedSlots[0]),
+              "EEEE, dd MMMM yyyy"
+            )}`
         : "";
 
     console.log(
@@ -179,6 +185,7 @@ export const SchedulePickerSheet = forwardRef<
       "selectedSlots",
       selectedSlots
     );
+
     // ✅ Mark available dates (non-holiday dates)
     const markedDates = useMemo(() => {
       const marks: Record<string, any> = {};
@@ -218,7 +225,14 @@ export const SchedulePickerSheet = forwardRef<
 
         const dateStr = format(new Date(selectedDate), "yyyy-MM-dd");
         const response = await fetch(
-          `${ApiUrl}/api/bookings/slots/${doctorId}?date=${dateStr}`
+          `${ApiUrl}/api/bookings/slots/${doctorId}?date=${dateStr}`,
+          {
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }
         );
 
         if (!response.ok) {
@@ -239,56 +253,135 @@ export const SchedulePickerSheet = forwardRef<
 
     const flatBookedSlotIsos = useMemo(() => {
       if (!bookedSlots || bookedSlots.length === 0) return [];
-      return bookedSlots.flatMap((booking) => booking?.date);
+      return bookedSlots.flatMap((booking: any) => booking?.selectedSlots);
     }, [bookedSlots]);
 
     // ✅ Generate time slots for selected date
-    const timesForSelectedDate = useMemo(() => {
-      if (!selectedDate || !doctorSchedule || !(selectedDate in doctorSchedule)) {
-        return [];
+    const { availableSlots, bookedSlots: bookedSlotsForDate } = useMemo(() => {
+      if (
+        !selectedDate ||
+        !doctorSchedule ||
+        !(selectedDate in doctorSchedule)
+      ) {
+        console.log("No selected date or doctor schedule");
+        return { availableSlots: [], bookedSlots: [] };
       }
 
       const { isHoliday, start, end } = doctorSchedule[selectedDate];
 
       if (isHoliday || !start || !end) {
-        return [];
+        console.log("Holiday or missing start/end times");
+        return { availableSlots: [], bookedSlots: [] };
       }
 
       try {
-        // Create dates in local timezone
-        const startDate = new Date(selectedDate + 'T' + start.split('T')[1]);
-        const endDate = new Date(selectedDate + 'T' + end.split('T')[1]);
+        // Create start and end date using selected date
+        const startDate = new Date(selectedDate + "T" + start?.split("T")[1]);
+        const endDate = new Date(selectedDate + "T" + end?.split("T")[1]);
 
+        console.log("startDate>>>>>>", startDate, endDate);
         let current = new Date(startDate);
-        const slots = [];
+        const allSlots = [];
+        const available = [];
+        const booked = [];
 
         const now = new Date();
         const isToday = format(now, "yyyy-MM-dd") === selectedDate;
+        const currentSlotDuration = parseInt(time?.split(" ")[0]) || 30; // Duration in minutes for current booking
+
+        // Helper function to check if two time slots overlap
+        const doSlotsOverlap = (
+          slot1Start,
+          slot1Duration,
+          slot2Start,
+          slot2Duration
+        ) => {
+          const slot1End = addMinutes(new Date(slot1Start), slot1Duration);
+          const slot2End = addMinutes(new Date(slot2Start), slot2Duration);
+
+          return (
+            new Date(slot1Start) < slot2End && slot1End > new Date(slot2Start)
+          );
+        };
+
+        // Process booked slots to extract their start times and durations
+        const processedBookedSlots = flatBookedSlotIsos.map((booking) => {
+          if (typeof booking === "object" && booking.iso) {
+            return {
+              startTime: new Date(booking.iso),
+              duration: booking.duration || 30, // Default to 30 minutes if not specified
+              iso: booking.iso,
+            };
+          } else {
+            // Handle legacy format - assume 30 minutes if no duration specified
+            return {
+              startTime: new Date(booking),
+              duration: 30,
+              iso: booking,
+            };
+          }
+        });
 
         while (isBefore(current, endDate)) {
           if (!isToday || current > now) {
-            // Store as ISO string but keep local time
-            const localTime = new Date(
-              current.getTime() - current.getTimezoneOffset() * 60000
-            ).toISOString();
+            const slotIso = new Date(current).toISOString();
 
-            slots.push({
-              time: localTime,
-              isBooked: flatBookedSlotIsos.includes(localTime),
+            // Check if this slot overlaps with any booked slot
+            const hasOverlap = processedBookedSlots.some((bookedSlot) => {
+              return doSlotsOverlap(
+                current,
+                currentSlotDuration,
+                bookedSlot.startTime,
+                bookedSlot.duration
+              );
             });
+
+            console.log("current>>>", format(current, "h:mm a"));
+
+            const slotEnd = addMinutes(current, currentSlotDuration);
+
+            const slotData = {
+              iso: slotIso,
+              isBooked: hasOverlap,
+              startTime: format(current, "h:mm a"),
+              endTime: format(slotEnd, "h:mm a"),
+              duration: currentSlotDuration,
+              displayText: `${format(current, "h:mm a")} - ${format(
+                slotEnd,
+                "h:mm a"
+              )} (${currentSlotDuration} min)`,
+              formattedTime: format(current, "h:mm a"),
+            };
+            console.log("slotData", slotData);
+
+            allSlots.push(slotData);
           }
-          current = addMinutes(current, 30);
+
+          current = addMinutes(current, currentSlotDuration);
         }
 
-        return slots;
+        allSlots.forEach((slot) => {
+          if (slot.isBooked) {
+            booked.push(slot);
+          } else {
+            available.push(slot);
+          }
+        });
+
+        return {
+          availableSlots: available,
+          bookedSlots: booked,
+        };
       } catch (error) {
-        console.error("Error generating time slots:", error);
-        return [];
+        console.error("Error generating scheduled slots:", error);
+        return { availableSlots: [], bookedSlots: [] };
       }
-    }, [selectedDate, doctorSchedule, flatBookedSlotIsos]);
+    }, [selectedDate, doctorSchedule, flatBookedSlotIsos, time?.split(" ")[0]]);
+
+    console.log("availableSlots>>>>>", availableSlots);
 
     return (
-       <BottomSheet
+      <BottomSheet
         ref={internalSheetRef}
         index={-1}
         enableDynamicSizing={false}
@@ -298,7 +391,7 @@ export const SchedulePickerSheet = forwardRef<
           <View className="p-4 pb-8">
             <View className="gap-4">
               <Text className="text-lg font-medium">
-                {CalenderHeading ?? "Available Dates"}
+                {CalenderHeading ?? t("available_dates")}
               </Text>
               <View className="bg-background rounded-lg py-2 flex justify-center items-start">
                 {selectedSlots.length > 0 ? (
@@ -321,12 +414,12 @@ export const SchedulePickerSheet = forwardRef<
                   </View>
                 ) : (
                   <Text className="text-gray-600 text-xl bg-neutral-100 p-4 rounded-xl text-center w-full">
-                    Please select {numberOfSessions} time slot
+                    {t("Please select")} {numberOfSessions} {t("time slot")}
                     {numberOfSessions > 1 ? "s" : ""}.
                   </Text>
                 )}
               </View>
-              
+
               {/* Calendar */}
               <Calendar
                 minDate={minDate}
@@ -391,116 +484,136 @@ export const SchedulePickerSheet = forwardRef<
                   );
                 }}
               />
-              
+
               {/* Time Slots */}
               {selectedDate && (
                 <View>
                   <Text className="font-semibold mb-2">
-                    {TimeSliderHeading ?? "Available Times"}
+                    {TimeSliderHeading ?? t("Available time")}
                     {numberOfSessions > 1 && (
                       <Text className="text-sm text-gray-600 font-normal">
                         {" "}
-                        (Select {numberOfSessions} slots - {selectedSlots.length}/
-                        {numberOfSessions} selected)
+                        {t("select_slots", {
+                          count: numberOfSessions,
+                          selected: selectedSlots.length,
+                        })}
                       </Text>
                     )}
                   </Text>
-                  {timesForSelectedDate.length > 0 ? (
-                    <View className="flex-row flex-wrap gap-2">
-                      {timesForSelectedDate.map((slot) => {
-                        const time = format(new Date(slot.time), "h:mm a");
-                        const isSelected = selectedSlots.includes(slot.time);
-                        const isBooked = slot.isBooked;
-                        const canSelect =
-                          !isBooked &&
-                          (selectedSlots.length < numberOfSessions ||
-                            isSelected);
 
-                        return (
-                          <Button
-                            key={slot.time}
-                            onPress={() => {
-                              if (canSelect) {
-                                let newSelectedSlots;
-                                if (isSelected) {
-                                  // Remove slot if already selected
-                                  newSelectedSlots = selectedSlots.filter(
-                                    (s) => s !== slot.time
-                                  );
-                                } else {
-                                  // Add slot if under the limit
-                                  if (selectedSlots.length < numberOfSessions) {
-                                    newSelectedSlots = [
-                                      ...selectedSlots,
-                                      slot.time,
-                                    ].sort();
+                  {/* Available Slots Section */}
+                  {availableSlots.length > 0 ? (
+                    <View className="mb-4">
+                      <Text className="text-sm text-green-600 font-medium mb-2">
+                        {t("Available Slots")} ({availableSlots.length})
+                      </Text>
+                      <View className="flex-row flex-wrap gap-2">
+                        {availableSlots.map((slot) => {
+                          const isSelected = selectedSlots.includes(slot.iso);
+                          const canSelect =
+                            selectedSlots.length < numberOfSessions ||
+                            isSelected;
+
+                          return (
+                            <Button
+                              key={slot.iso}
+                              onPress={() => {
+                                if (canSelect) {
+                                  let newSelectedSlots;
+                                  if (isSelected) {
+                                    // Remove slot if already selected
+                                    newSelectedSlots = selectedSlots.filter(
+                                      (s) => s !== slot.iso
+                                    );
                                   } else {
-                                    return;
+                                    // Add slot if under the limit
+                                    if (
+                                      selectedSlots.length < numberOfSessions
+                                    ) {
+                                      newSelectedSlots = [
+                                        ...selectedSlots,
+                                        slot.iso,
+                                      ].sort();
+                                    } else {
+                                      return;
+                                    }
                                   }
-                                }
 
-                                setSelectedSlots(newSelectedSlots);
-                                // Update the parent component with JSON string of selected slots
-                                setSelectedDateTime(
-                                  JSON.stringify(newSelectedSlots)
-                                );
+                                  setSelectedSlots(newSelectedSlots);
+                                  setSelectedDateTime(
+                                    JSON.stringify(newSelectedSlots)
+                                  );
+                                }
+                              }}
+                              disabled={
+                                !isSelected &&
+                                selectedSlots.length >= numberOfSessions
                               }
-                            }}
-                            disabled={
-                              isBooked ||
-                              (!isSelected &&
-                                selectedSlots.length >= numberOfSessions)
-                            }
-                            className={`mb-2 ${
-                              isBooked
-                                ? "bg-red-100 border-red-300 opacity-60"
-                                : isSelected
-                                ? "bg-blue-600 border-blue-600"
-                                : !canSelect &&
-                                  selectedSlots.length >= numberOfSessions
+                              className={`mb-2 ${
+                                isSelected
+                                  ? "bg-blue-600 border-blue-600"
+                                  : !canSelect &&
+                                    selectedSlots.length >= numberOfSessions
                                   ? "bg-gray-100 border-gray-200 opacity-50"
                                   : "border-gray-300"
                               }`}
-                            variant={
-                              isBooked
-                                ? "outline"
-                                : isSelected
-                                  ? "default"
-                                  : "outline"
-                            }
+                              variant={isSelected ? "default" : "outline"}
+                              style={{
+                                minWidth: 90,
+                                marginRight: 8,
+                                marginBottom: 8,
+                              }}
+                            >
+                              <Text
+                                className={`font-medium ${
+                                  isSelected
+                                    ? "text-white"
+                                    : !canSelect &&
+                                      selectedSlots.length >= numberOfSessions
+                                    ? "text-gray-400"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {slot.formattedTime}
+                              </Text>
+                            </Button>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ) : (
+                    <Text className="text-gray-500 text-center py-4">
+                      {t("No available time slots for this date")}
+                    </Text>
+                  )}
+                  {bookedSlotsForDate.length > 0 && (
+                    <View className="mt-4">
+                      <Text className="text-sm text-red-600 font-medium mb-2">
+                        {t("Booked Slots")} ({bookedSlotsForDate.length})
+                      </Text>
+                      <View className="flex-row flex-wrap gap-2">
+                        {bookedSlotsForDate.map((slot) => (
+                          <View
+                            key={slot.iso}
+                            className="bg-red-50 border border-red-200 px-3 py-2 rounded-md"
                             style={{
                               minWidth: 90,
                               marginRight: 8,
                               marginBottom: 8,
                             }}
                           >
-                            <Text
-                              className={`font-medium ${isBooked
-                                ? "text-red-600"
-                                : isSelected
-                                  ? "text-white"
-                                  : !canSelect &&
-                                    selectedSlots.length >= numberOfSessions
-                                    ? "text-gray-400"
-                                    : "text-gray-700"
-                                }`}
-                            >
-                              {time}
-                              {isBooked && " (Booked)"}
+                            <Text className="text-red-600 font-medium text-center">
+                              {slot.formattedTime}
                             </Text>
-                          </Button>
-                        );
-                      })}
+                          </View>
+                        ))}
+                      </View>
                     </View>
-                  ) : (
-                    <Text className="text-gray-500 text-center py-4">
-                      No available time slots for this date
-                    </Text>
                   )}
                 </View>
               )}
             </View>
-            
+
             {/* Done Button - Now inside the scrollable area */}
             <Button
               onPress={() => {
@@ -510,7 +623,7 @@ export const SchedulePickerSheet = forwardRef<
               disabled={selectedSlots.length !== numberOfSessions}
             >
               <Text className="text-white">
-                Done{" "}
+                {t("Done")}{" "}
                 {selectedSlots.length > 0 &&
                   `(${selectedSlots.length}/${numberOfSessions})`}
               </Text>
@@ -521,3 +634,5 @@ export const SchedulePickerSheet = forwardRef<
     );
   }
 );
+
+SchedulePickerSheet.displayName = "SchedulePickerSheet";

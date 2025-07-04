@@ -11,7 +11,6 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
-import CreateTreatmentDialog from "./createTreatment";
 
 interface Treatment {
   isEmptyStomach: React.JSX.Element;
@@ -180,22 +179,6 @@ const TreatmentHistory: React.FC = () => {
           ))
         )}
       </ScrollView>
-
-      {/* Modal for creating treatment */}
-      <Modal
-        visible={showCreateModal}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setShowCreateModal(false)}
-      >
-        <View className="flex-1 bg-white">
-          <CreateTreatmentDialog
-            patientId={patientId as string}
-            onCancel={() => setShowCreateModal(false)}
-            onSuccess={handleTreatmentCreated}
-          />
-        </View>
-      </Modal>
     </View>
   );
 };

@@ -17,7 +17,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { Stack, useRouter } from "expo-router";
 import { Edit } from "iconsax-react-native";
 import { ApiUrl } from "@/const";
-export default function ProfilePage() {
+const ProfilePage = () => {
   const { user } = useUser();
   const router = useRouter();
   const { t } = useTranslation();
@@ -338,4 +338,6 @@ export default function ProfilePage() {
       </ScrollView>
     </>
   );
-}
+};
+
+export default ProfilePage;

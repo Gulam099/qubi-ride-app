@@ -23,34 +23,26 @@ import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { toast } from "sonner-native";
 import { ApiUrl, apiNewUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Value } from "@rn-primitives/select";
 
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { specialist_Id, todaySchedule   } = params;
-
+  const { specialist_ID, todaySchedule   } = params;
+  const { t } = useTranslation();
+  
   // Fetch function
   const fetchSpecialistData = async () => {
-    if (!specialist_Id) {
-      throw new Error("Specialist ID is missing.");
+    if (!specialist_ID) {
+      throw new Error(t("missingSpecialistId"));
     }
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_ID}`
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Error Response:", errorText);
-      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_Id}). Status: ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    if (!result) {
-      throw new Error("Invalid data received from server.");
-    }
-
-    return result;
+    if (!response.ok) throw new Error(t("fetchSpecialistFailed"));
+    return await response.json();
   };
 
   // Fetching data with useQuery
@@ -60,18 +52,15 @@ export default function SpecialistConsultantPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["doctor", specialist_Id],
+    queryKey: ["doctor", specialist_ID],
     queryFn: fetchSpecialistData,
-    enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
+    enabled: !!specialist_ID, // Ensure specialist_Id exists before fetching
   });
 
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text>Loading ...</Text>
-        <Text className="text-sm text-gray-500 mt-2">
-          ID: {specialist_Id || "undefined"}
-        </Text>
+        <Text>{t("Loading")}</Text>
       </View>
     );
   }
@@ -80,38 +69,8 @@ export default function SpecialistConsultantPage() {
     return (
       <View className="flex-1 justify-center items-center px-4">
         <Text className="text-red-500 text-center mb-4">
-          {error?.message || "Specialist not found."}
+          {error?.message || t("specialistNotFound")}
         </Text>
-        <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          specialist_Id: {specialist_Id || "undefined"}
-        </Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          All params: {JSON.stringify(params)}
-        </Text>
-        <Button onPress={() => router.back()} className="bg-blue-600">
-          <Text className="text-white">Go Back</Text>
-        </Button>
-      </View>
-    );
-  }
-
-  if (!specialistData || !specialistData.data) {
-    return (
-      <View className="flex-1 justify-center items-center px-4">
-        <Text className="text-red-500 text-center mb-4">
-          No specialist data available.
-        </Text>
-        <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          specialist_Id: {specialist_Id || "undefined"}
-        </Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          specialistData: {JSON.stringify(specialistData)}
-        </Text>
-        <Button onPress={() => router.back()} className="bg-blue-600">
-          <Text className="text-white">Go Back</Text>
-        </Button>
       </View>
     );
   }
@@ -139,20 +98,25 @@ export default function SpecialistConsultantPage() {
             <View className="flex-row w-full">
               {[
                 {
-                  title: "Rating",
-                  value: specialistData?.data?.rating ?? "0",
+                  title: t("Rating"),
+                  value: specialistData?.data?.averageRating ?? "0",
                   icon: Star1,
                 },
                 {
-                  title: "Experience",
+                  title: t("Experience"),
                   value: specialistData?.data?.experience ?? "0",
                   icon: IdCard,
                 },
                 {
-                  title: "Session Type",
+                  title: t("Session Type"),
                   value: specialistData?.data?.sessionType ?? "0",
                   icon: HeartSearch,
                 },
+                {
+                  title: t("Response Time"),
+                  value: specialistData?.data?.responseTime ?? t("notAvailable"),
+                  icon: Hourglass,
+                }
               ].map((item) => (
                 <View
                   className="flex-col justify-center items-center mb-4 flex-1 w-full"
@@ -166,7 +130,7 @@ export default function SpecialistConsultantPage() {
                 </View>
               ))}
             </View>
-            <View className="flex-row gap-2 px-4">
+            {/* <View className="flex-row gap-2 px-4">
               <View className="bg-blue-50/30 rounded-full p-2">
                 <Hourglass size={22} color="#222" />
               </View>
@@ -176,7 +140,7 @@ export default function SpecialistConsultantPage() {
                   {specialistData?.data?.responseTime ?? "N/A"}
                 </Text>
               </View>
-            </View>
+            </View> */}
           </View>
 
           {/* Specialties Section */}
@@ -259,7 +223,7 @@ export default function SpecialistConsultantPage() {
           className="mt-4 bg-purple-600 mb-6"
           onPress={() =>
             router.push({
-              pathname: `/instant-booking/s/${specialist_Id}/session`,
+              pathname: `/instant-booking/i/${specialist_ID}/session`,
               params: {
                 todaySchedule: JSON.stringify(todaySchedule),
                 doctorFees: specialistData?.data?.fees?.toString() || "0",
@@ -268,7 +232,7 @@ export default function SpecialistConsultantPage() {
           }
         >
           <Text className="text-white font-bold">
-            Book now{" "}
+            {t("Book now")}{" "}
             {specialistData?.data?.fees != 0
               ? currencyFormatter(specialistData?.data?.fees ?? 0)
               : "for free"}

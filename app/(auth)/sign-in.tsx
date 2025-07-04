@@ -14,6 +14,7 @@ import { PhoneCodeFactor, SignInFirstFactor } from "@clerk/types";
 import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
 import { toast } from "sonner-native";
+import { useTranslation } from "react-i18next";
 
 export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -25,6 +26,7 @@ export default function Page() {
     null
   );
   const [verifying, setVerifying] = React.useState(false);
+  const { t } = useTranslation();
 
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
@@ -55,9 +57,8 @@ export default function Page() {
       }
     } catch (err: any) {
       // console.error("Error:", JSON.stringify(err, null, 2));
-      toast.error(err.message || "Failed to send OTP");
+      toast.error(err.message || t("failedToSendOtp"));
       console.log(err.message);
-      
     }
   };
 
@@ -79,7 +80,7 @@ export default function Page() {
       }
     } catch (err: any) {
       console.error("Error:", JSON.stringify(err, null, 2));
-      toast.error(err.message || "Failed to verify OTP");
+      toast.error(err.message || t("failedToVerifyOtp"));
     }
   };
 
@@ -93,8 +94,8 @@ export default function Page() {
           <Logo size={150} />
         </View>
         <View className="bg-background h-full pt-16 rounded-t-[50px] px-4 gap-6">
-        <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
-            Welcome back to Baserah
+          <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
+           {t("welcomeBack")}
           </Text>
           {!verifying ? (
             <>
@@ -110,49 +111,47 @@ export default function Page() {
                 defaultCountry="SA"
               />
               <Button onPress={onSignInPress}>
-                <Text className="text-secondary font-semibold">Continue</Text>
+                <Text className="text-secondary font-semibold">{t("continue")}</Text>
               </Button>
             </>
           ) : (
             <>
-              
-                <Text className="text-lg font-semibold">
-                  Enter Verification Code
+              <Text className="text-lg font-semibold">
+                {t("enterVerificationCode")}
+              </Text>
+              <TouchableOpacity onPress={() => setVerifying(false)}>
+                <Text className="text-blue-600 underline">
+                 {t("verificationSentTo", { phone })}
                 </Text>
-                <TouchableOpacity onPress={() => setVerifying(false)}>
-                  <Text className="text-blue-600 underline">
-                    Verification code sent to {phone}
-                  </Text>
-                </TouchableOpacity>
-                <OtpInput
-                  numberOfDigits={6}
-                  focusColor={colors.primary[500]}
-                  onTextChange={(code) => setCode(code)}
-                  theme={{
-                    pinCodeContainerStyle: {
-                      width: 60,
-                      backgroundColor: "white",
-                    },
-                  }}
-                />
+              </TouchableOpacity>
+              <OtpInput
+                numberOfDigits={6}
+                focusColor={colors.primary[500]}
+                onTextChange={(code) => setCode(code)}
+                theme={{
+                  pinCodeContainerStyle: {
+                    width: 60,
+                    backgroundColor: "white",
+                  },
+                }}
+              />
 
-                <Button onPress={handleVerification}>
-                <Text className="text-secondary font-semibold">Verify OTP</Text>
-                </Button>
-                {/* <Button
+              <Button onPress={handleVerification}>
+                <Text className="text-secondary font-semibold">{t("verifyOtp")}</Text>
+              </Button>
+              {/* <Button
             variant="outline"
             disabled={isDisabled}
             onPress={handleResendOtp}
           >
             <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
           </Button> */}
-              
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">
-            <Text>Don't have an account?</Text>
+            <Text>{t("dontHaveAccount")}</Text>
             <Link href="/sign-up">
-              <Text className="text-primary-500">Sign up</Text>
+              <Text className="text-primary-500">{t("signUp")}</Text>
             </Link>
           </View>
         </View>

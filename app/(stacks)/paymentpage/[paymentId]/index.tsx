@@ -10,9 +10,12 @@ import { Lock } from "iconsax-react-native";
 import { useUser } from "@clerk/clerk-expo";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
+import { useTranslation } from "react-i18next";
 
 export default function PaymentPage() {
   const { user } = useUser();
+  const { t } = useTranslation();
+
   const router = useRouter();
   const {
     paymentId,
@@ -20,6 +23,7 @@ export default function PaymentPage() {
     doctorId,
     selectedDateTime,
     sessionDuration,
+    totalFee,
     numberOfSessions,
     complaint,
     bookingId,
@@ -33,6 +37,7 @@ export default function PaymentPage() {
     year: "",
     cvc: "",
   });
+  console.log("totalFee>>>>>", totalFee);
   const [paymentInfo, setPaymentInfo] = useState(null);
   // Fetch payment details
   //   const { data: payment, isLoading: isLoadingPayment } = useQuery({
@@ -53,7 +58,7 @@ export default function PaymentPage() {
     if (!selectedDateTime) return [];
 
     // If it's a string (single date), convert to array
-    if (typeof selectedDateTime === 'string') {
+    if (typeof selectedDateTime === "string") {
       try {
         // Try to parse as JSON first (in case it's a stringified array)
         const parsed = JSON.parse(selectedDateTime);
@@ -71,7 +76,6 @@ export default function PaymentPage() {
 
     return [];
   }, [selectedDateTime]);
-
 
   const { mutate: createVideoCall } = useMutation({
     mutationFn: async () => {
@@ -162,7 +166,10 @@ export default function PaymentPage() {
 
       createVideoCall();
       // Navigate to success page or booking confirmation
-      router.replace("/(stacks)/payment-success");
+      router.replace({
+        pathname: "/(stacks)/payment-success",
+        params: { totalFee },
+      });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Payment failed. Please try again.");
@@ -196,30 +203,30 @@ export default function PaymentPage() {
           headerStyle: {
             backgroundColor: "white",
           },
-          headerLeft: () => <BackButton />,
+          // headerLeft: () => <BackButton />,
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Payment</Text>
+            <Text className="font-semibold text-lg">{t("Payment")}</Text>
           ),
         }}
       />
       <ScrollView style={styles.container}>
         <View style={styles.headerContainer}>
           <Lock size={24} color="#0066CC" />
-          <Text style={styles.header}>Secure Payment</Text>
+          <Text style={styles.header}>{t("securePayment")}</Text>
         </View>
 
         <View style={styles.summaryContainer}>
-          <Text style={styles.summaryTitle}>Payment Summary</Text>
+          <Text style={styles.summaryTitle}>{t("paymentSummary")}</Text>
           {paymentInfo && (
             <>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Amount:</Text>
+                <Text style={styles.summaryLabel}>{t("amount")}:</Text>
                 <Text style={styles.summaryValue}>
                   {paymentInfo.amount} {paymentInfo.currency}
                 </Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Description:</Text>
+                <Text style={styles.summaryLabel}>{t("description")}:</Text>
                 <Text style={styles.summaryValue}>
                   {paymentInfo.description}
                 </Text>
@@ -229,11 +236,11 @@ export default function PaymentPage() {
         </View>
 
         <View style={styles.cardContainer}>
-          <Text style={styles.sectionTitle}>Card Information</Text>
+          <Text style={styles.sectionTitle}>{t("cardInformation")}</Text>
 
-          <Text style={styles.label}>Cardholder Name</Text>
+          <Text style={styles.label}>{t("cardholderName")}</Text>
           <Input
-            placeholder="John Doe"
+            placeholder=""
             value={cardDetails.name}
             onChangeText={(text) =>
               setCardDetails((prev) => ({ ...prev, name: text }))
@@ -241,9 +248,9 @@ export default function PaymentPage() {
             className="mb-4"
           />
 
-          <Text style={styles.label}>Card Number</Text>
+          <Text style={styles.label}>{t("cardNumber")}</Text>
           <Input
-            placeholder="4111 1111 1111 1111"
+            placeholder=""
             keyboardType="numeric"
             value={cardDetails.number}
             onChangeText={handleCardNumberChange}
@@ -252,7 +259,7 @@ export default function PaymentPage() {
 
           <View style={styles.row}>
             <View style={styles.halfWidth}>
-              <Text style={styles.label}>Expiry Month</Text>
+              <Text style={styles.label}>{t("expiryMonth")}</Text>
               <Input
                 placeholder="MM"
                 keyboardType="numeric"
@@ -266,7 +273,7 @@ export default function PaymentPage() {
             </View>
 
             <View style={styles.halfWidth}>
-              <Text style={styles.label}>Expiry Year</Text>
+              <Text style={styles.label}>{t("expiryYear")}</Text>
               <Input
                 placeholder="YY"
                 keyboardType="numeric"
@@ -280,9 +287,9 @@ export default function PaymentPage() {
             </View>
           </View>
 
-          <Text style={styles.label}>CVC</Text>
+          <Text style={styles.label}>{t("cvc")}</Text>
           <Input
-            placeholder="123"
+            placeholder=""
             keyboardType="numeric"
             maxLength={4}
             secureTextEntry={true}
@@ -294,12 +301,12 @@ export default function PaymentPage() {
           />
         </View>
 
-        <View style={styles.testCardContainer}>
+        {/* <View style={styles.testCardContainer}>
           <Text style={styles.testCardTitle}>Test Card:</Text>
           <Text style={styles.testCardValue}>Card: 4111 1111 1111 1111</Text>
           <Text style={styles.testCardValue}>Expiry: 12/25</Text>
           <Text style={styles.testCardValue}>CVC: 123</Text>
-        </View>
+        </View> */}
 
         <Button
           onPress={() => processPayment()}
@@ -307,7 +314,7 @@ export default function PaymentPage() {
           className="mt-4 mb-8"
         >
           <Text className="text-white font-medium">
-            {isProcessing ? "Processing..." : "Pay Now"}
+            {isProcessing ? t("Processing...") : t("payAmount", { amount: totalFee })}
           </Text>
         </Button>
       </ScrollView>

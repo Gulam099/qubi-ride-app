@@ -1,17 +1,18 @@
 import { View, Text, FlatList } from "react-native";
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import { RelativePathString, useRouter } from "expo-router";
 import SpecialistCard from "@/features/account/components/SpecialistCard";
 import { Input } from "@/components/ui/Input";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 type UserScheduleType = {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  scheduleDate: string; 
+  scheduleDate: string;
   schedule: {
     isHoliday: boolean;
     start: string;
@@ -24,6 +25,7 @@ type UserScheduleType = {
 export default function UsersTodayPage() {
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
+  const { t } = useTranslation();
 
   const {
     data: usersData,
@@ -70,10 +72,10 @@ export default function UsersTodayPage() {
 
   const getEmptyStateMessage = () => {
     if (!availableUsers || availableUsers.length === 0) {
-      return "No doctors available instantly please book scheduled appointment.";
+      return t("noDoctorsAvailable");
     }
     if (searchText.trim() && filteredUsers.length === 0) {
-      return "No doctors match your search.";
+      return t("noDoctorsMatchSearch");
     }
     return "";
   };
@@ -81,7 +83,7 @@ export default function UsersTodayPage() {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <Text className="text-gray-500">{t("Loading")}</Text>
       </View>
     );
   }
@@ -89,53 +91,53 @@ export default function UsersTodayPage() {
   if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Failed to fetch users.</Text>
+        <Text className="text-red-500">{t("errorFetchUsers")}</Text>
       </View>
     );
   }
-
+  console.log("usersData schedule", filteredUsers);
   return (
     <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
-      <Input
-        placeholder="Search for a doctor"
-        value={searchText}
-        onChangeText={setSearchText}
-      />
-
-      {filteredUsers.length > 0 ? (
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SpecialistCard
-              key={item.id}
-              name={`${item.firstName} ${item.lastName}`.trim()}
-              title={item.email}
-              price={`${item.scheduleDate} | ${
-                item.schedule?.start?.split("T")[1]?.slice(0, 5) || ""
-              } - ${item.schedule?.end?.split("T")[1]?.slice(0, 5) || ""}`}
-              likes={0}
-              imageUrl={item.image}
-              shareLink={item.id}
-              onPress={() => {
-                router.push({
-                  pathname: `/instant-booking/s/${item.id}`,
-                  params: {
-                    schedule: JSON.stringify(item.schedule),
-                    scheduleDate: item.scheduleDate,
-                  },
-                });
-              }}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="flex flex-col gap-3 pb-16"
+      <View className="flex-col gap-3">
+        <Input
+          placeholder={t("Search for a doctor")}
+          value={searchText}
+          onChangeText={setSearchText}
         />
-      ) : (
-        <Text className="text-center text-gray-500">
-          {getEmptyStateMessage()}
-        </Text>
-      )}
+
+        {filteredUsers.length > 0 ? (
+          <FlatList
+            data={filteredUsers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <SpecialistCard
+                key={item.id}
+                name={`${item.firstName} ${item.lastName}`.trim()}
+                title={item.specialization}
+                price={item.fees}
+                likes={0}
+                imageUrl={item.image}
+                shareLink={item.id}
+                onPress={() => {
+                  router.push({
+                    pathname: `/instant-booking/i/${item.id}` as RelativePathString,
+                    params: {
+                      todaySchedule: JSON.stringify(item.schedule),
+                      doctorFees: "0",
+                    },
+                  });
+                }}
+              />
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerClassName="flex flex-col gap-3 pb-16"
+          />
+        ) : (
+          <Text className="text-center text-gray-500">
+            {getEmptyStateMessage()}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }

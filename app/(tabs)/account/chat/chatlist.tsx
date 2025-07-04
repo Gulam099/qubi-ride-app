@@ -9,12 +9,15 @@ import colors from "@/utils/colors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 function ChatListPage() {
   const { user } = useUser();
   const [value, setValue] = useState("specific_specialists");
   const [doctors, setDoctors] = useState([]);
   const router = useRouter();
+  const { t } = useTranslation();
+
   const userId = user?.publicMetadata?.dbPatientId as string;
   console.log("userId", userId);
   useEffect(() => {
@@ -34,11 +37,11 @@ function ChatListPage() {
     fetchdoctors();
   }, [userId]);
 
-  const handleChatPress = (id: string, name: string) => {
+  const handleChatPress = (id: string, name: string,canChat: boolean) => {
     console.log("Navigating to doctor ID:", id);
     console.log("Navigating to doctor name:", name);
     console.log("Navigating to:", `/tabs)/account/chat/c/${id}`);
-    router.push(`/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(name)}`);
+    router.push(`/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(name)}&canChat=${canChat}`);
   };
 
   const getInitials = (name: string) => {
@@ -96,7 +99,7 @@ function ChatListPage() {
             }
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => handleChatPress(item.doctorId, item.full_name)}
+                onPress={() => handleChatPress(item.doctorId, item.full_name,item.canChat)}
                 className="bg-white rounded-xl p-4 shadow-sm"
               >
                 <View className="flex-row items-center gap-3">
@@ -143,7 +146,7 @@ function ChatListPage() {
                     {/* Experience or additional info */}
                     {item.experience && (
                       <Text className="text-xs text-gray-500">
-                        {item.experience} years experience
+                        {item.experience} {t("yearsExperience")}
                       </Text>
                     )}
 
@@ -168,7 +171,7 @@ function ChatListPage() {
             ListEmptyComponent={() => (
               <View className="flex-1 justify-center items-center py-10">
                 <Text className="text-gray-500 text-center">
-                  No doctors available
+                  {t("noDoctors" )}
                 </Text>
               </View>
             )}

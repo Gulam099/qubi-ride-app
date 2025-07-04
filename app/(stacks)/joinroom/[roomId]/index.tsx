@@ -12,13 +12,14 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 import { apiNewUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 const JoinRoom = () => {
   const { roomId } = useLocalSearchParams();
   const router = useRouter();
   const [roomData, setRoomData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [sessionDuration, setSessionDuration] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -27,9 +28,13 @@ const JoinRoom = () => {
   const [reviewText, setReviewText] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [totalFee, setTotalFee] = useState(null);
   const intervalRef = useRef(null);
+  const { t } = useTranslation();
 
   const roomUrl = `https://baseerah.daily.co/${roomId}`;
+
+  console.log("roomId", roomId);
 
   // Fetch room data
   const fetchRoomData = async () => {
@@ -39,6 +44,9 @@ const JoinRoom = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         },
       });
 
@@ -73,7 +81,33 @@ const JoinRoom = () => {
     }
   };
 
-  console.log("room data", roomData);
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        if (!roomData?.bookingId) {
+          setLoading(false);
+          return;
+        }
+        const response = await fetch(
+          `${apiNewUrl}/api/instantbookings/${roomData?.bookingId}`
+        );
+        const data = await response.json();
+
+        if (response.ok) {
+          setTotalFee(data?.booking?.totalFee);
+        } else {
+          setError(data.message || "Failed to fetch booking");
+        }
+      } catch (err) {
+        console.error("Error fetching booking:", err);
+        setError("Network or server error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [roomData?.bookingId]);
 
   // Handle session end (show rating modal)
   const handleSessionEnd = () => {
@@ -208,19 +242,17 @@ const JoinRoom = () => {
       const userId = roomData?.patientId ?? roomData?.patient?._id;
       const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
       const amount = roomData?.doctorId?.fees;
-      console.log("userId", "doctorId", userId, doctorId, roomData?.bookingId);
 
-
-
+      console.log("amount", amount);
       const paymentPayload = {
         userId: userId,
         doctorId: doctorId,
-        amount: amount,
-        currency: "SAR",
-        description: "Medical consultation session",
+        amount: totalFee,
+        currency: t("SAR"),
+        description: t("medical_consultation_session"),
         status: "initiated",
         bookingId: roomData?.bookingId,
-        bookingType: "instant",
+        bookingType: t("Instant"),
       };
 
       const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {
@@ -275,6 +307,7 @@ const JoinRoom = () => {
           sessionDuration: bookingData.sessionDuration.toString(),
           numberOfSessions: bookingData.numberOfSessions.toString(),
           bookingId: roomData.bookingId || "",
+          totalFee: totalFee,
           instant: "true",
         }).toString();
 
@@ -469,7 +502,7 @@ const JoinRoom = () => {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTitle: `Join Room`,
+          headerTitle: t("joinRoom"),
         }}
       />
       <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -492,7 +525,7 @@ const JoinRoom = () => {
           >
             <View>
               <Text style={{ fontSize: 14, color: "#64748b" }}>
-                Time Remaining
+                {t("timeRemaining")}{" "}
               </Text>
               <Text
                 style={{
@@ -509,7 +542,7 @@ const JoinRoom = () => {
             </View>
             <View>
               <Text style={{ fontSize: 14, color: "#64748b" }}>
-                Session Duration
+                {t("sessionDuration")}
               </Text>
               <Text
                 style={{ fontSize: 18, fontWeight: "bold", color: "#374151" }}
@@ -535,7 +568,7 @@ const JoinRoom = () => {
               >
                 <ActivityIndicator size="large" color="#3b82f6" />
                 <Text style={{ marginTop: 10, color: "#64748b" }}>
-                  Loading Room...
+                  {t("loadingRoom")}
                 </Text>
               </View>
             )}
@@ -547,7 +580,8 @@ const JoinRoom = () => {
           {/* Footer */}
           <View style={{ paddingTop: 16 }}>
             <Text style={{ textAlign: "center", color: "#64748b" }}>
-              Room ID: {roomId} • Status: {roomData?.status || "Unknown"}
+              {t("roomId")}: {roomId} • {t("status")}:{" "}
+              {roomData?.status || t("unknown")}
             </Text>
             {roomData?.status === "active" && (
               <Text
@@ -558,7 +592,7 @@ const JoinRoom = () => {
                   marginTop: 4,
                 }}
               >
-                🔴 Live Session
+                {t("liveSession")}
               </Text>
             )}
           </View>
@@ -569,7 +603,7 @@ const JoinRoom = () => {
           visible={showRatingModal}
           animationType="slide"
           transparent={true}
-          onRequestClose={() => { }}
+          onRequestClose={() => {}}
         >
           <View
             style={{
@@ -599,7 +633,7 @@ const JoinRoom = () => {
                     marginBottom: 8,
                   }}
                 >
-                  Rate Your Session
+                  {t("rateYourSession")}
                 </Text>
                 <Text
                   style={{
@@ -608,8 +642,8 @@ const JoinRoom = () => {
                     textAlign: "center",
                   }}
                 >
-                  How was your consultation with Dr.{" "}
-                  {roomData?.doctor?.name || "Doctor"}?
+                  {t("howWasConsultation")} {roomData?.doctor?.name || "Doctor"}
+                  ?
                 </Text>
               </View>
 
@@ -647,7 +681,7 @@ const JoinRoom = () => {
                     marginBottom: 8,
                   }}
                 >
-                  Leave a review (optional)
+                  {t("leaveReview")}
                 </Text>
                 <TextInput
                   style={{
@@ -705,7 +739,7 @@ const JoinRoom = () => {
                       fontWeight: "500",
                     }}
                   >
-                    Skip
+                    {t("skip")}
                   </Text>
                 </TouchableOpacity>
 
@@ -733,7 +767,7 @@ const JoinRoom = () => {
                         fontWeight: "500",
                       }}
                     >
-                      Submit
+                      {t("submit")}
                     </Text>
                   )}
                 </TouchableOpacity>

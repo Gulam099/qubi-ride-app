@@ -12,6 +12,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 type DeleteAccountSheetRef = {
   open: () => void;
@@ -19,6 +20,7 @@ type DeleteAccountSheetRef = {
 };
 
 export const DeleteAccountButton = ({ sheetRef }: { sheetRef: React.RefObject<DeleteAccountSheetRef> }) => {
+    const { t } = useTranslation();
 
   return (
     <Button
@@ -26,7 +28,7 @@ export const DeleteAccountButton = ({ sheetRef }: { sheetRef: React.RefObject<De
     variant={"secondary"}
     className="w-full my-2"
   >
-    <Text className="text-neutral-600">Delete Account</Text>
+    <Text className="text-neutral-600">{t("DeleteAccount")}</Text>
   </Button>
   );
 }

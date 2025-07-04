@@ -13,9 +13,14 @@ import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
+import { Buffer } from "buffer";
+
 
 export default function TicketPage() {
-  const {user} = useUser();
+  const { user } = useUser();
+  const FRESHDESK_DOMAIN = "baserah";
+  const FRESHDESK_API_KEY = "your_api_key_here";
+  const authToken = Buffer.from(`${FRESHDESK_API_KEY}:X`).toString("base64");
   const userId = user?.publicMetadata.dbPatientId as string;
   const [tickets, setTickets] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -63,19 +68,25 @@ export default function TicketPage() {
   const onSubmit = async (data: { topic: any; type: any; details: any }) => {
     try {
       const newTicket = {
-        topic: data.topic,
+        subject: data.topic,
         type: data.type,
-        details: data.details,
+        description: data.details,
         userId: userId,
+        priority: 1,
+        status: 2,
       };
 
-      const response = await fetch(`${apiNewUrl}/ticket/list`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTicket),
-      });
+      const response = await fetch(
+        "https://baserah.freshdesk.com/api/v2/tickets",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${authToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newTicket),
+        }
+      );
 
       const result = await response.json();
 

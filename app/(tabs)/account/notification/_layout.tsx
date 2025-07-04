@@ -5,26 +5,23 @@
 // import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 // import BackButton from "@/features/Home/Components/BackButton";
 
-// export default function GroupLayout() {
+// export default function NotificationLayout() {
 //   return (
 //     <Stack
 //       screenOptions={{
-//         headerShadowVisible: false,
+//         headerBackVisible: true,
+//         headerRight: () => <NotificationIconButton className="mr-4" />,
+//         headerShadowVisible: true,
 //       }}
 //     >
 //       <Stack.Screen
 //         name="index"
 //         options={{
-//           title: "In",
-//           headerLeft: () => <BackButton className="p" />,
-//           headerRight: () => <NotificationIconButton className="mr-4" />,
 //           headerTitle: () => (
-//             <Text className="font-semibold text-lg  px-2">Support Group</Text>
+//             <Text className="font-semibold text-lg">My Notification</Text>
 //           ),
 //         }}
 //       />
-
-//       <Stack.Screen name="[support]" options={{ headerShown: false }} />
 //     </Stack>
 //   );
 // }

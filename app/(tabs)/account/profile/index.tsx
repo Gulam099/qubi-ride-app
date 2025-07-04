@@ -159,7 +159,7 @@ export default function ProfilePage() {
         </View>
 
         <View>
-          <Label className="mb-2">{t("First name")}</Label>
+          <Label className="mb-2">{t("FirstName")}</Label>
           <Controller
             name="first_name"
             control={control}
@@ -180,7 +180,7 @@ export default function ProfilePage() {
         </View>
 
         <View>
-          <Label className="mb-2">{t("Last Name")}</Label>
+          <Label className="mb-2">{t("LastName")}</Label>
           <Controller
             name="last_name"
             control={control}

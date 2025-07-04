@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import {
   RelativePathString,
@@ -11,13 +11,86 @@ import { Input } from "@/components/ui/Input";
 import { toast } from "sonner-native";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
-import { SearchNormal1 } from "iconsax-react-native";
+import { SearchNormal1, ArrowDown2 } from "iconsax-react-native";
+import { useTranslation } from "react-i18next";
 
 type ConsultType = {
   _id: string;
   full_name: string;
   specialization: string;
   profile_picture: string;
+  fees: number;
+  likes: number;
+};
+
+const SPECIALIST_TYPES = [
+  "All Specialists",
+  "Assistant Specialist",
+  "Specialist",
+  "First Specialist",
+  "Consultant",
+  "Deputy Specialist Doctor",
+  "First Deputy Specialist Doctor",
+  "Consultant Doctor",
+  "First Consultant Doctor (Subspecialty)"
+];
+
+// Dropdown Component
+const SpecialistDropdown = ({ 
+  selectedValue, 
+  onValueChange, 
+  options 
+}: {
+  selectedValue: string;
+  onValueChange: (value: string) => void;
+  options: string[];
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <View className="relative">
+      <TouchableOpacity
+        className="flex-row items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3"
+        onPress={() => setIsOpen(!isOpen)}
+      >
+        <Text className="text-gray-700 flex-1">
+          {selectedValue}
+        </Text>
+        <ArrowDown2 size={16} color="#6B7280" />
+      </TouchableOpacity>
+      
+      {isOpen && (
+        <View className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-lg mt-1 max-h-48">
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                className={`px-4 py-3 border-b border-gray-100 ${
+                  selectedValue === item ? 'bg-blue-50' : ''
+                }`}
+                onPress={() => {
+                  onValueChange(item);
+                  setIsOpen(false);
+                }}
+              >
+                <Text 
+                  className={`${
+                    selectedValue === item 
+                      ? 'text-blue-600 font-medium' 
+                      : 'text-gray-700'
+                  }`}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            )}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      )}
+    </View>
+  );
 };
 
 export default function ConsultPage() {
@@ -31,8 +104,10 @@ export default function ConsultPage() {
     duration,
     ClosestAppointment,
   } = useLocalSearchParams();
+const { t } = useTranslation();
 
   const [searchText, setSearchText] = useState("");
+  const [selectedSpecialistType, setSelectedSpecialistType] = useState("All Specialists");
 
   // Fetching consultants using `useQuery`
   const {
@@ -53,21 +128,28 @@ export default function ConsultPage() {
     },
   });
 
-  // Handle search filtering
+  // Handle search and dropdown filtering
   const filteredConsult = consultData?.filter((consultant: ConsultType) => {
-    const name = consultant.full_name?.toLowerCase() || ""; // Default to an empty string
-    const specialization = consultant.specialization?.toLowerCase() || ""; // Default to an empty string
-
-    return (
+    const name = consultant.full_name?.toLowerCase() || "";
+    const specialization = consultant.specialist?.toLowerCase() || "";
+    
+    // Text search filter
+    const matchesSearch = 
       name.includes(searchText.toLowerCase()) ||
-      specialization.includes(searchText.toLowerCase())
-    );
+      specialization.includes(searchText.toLowerCase());
+    
+    // Specialist type filter
+    const matchesSpecialistType = 
+      selectedSpecialistType === "All Specialists" || 
+      specialization.includes(selectedSpecialistType.toLowerCase());
+
+    return matchesSearch && matchesSpecialistType;
   });
 
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <Text className="text-gray-500">{t("Loading")}</Text>
       </View>
     );
   }
@@ -75,7 +157,7 @@ export default function ConsultPage() {
   if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Failed to fetch consultants.</Text>
+        <Text className="text-red-500">{t("errorFetchUsers")}</Text>
       </View>
     );
   }
@@ -83,12 +165,21 @@ export default function ConsultPage() {
   return (
     <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
       <View className="flex-col gap-3">
+        {/* Search Input */}
         <Input
-          placeholder="Search for a consultant"
+          placeholder={t("Search for a doctor")}
           value={searchText}
           onChangeText={setSearchText}
         />
 
+        {/* Specialist Type Dropdown */}
+        <SpecialistDropdown
+          selectedValue={selectedSpecialistType}
+          onValueChange={setSelectedSpecialistType}
+          options={SPECIALIST_TYPES}
+        />
+
+        {/* Results */}
         {filteredConsult?.length > 0 ? (
           <FlatList
             data={filteredConsult}
@@ -114,7 +205,7 @@ export default function ConsultPage() {
           />
         ) : (
           <Text className="text-center text-gray-500">
-            No consultants match your search.
+            {t("noDoctorsMatchSearch")}
           </Text>
         )}
       </View>

@@ -7,6 +7,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { X } from "lucide-react-native";
 import React, { forwardRef, useRef, useImperativeHandle } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 type SignOutSheetRef = {
@@ -15,13 +16,15 @@ type SignOutSheetRef = {
 };
 
 export const SignOutButton = ({ sheetRef }: { sheetRef: React.RefObject<SignOutSheetRef> }) => {
+    const { t } = useTranslation();
+  
   return (
     <Button
       variant={"default"}
       className="w-full my-2 z-0"
       onPress={() => sheetRef.current?.open()}
     >
-      <Text>Sign out</Text>
+      <Text className="text-[20px] font-normal">{t("Signout")}</Text>
     </Button>
   );
 };
@@ -29,6 +32,7 @@ export const SignOutButton = ({ sheetRef }: { sheetRef: React.RefObject<SignOutS
 export const SignOutSheet = forwardRef<SignOutSheetRef>((_, ref) => {
   const { signOut } = useClerk();
   const internalSheetRef = useRef<BottomSheet>(null);
+    const { t } = useTranslation();
 
   // expose methods to parent
   useImperativeHandle(ref, () => ({
@@ -67,9 +71,9 @@ export const SignOutSheet = forwardRef<SignOutSheetRef>((_, ref) => {
             <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute" />
             <CustomIcons.BellAlert.Icon height={80} width={80} />
           </View>
-          <H3 className="border-none">Are you sure you want to Logout?</H3>
+          <H3 className="border-none">{t("confirmation_title")}</H3>
           <Button onPress={handleSignOut} className="w-full">
-            <Text className="text-white font-semibold">Logout</Text>
+            <Text className="text-white font-semibold">{t("button")}</Text>
           </Button>
         </View>
       </BottomSheetView>
