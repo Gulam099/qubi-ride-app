@@ -84,10 +84,10 @@ const JoinRoom = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-         if (!roomData?.bookingId) {
-        setLoading(false);
-        return;
-      }
+        if (!roomData?.bookingId) {
+          setLoading(false);
+          return;
+        }
         const response = await fetch(
           `${apiNewUrl}/api/instantbookings/${roomData?.bookingId}`
         );
@@ -108,7 +108,6 @@ const JoinRoom = () => {
 
     fetchBooking();
   }, [roomData?.bookingId]);
-
 
   // Handle session end (show rating modal)
   const handleSessionEnd = () => {
@@ -249,11 +248,11 @@ const JoinRoom = () => {
         userId: userId,
         doctorId: doctorId,
         amount: totalFee,
-        currency: "SAR",
-        description: "Medical consultation session",
+        currency: t("SAR"),
+        description: t("medical_consultation_session"),
         status: "initiated",
         bookingId: roomData?.bookingId,
-        bookingType: "instant",
+        bookingType: t("Instant"),
       };
 
       const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {

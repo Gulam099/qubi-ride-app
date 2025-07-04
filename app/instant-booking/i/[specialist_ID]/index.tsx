@@ -35,25 +35,14 @@ export default function SpecialistConsultantPage() {
   // Fetch function
   const fetchSpecialistData = async () => {
     if (!specialist_ID) {
-      throw new Error("Specialist ID is missing.");
+      throw new Error(t("missingSpecialistId"));
     }
     const response = await fetch(
       `${ApiUrl}/api/doctors/doctor/${specialist_ID}`
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Error Response:", errorText);
-      const errorMessage = `Failed to fetch specialist data (ID: ${specialist_ID}). Status: ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    if (!result) {
-      throw new Error("Invalid data received from server.");
-    }
-
-    return result;
+    if (!response.ok) throw new Error(t("fetchSpecialistFailed"));
+    return await response.json();
   };
 
   // Fetching data with useQuery
@@ -80,38 +69,8 @@ export default function SpecialistConsultantPage() {
     return (
       <View className="flex-1 justify-center items-center px-4">
         <Text className="text-red-500 text-center mb-4">
-          {error?.message || "Specialist not found."}
+          {error?.message || t("specialistNotFound")}
         </Text>
-        <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          specialist_Id: {specialist_ID || "undefined"}
-        </Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          All params: {JSON.stringify(params)}
-        </Text>
-        <Button onPress={() => router.back()} className="bg-blue-600">
-          <Text className="text-white">Go Back</Text>
-        </Button>
-      </View>
-    );
-  }
-
-  if (!specialistData || !specialistData.data) {
-    return (
-      <View className="flex-1 justify-center items-center px-4">
-        <Text className="text-red-500 text-center mb-4">
-          No specialist data available.
-        </Text>
-        <Text className="text-sm text-gray-500 mb-4">Debug Info:</Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          specialist_Id: {specialist_ID || "undefined"}
-        </Text>
-        <Text className="text-xs text-gray-500 mb-4">
-          specialistData: {JSON.stringify(specialistData)}
-        </Text>
-        <Button onPress={() => router.back()} className="bg-blue-600">
-          <Text className="text-white">Go Back</Text>
-        </Button>
       </View>
     );
   }
@@ -154,7 +113,7 @@ export default function SpecialistConsultantPage() {
                   icon: HeartSearch,
                 },
                 {
-                  title: t("Response time"),
+                  title: t("Response Time"),
                   value: specialistData?.data?.responseTime ?? t("notAvailable"),
                   icon: Hourglass,
                 }

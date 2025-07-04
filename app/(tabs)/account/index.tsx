@@ -116,7 +116,7 @@ export default function AccountPage() {
         { link: "/account/setting", label: t("Mysetting"), icon: Setting2 },
         {
           link: "/contact", // link used for routing
-          label: "Contact us",
+          label: t("Contactus"),
           icon: Messages,
           customPress: () => contactUsBottomSheetRef.current?.expand(),
         },
@@ -203,7 +203,7 @@ export default function AccountPage() {
                     key={section.title}
                     className="flex flex-col gap-4 py-4"
                   >
-                    <H4 className="font-semibold text-gray-800">
+                    <H4 className=" text-[20px] font-normal font-semibold text-gray-800">
                       {section.title}
                     </H4>
                     <View className="flex flex-row flex-wrap gap-4">

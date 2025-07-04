@@ -139,10 +139,10 @@ export default function AppointmentCard({ appointment, type }: any) {
               {appointment.user?.name || appointment.patientId?.name || "N/A"}
             </Text>
             <Text className="text-gray-600 text-base">
-             {t(" Duration")}: {appointment?.duration}
+             {t("Duration")}: {appointment?.duration}
             </Text>
             <Text className="text-gray-600 text-base">
-               {t("session")}; {appointment?.numberOfSessions}
+               {t("session")}: {appointment?.numberOfSessions}
             </Text>
             <Text className="text-gray-600 text-base">
               {t("bookingDate")}:{" "}
@@ -173,7 +173,7 @@ export default function AppointmentCard({ appointment, type }: any) {
         <View className="bg-red-100/50 p-2 rounded-b-2xl mt-2 flex-row justify-center items-center gap-2">
           <Warning2 size="18" color={colors.red[600]} variant="Bulk" />
           <Text className="text-red-600 font-medium">
-            This client has suicidal thoughts
+            {t("clientHasSuicidalThoughts")}
           </Text>
         </View>
       )}

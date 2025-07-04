@@ -336,7 +336,7 @@ export const SchedulePickerSheet = forwardRef<
               );
             });
 
-            console.log('current>>>', format(current, "h:mm a"));
+            console.log("current>>>", format(current, "h:mm a"));
 
             const slotEnd = addMinutes(current, currentSlotDuration);
 
@@ -391,7 +391,7 @@ export const SchedulePickerSheet = forwardRef<
           <View className="p-4 pb-8">
             <View className="gap-4">
               <Text className="text-lg font-medium">
-                {CalenderHeading ?? "Available Dates"}
+                {CalenderHeading ?? t("available_dates")}
               </Text>
               <View className="bg-background rounded-lg py-2 flex justify-center items-start">
                 {selectedSlots.length > 0 ? (
@@ -489,12 +489,14 @@ export const SchedulePickerSheet = forwardRef<
               {selectedDate && (
                 <View>
                   <Text className="font-semibold mb-2">
-                    {TimeSliderHeading ?? "Available Times"}
+                    {TimeSliderHeading ?? t("Available time")}
                     {numberOfSessions > 1 && (
                       <Text className="text-sm text-gray-600 font-normal">
                         {" "}
-                        (Select {numberOfSessions} slots -{" "}
-                        {selectedSlots.length}/{numberOfSessions} selected)
+                        {t("select_slots", {
+                          count: numberOfSessions,
+                          selected: selectedSlots.length,
+                        })}
                       </Text>
                     )}
                   </Text>
@@ -503,7 +505,7 @@ export const SchedulePickerSheet = forwardRef<
                   {availableSlots.length > 0 ? (
                     <View className="mb-4">
                       <Text className="text-sm text-green-600 font-medium mb-2">
-                        Available Slots ({availableSlots.length})
+                        {t("Available Slots")} ({availableSlots.length})
                       </Text>
                       <View className="flex-row flex-wrap gap-2">
                         {availableSlots.map((slot) => {
@@ -581,13 +583,13 @@ export const SchedulePickerSheet = forwardRef<
                     </View>
                   ) : (
                     <Text className="text-gray-500 text-center py-4">
-                      No available time slots for this date
+                      {t("No available time slots for this date")}
                     </Text>
                   )}
                   {bookedSlotsForDate.length > 0 && (
                     <View className="mt-4">
                       <Text className="text-sm text-red-600 font-medium mb-2">
-                        Booked Slots ({bookedSlotsForDate.length})
+                        {t("Booked Slots")} ({bookedSlotsForDate.length})
                       </Text>
                       <View className="flex-row flex-wrap gap-2">
                         {bookedSlotsForDate.map((slot) => (

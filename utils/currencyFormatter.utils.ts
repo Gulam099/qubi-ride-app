@@ -1,7 +1,9 @@
+import { t } from "i18next";
+
 export function currencyFormatter(
   amount: string | number,
   decimalPlaces: number = 0, // Number of decimal places to show
-  currencyCode: string = "SAR" // Default currency
+  currencyCode: string = t("SAR") // Default currency
 ): string {
   const value = typeof amount === "number" ? amount : parseFloat(amount);
 

@@ -117,6 +117,9 @@ function ChatScreen() {
   // Load existing chat history
   const fetchChats = async () => {
     try {
+      if (!userId) {
+          return;
+        }
       const res = await axios.post(
         `${apiNewUrl}/api/doctor/chat/getUserChats`,
         {
@@ -125,14 +128,14 @@ function ChatScreen() {
       );
 
       // Find the chat between this patient and the specific doctor
-      const chat = res.data.chats.find(
-        (c) => c.doctorId._id === doctorId || c.doctorId === doctorId
+      const chat = res?.data?.chats?.find(
+        (c) => c?.doctorId?._id === doctorId || c?.doctorId === doctorId
       );
 
       if (chat && chat.messages) {
         const formatted = chat.messages
           .map((msg: any, index: number) => ({
-            _id: `${msg._id || index}`,
+            _id: `${msg?._id || index}`,
             text: msg.text || "",
             createdAt: new Date(msg.timestamp || msg.createdAt || Date.now()),
             user: {
@@ -212,7 +215,7 @@ function ChatScreen() {
 
   useEffect(() => {
     fetchChats();
-  }, []);
+  }, [userId]);
 
   // Send messages - Modified to work with input text
   const onSend = useCallback(

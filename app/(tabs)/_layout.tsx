@@ -118,6 +118,7 @@ const PatientLayout = () => {
               tabBarIcon: ({ focused }) => (
                 <View
                   className={cn(
+                     "text-[16px] text-nowrap",
                     focused ? "bg-primary-300 p-1 rounded-full" : ""
                   )}
                 >

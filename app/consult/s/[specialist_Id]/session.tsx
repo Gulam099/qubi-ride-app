@@ -27,6 +27,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+
 import { useTranslation } from "react-i18next";
 
 export default function SessionConsultPage() {
@@ -138,7 +140,7 @@ export default function SessionConsultPage() {
 
       // Validation
       if (!selectedDateTime) {
-        throw new Error("Please select a date and time");
+        throw new Error(t("Please Select Date time"));
       }
 
       // 1. Create Booking now
@@ -178,10 +180,10 @@ export default function SessionConsultPage() {
         doctorId: doctorId,
         bookingId: bookingResult?.booking?._id,
         amount: baseFee * data.numberOfSessions,
-        currency: "SAR",
-        description: "Medical consultation session", // Fixed: removed undefined reference
+        currency: t("SAR"),
+        description: t("medical_consultation_session"), // Fixed: removed undefined reference
         status: "initiated",
-        bookingType: "schedule",
+        bookingType: t("Scheduled"),
       };
 
       const paymentResponse = await fetch(`${ApiUrl}/api/payments/create`, {
@@ -525,20 +527,20 @@ export default function SessionConsultPage() {
               )}
             </View>
           )}
-
+          {/* fee Calculation */}
           {numberOfSessionsValue && (
-            <View className="bg-blue-50 p-4 rounded-lg mb-4">
-              <Text className="font-semibold text-lg mb-2">
+            <View className="bg-purple-700 p-4 rounded-lg mb-4">
+              <Text className="font-semibold text-lg mb-2 text-white">
                 {t("Fee Calculation")}
               </Text>
-              <Text className="text-gray-700">
-                {t("Base Fee")}: {baseFee} SAR
+              <Text className="text-white">
+                {t("Base Fee")}: {currencyFormatter(baseFee)}
               </Text>
-              <Text className="text-gray-700">
-                {t("Number of Sessions")}: {numberOfSessionsValue}
+              <Text className="text-white">
+                {t("Selected Sessions")}: {numberOfSessionsValue}
               </Text>
-              <Text className="font-bold text-lg text-blue-600">
-                {t("Total")}: {totalFee} SAR
+              <Text className="font-bold text-lg text-white">
+                {t("Total")}: {currencyFormatter(totalFee)}
               </Text>
             </View>
           )}

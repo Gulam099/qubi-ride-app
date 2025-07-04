@@ -81,7 +81,9 @@
   "Duration is required": "مدة الجلسة مطلوبة",
   "Available time": "الوقت المتاح",
   "Selected": "المحدد",
+  "Select": "اختر {{count}} فترة ",
   "Selected Slots": "الفترات المحددة",
+  "select_slots": "اختر {{count}} فترة - {{selected}}/{{count}} محددة",
   "Slots": "الفترات",
   "Available Slots": "الفترات المتاحة",
   "Base Fee": "الرسوم الأساسية",
@@ -96,13 +98,13 @@
   "Submitting...": "جارٍ الإرسال...",
   "Fee Calculation": "حساب الرسوم",
   "select a family member": "يرجى اختيار أحد أفراد العائلة",
-   "slots selected on": "فتحات محددة في",
+  "slots selected on": "فتحات محددة في",
   "Please select": "يرجى اختيار",
   "time slot": "فتحة زمنية",
   "Please Select Date time": "يرجى اختيار التاريخ والوقت",
   "Processing...": "جارٍ المعالجة...",
   "No available time slots for this date": "لا توجد فترات متاحة لهذا التاريخ",
-   "Done": "تم",
+  "Done": "تم",
 
   "Doctor": "الطبيب",
   "Specialization": "التخصص",
@@ -313,10 +315,19 @@
   "failedToSendOtp": "فشل في إرسال رمز التحقق",
   "failedToVerifyOtp": "فشل في التحقق من الرمز",
 
-  "errorFetchUsers": "فشل في جلب المستخدمين.",
+  "errorFetchUsers": "فشل في جلب الطبيب.",
   "noDoctorsAvailable": "لا يوجد أطباء متاحون فوراً. يرجى حجز موعد مجدول.",
-  "noDoctorsMatchSearch": "لا يوجد أطباء يطابقون بحثك."
-
+  "noDoctorsMatchSearch": "لا يوجد أطباء يطابقون بحثك.",
+  "clientHasSuicidalThoughts": "هذا العميل لديه أفكار انتحارية",
+  "specialistNotFound": "لم يتم العثور على الأخصائي.",
+  "missingSpecialistId": "معرّف الأخصائي مفقود.",
+  "fetchSpecialistFailed": "فشل في جلب بيانات الأخصائي.",
+  "payAmount": "ادفع {{amount}} ريال",
+  "SAR": "ريال",
+  "medical_consultation_session": "جلسة استشارة طبية",
+  "confirmation_title": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+  "button": "تسجيل الخروج",
+  "available_dates": "التواريخ المتاحة"
 
 
 

@@ -1,4 +1,4 @@
-import { View, Text, FlatList, ActivityIndicator,} from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
@@ -21,6 +21,9 @@ export default function AccountNotificationPage() {
     setLoading(true);
     setError(null);
     try {
+      if (!userId) {
+        return;
+      }
       const response = await fetch(`${apiNewUrl}/api/notifications/${userId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch notifications");
@@ -74,7 +77,7 @@ export default function AccountNotificationPage() {
                     onPress={() => router.push(`/joinroom/${item.roomId}`)}
                   >
                     <Text className="font-medium text-neutral-700">
-                       {t("openRoom")}
+                      {t("openRoom")}
                     </Text>
                   </Button>
                 )}

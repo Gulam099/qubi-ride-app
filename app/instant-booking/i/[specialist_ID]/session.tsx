@@ -659,11 +659,11 @@ const InstantBookingContent = () => {
         {selectedDate && (
           <View>
             <Text className="font-semibold mb-2">
-              {t("Available Times")}
+              {t("Available time")}
               {selectedNumberOfSessions > 1 && (
                 <Text className="text-sm text-gray-600">
                   {" "}
-                  ({t("Select")} {selectedNumberOfSessions} {t("Slots")})
+                  ({t("Select",{count:selectedNumberOfSessions})})
                 </Text>
               )}
             </Text>
@@ -755,17 +755,17 @@ const InstantBookingContent = () => {
 
         {/* Fee Calculation */}
         {selectedSlots.length > 0 && (
-          <View className="bg-blue-50 p-4 rounded-lg">
-            <Text className="font-semibold text-lg mb-2">
+          <View className="bg-purple-700 p-4 rounded-lg">
+            <Text className="font-semibold text-lg mb-2 text-white">
               {t("Fee Calculation")}
             </Text>
-            <Text className="text-gray-700">
+            <Text className="text-white">
               {t("Base Fee")}: {currencyFormatter(baseFee)}
             </Text>
-            <Text className="text-gray-700">
-              {"Selected Sessions"}: {selectedSlots.length}
+            <Text className="text-white">
+              {t("Selected Sessions")}: {selectedSlots.length}
             </Text>
-            <Text className="font-bold text-lg text-blue-600">
+            <Text className="font-bold text-lg text-white">
               {t("Total")}: {currencyFormatter(totalFee)}
             </Text>
           </View>

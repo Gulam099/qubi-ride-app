@@ -240,7 +240,7 @@ export default function PaymentPage() {
 
           <Text style={styles.label}>{t("cardholderName")}</Text>
           <Input
-            placeholder="John Doe"
+            placeholder=""
             value={cardDetails.name}
             onChangeText={(text) =>
               setCardDetails((prev) => ({ ...prev, name: text }))
@@ -250,7 +250,7 @@ export default function PaymentPage() {
 
           <Text style={styles.label}>{t("cardNumber")}</Text>
           <Input
-            placeholder="4111 1111 1111 1111"
+            placeholder=""
             keyboardType="numeric"
             value={cardDetails.number}
             onChangeText={handleCardNumberChange}
@@ -289,7 +289,7 @@ export default function PaymentPage() {
 
           <Text style={styles.label}>{t("cvc")}</Text>
           <Input
-            placeholder="123"
+            placeholder=""
             keyboardType="numeric"
             maxLength={4}
             secureTextEntry={true}
@@ -314,7 +314,7 @@ export default function PaymentPage() {
           className="mt-4 mb-8"
         >
           <Text className="text-white font-medium">
-            {isProcessing ? "Processing..." : ` Pay ${totalFee} SAR`}
+            {isProcessing ? t("Processing...") : t("payAmount", { amount: totalFee })}
           </Text>
         </Button>
       </ScrollView>

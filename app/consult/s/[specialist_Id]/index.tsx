@@ -38,11 +38,11 @@ export default function SpecialistConsultantPage() {
   const { t } = useTranslation();
 
   const fetchSpecialistData = async () => {
-    if (!specialist_Id) throw new Error("Specialist ID is missing.");
+    if (!specialist_Id) throw new Error(t("missingSpecialistId"));
     const response = await fetch(
       `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
     );
-    if (!response.ok) throw new Error("Failed to fetch specialist data.");
+    if (!response.ok) throw new Error(t("fetchSpecialistFailed"));
     return await response.json();
   };
 
@@ -129,7 +129,7 @@ export default function SpecialistConsultantPage() {
     return (
       <View className="flex-1 justify-center items-center">
         <Text className="text-red-500">
-          {error?.message || "Specialist not found."}
+          {error?.message || t("specialistNotFound")}
         </Text>
       </View>
     );
@@ -183,7 +183,7 @@ export default function SpecialistConsultantPage() {
                 icon: HeartSearch,
               },
               {
-                title: t("Response time"),
+                title: t("Response Time"),
                 value: specialistData?.data?.responseTime ?? t("notAvailable"),
                 icon: Hourglass,
               },
