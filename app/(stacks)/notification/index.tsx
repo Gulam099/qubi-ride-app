@@ -13,6 +13,7 @@ export default function AccountNotificationPage() {
   const router = useRouter();
   const { t } = useTranslation();
 
+
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export default function AccountNotificationPage() {
     } finally {
       setLoading(false);
     }
+    
   };
 
   useEffect(() => {

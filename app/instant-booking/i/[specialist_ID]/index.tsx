@@ -32,11 +32,11 @@ export default function SpecialistConsultantPage() {
   const { specialist_ID, todaySchedule   } = params;
   const { t } = useTranslation();
   
-  // Fetch function
   const fetchSpecialistData = async () => {
     if (!specialist_ID) {
       throw new Error(t("missingSpecialistId"));
     }
+    
     const response = await fetch(
       `${ApiUrl}/api/doctors/doctor/${specialist_ID}`
     );

@@ -39,6 +39,7 @@ export default function UsersTodayPage() {
       if (!res.ok) throw new Error(result.error || "Failed to fetch users.");
       return result.users; // Includes both today & tomorrow
     },
+    
   });
 
   const getAvailableUsers = (users: UserScheduleType[]) => {
