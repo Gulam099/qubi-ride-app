@@ -26,7 +26,7 @@ export default function InstantBookingLayout() {
         }}
       />
       <Stack.Screen
-        name="i/[specialist_ID]/index"
+        name="i/[specialist_Id]/index"
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">{t("Specialist Details")}</Text>
@@ -34,7 +34,7 @@ export default function InstantBookingLayout() {
         }}
       />
       <Stack.Screen
-        name="i/[specialist_ID]/session"
+        name="i/[specialist_Id]/session"
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">{t("Instant Appointment")}</Text>

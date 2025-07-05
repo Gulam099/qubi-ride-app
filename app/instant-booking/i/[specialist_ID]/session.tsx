@@ -27,11 +27,11 @@ const InstantBookingContent = () => {
   };
   const { t } = useTranslation();
 
-  const { specialist_ID, todaySchedule, doctorFees } = useLocalSearchParams();
+  const { specialist_Id, todaySchedule, doctorFees } = useLocalSearchParams();
   const { user } = useUser();
   // const { freshUser: user, refreshUser, loading } = useFreshUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
-  const doctorId = specialist_ID as string;
+  const doctorId = specialist_Id as string;
   const [doctorSchedule, setDoctorSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
