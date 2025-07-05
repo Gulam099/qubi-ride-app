@@ -37,7 +37,7 @@ export default function AccountNotificationPage() {
     } finally {
       setLoading(false);
     }
-    
+
   };
 
   useEffect(() => {

@@ -203,7 +203,7 @@ export default function AccountPage() {
                     key={section.title}
                     className="flex flex-col gap-4 py-4"
                   >
-                    <H4 className=" text-[20px] font-normal font-semibold text-gray-800">
+                    <H4 className=" text-[20px] font-semibold text-gray-800">
                       {section.title}
                     </H4>
                     <View className="flex flex-row flex-wrap gap-4">

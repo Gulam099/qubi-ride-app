@@ -25,14 +25,14 @@ export default function AccountLayout() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="notification/index"
          options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">{t("notifications")}</Text>
           ),
         }}
-      />
+      /> */}
 
       <Stack.Screen
         name="calendar/index"
