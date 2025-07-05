@@ -11,7 +11,7 @@
        "ios":{
         "simulator": true
       },
-      "channel":"preview"
+      "channel":"release"
     },
     "development": {
       "developmentClient": true,
