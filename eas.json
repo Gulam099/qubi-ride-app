@@ -6,8 +6,12 @@
   "build": {
     "release": {
       "android": {
-        "buildType": "apk"
-      }
+      "buildType": "apk"
+      },
+       "ios":{
+        "simulator": true
+      },
+      "channel":"preview"
     },
     "development": {
       "developmentClient": true,
