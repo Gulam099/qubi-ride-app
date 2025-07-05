@@ -124,7 +124,6 @@
     },
     "owner": "zahidwalker",
     "updates": {
-      "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/ac15d305-e884-4429-96d6-19f501c12713"
     },
     "runtimeVersion": {
