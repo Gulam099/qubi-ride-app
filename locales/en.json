@@ -328,7 +328,20 @@
   "medical_consultation_session": "Medical consultation session",
   "confirmation_title": "Are you sure you want to Logout?",
   "button": "Logout",
-  "available_dates": "Available Dates"
+  "available_dates": "Available Dates",
+   "dr": "Dr.",
+  "sessionDay": "Session Day",
+  "sessionTime": "Session Time",
+  "reschedule": "Reschedule",
+  "chats": "Chats",
+  "noSessionTime": "No Session Time",
+  "Appointment Details": "Appointment Details",
+  "Total cost": "Total cost",
+  "Program price": "Program price",
+  "VAT 15%": "VAT 15%",
+  "Total cost:": "Total cost:",
+  "Visa": "Visa"
+  
 
 
 }

@@ -45,10 +45,10 @@ export default function AccountCard(props: {
       )}
       style={{ backgroundColor: backgroundColor ?? "white" }}
     >
-      <View className="relative z-10 w-[90%] flex justify-center items-center gap-2">
+      <View className="relative z-10 w-[100%] flex justify-center items-center gap-2">
         <Icon size={iconSize ?? 32} color={iconColor} className="z-10" />
         <Text
-          className="z-10 text-[16px] text-nowrap truncate font-medium text-inherit text-center flex flex-col gap-2"
+          className="z-10 text-[12px] text-nowrap truncate font-medium text-inherit text-center flex flex-col gap-2"
           style={{ color: iconColor }}
         >
           {label}

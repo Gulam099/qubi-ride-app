@@ -13,7 +13,6 @@ export default function AccountNotificationPage() {
   const router = useRouter();
   const { t } = useTranslation();
 
-
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +36,6 @@ export default function AccountNotificationPage() {
     } finally {
       setLoading(false);
     }
-
   };
 
   useEffect(() => {
@@ -45,7 +43,7 @@ export default function AccountNotificationPage() {
       fetchNotifications();
     }
   }, [userId]);
-
+  console.log("notifications", notifications);
   return (
     <>
       <View className="p-4 flex-1 bg-neutral-200">
@@ -68,7 +66,13 @@ export default function AccountNotificationPage() {
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <View className="shadow-sm bg-white rounded-xl p-3 my-2">
-                <Text className="text-blue-600 font-semibold">{item.date}</Text>
+                <Text className="text-neutral-700 font-semibold">
+                  {new Date(item.datetime).toLocaleDateString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    year: "numeric",
+                  })}
+                </Text>
                 <Text className="text-neutral-700 text-base">
                   {item.message}
                 </Text>

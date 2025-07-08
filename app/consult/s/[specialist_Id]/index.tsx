@@ -138,7 +138,10 @@ export default function SpecialistConsultantPage() {
   return (
     <ScrollView className="flex-1 bg-blue-50/10 px-2">
       <View className="bg-white py-4 rounded-2xl items-center mt-2 relative">
-        <View className="absolute w-full h-24 bg-blue-900"></View>
+        <View
+          className="absolute w-full h-24"
+          style={{ backgroundColor: "#005153" }}
+        ></View>
         <ProfileImage
           imageUrl={specialistData?.data?.profile_picture ?? ""}
           name={specialistData?.data?.full_name}
@@ -273,7 +276,7 @@ export default function SpecialistConsultantPage() {
 
       {/* Book Now */}
       <Button
-        className="mt-4 bg-purple-600 mb-6"
+        className="mt-4 mb-6"
         onPress={() =>
           router.push({
             pathname: `/consult/s/${specialist_Id}/session`,

@@ -27,11 +27,11 @@ const InstantBookingContent = () => {
   };
   const { t } = useTranslation();
 
-  const { specialist_Id, todaySchedule, doctorFees } = useLocalSearchParams();
+  const { specialist_ID, todaySchedule, doctorFees } = useLocalSearchParams();
   const { user } = useUser();
   // const { freshUser: user, refreshUser, loading } = useFreshUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
-  const doctorId = specialist_Id as string;
+  const doctorId = specialist_ID as string;
   const [doctorSchedule, setDoctorSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
@@ -755,7 +755,7 @@ const InstantBookingContent = () => {
 
         {/* Fee Calculation */}
         {selectedSlots.length > 0 && (
-          <View className="bg-purple-700 p-4 rounded-lg">
+          <View className="bg-gray-400 p-4 rounded-lg">
             <Text className="font-semibold text-lg mb-2 text-white">
               {t("Fee Calculation")}
             </Text>

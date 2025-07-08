@@ -34,6 +34,7 @@ function ChatScreen() {
   const { id, name, canChat } = useLocalSearchParams();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = id as string;
@@ -118,8 +119,8 @@ function ChatScreen() {
   const fetchChats = async () => {
     try {
       if (!userId) {
-          return;
-        }
+        return;
+      }
       const res = await axios.post(
         `${apiNewUrl}/api/doctor/chat/getUserChats`,
         {
@@ -322,6 +323,23 @@ function ChatScreen() {
       </View>
     );
   };
+  const handlePickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const image = result.assets[0];
+        setSelectedImage(image.uri);
+        // Optional: send immediately or allow preview
+      }
+    } catch (error) {
+      console.error("Image picking error:", error);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -342,6 +360,9 @@ function ChatScreen() {
       />
 
       <View style={styles.inputContainer}>
+        <TouchableOpacity onPress={handlePickImage} style={styles.iconButton}>
+          <Ionicons name="add" size={24} color="#666" />
+        </TouchableOpacity>
         <TextInput
           style={styles.textInput}
           value={inputText}
@@ -353,13 +374,18 @@ function ChatScreen() {
         />
         <TouchableOpacity
           onPress={handleSend}
-          style={[
-            styles.sendButton,
-            { opacity: inputText.trim() && isChatAllowed ? 1 : 0.5 },
-          ]}
+          style={styles.sendIconWrapper}
           disabled={!inputText.trim() || !isChatAllowed}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Ionicons
+            name="send"
+            size={22}
+            color={
+              inputText.trim() || selectedImage 
+                ? "#6B7280"
+                : "rgba(107, 103, 103, 0.55)"
+            }
+          />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -390,7 +416,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   myMessage: {
-    backgroundColor: "#0a84ff",
+    backgroundColor: "#9CA3AF",
     alignSelf: "flex-end",
     borderBottomRightRadius: 4,
   },
@@ -469,6 +495,20 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  iconButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+    width: 36,
+    height: 36,
+  },
+  sendIconWrapper: {
+    borderRadius: 20,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
   },
 });
 

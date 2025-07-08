@@ -327,7 +327,19 @@
   "medical_consultation_session": "جلسة استشارة طبية",
   "confirmation_title": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
   "button": "تسجيل الخروج",
-  "available_dates": "التواريخ المتاحة"
+  "available_dates": "التواريخ المتاحة",
+  "dr": "د.",
+  "sessionDay": "يوم الجلسة",
+  "sessionTime": "وقت الجلسة",
+  "reschedule": "إعادة الجدولة",
+  "chats": "المحادثات",
+  "noSessionTime": "لا يوجد وقت للجلسة",
+  "Appointment Details": "تفاصيل الموعد",
+  "Total cost": "التكلفة الإجمالية",
+  "Program price": "سعر البرنامج",
+  "VAT 15%": "ضريبة القيمة المضافة 15%",
+  "Total cost:": "التكلفة الإجمالية:",
+  "Visa": "فيزا"
 
 
 

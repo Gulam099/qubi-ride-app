@@ -1,6 +1,7 @@
 import { View, Text, FlatList, Image, ScrollView } from "react-native";
 import React, { useState, useEffect } from "react";
 import {
+  RelativePathString,
   Stack,
   useLocalSearchParams,
   useNavigation,
@@ -29,16 +30,16 @@ import { Value } from "@rn-primitives/select";
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { specialist_Id, todaySchedule   } = params;
+  const { specialist_ID, todaySchedule } = params;
   const { t } = useTranslation();
-  
+
   const fetchSpecialistData = async () => {
-    if (!specialist_Id) {
+    if (!specialist_ID) {
       throw new Error(t("missingSpecialistId"));
     }
 
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_ID}`
     );
 
     if (!response.ok) throw new Error(t("fetchSpecialistFailed"));
@@ -52,9 +53,9 @@ export default function SpecialistConsultantPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["doctor", specialist_Id],
+    queryKey: ["doctor", specialist_ID],
     queryFn: fetchSpecialistData,
-    enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
+    enabled: !!specialist_ID, // Ensure specialist_ID exists before fetching
   });
 
   if (isLoading) {
@@ -80,7 +81,10 @@ export default function SpecialistConsultantPage() {
       <ScrollView className="flex-1 bg-blue-50/10 px-2">
         {/* Header Section */}
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
-          <View className="absolute w-full h-24 bg-blue-900"></View>
+          <View
+            className="absolute w-full h-24"
+            style={{ backgroundColor: "#005153" }}
+          ></View>
           <ProfileImage
             imageUrl={specialistData?.data?.profile_picture ?? ""}
             name={specialistData?.data?.full_name}
@@ -114,9 +118,10 @@ export default function SpecialistConsultantPage() {
                 },
                 {
                   title: t("Response Time"),
-                  value: specialistData?.data?.responseTime ?? t("notAvailable"),
+                  value:
+                    specialistData?.data?.responseTime ?? t("notAvailable"),
                   icon: Hourglass,
-                }
+                },
               ].map((item) => (
                 <View
                   className="flex-col justify-center items-center mb-4 flex-1 w-full"
@@ -220,12 +225,12 @@ export default function SpecialistConsultantPage() {
 
         {/* Book Now Button */}
         <Button
-          className="mt-4 bg-purple-600 mb-6"
+          className="mt-4 mb-6"
           onPress={() =>
             router.push({
-              pathname: `/instant-booking/i/${specialist_Id}/session`,
+              pathname: `/instant-booking/i/${specialist_ID}/session`as RelativePathString,
               params: {
-                todaySchedule: JSON.stringify(todaySchedule),
+                todaySchedule: JSON.stringify(todaySchedule), 
                 doctorFees: specialistData?.data?.fees?.toString() || "0",
               },
             })

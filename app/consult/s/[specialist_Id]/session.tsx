@@ -529,7 +529,7 @@ export default function SessionConsultPage() {
           )}
           {/* fee Calculation */}
           {numberOfSessionsValue && (
-            <View className="bg-purple-700 p-4 rounded-lg mb-4">
+            <View className="bg-gray-400 p-4 rounded-lg mb-4">
               <Text className="font-semibold text-lg mb-2 text-white">
                 {t("Fee Calculation")}
               </Text>

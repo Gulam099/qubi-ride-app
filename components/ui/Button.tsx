@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary web:hover:opacity-90 active:opacity-90",
+        default: "bg-gray-400 web:hover:opacity-90 active:opacity-90",
         destructive: "bg-destructive web:hover:opacity-90 active:opacity-90",
         outline:
           "border border-input bg-background web:hover:bg-accent web:hover:text-accent-foreground active:bg-accent",
@@ -17,6 +17,7 @@ const buttonVariants = cva(
         ghost:
           "web:hover:bg-accent web:hover:text-accent-foreground active:bg-accent",
         link: "web:underline-offset-4 web:hover:underline web:focus:underline ",
+        green: "bg-green-700 text-white web:hover:opacity-90 active:opacity-90",
       },
       size: {
         default: "h-10 px-4 py-2 native:h-12 native:px-5 native:py-3",

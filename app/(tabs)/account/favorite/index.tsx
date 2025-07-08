@@ -4,6 +4,7 @@ import {
   ScrollView,
   FlatList,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { H3 } from "@/components/ui/Typography";
@@ -21,8 +22,8 @@ import { ApiUrl } from "@/const";
 import { useTranslation } from "react-i18next";
 
 export default function AccountFavoritePage() {
-    const { t } = useTranslation(); 
-  
+  const { t } = useTranslation();
+
   const tabs = [
     // { type: "program", name: "Programs", api: "/api/favorites/programs/" },
     { type: "consult", name: t("consultants"), api: "/api/favorites/doctors/" },
@@ -53,7 +54,6 @@ export default function AccountFavoritePage() {
     try {
       const response = await fetch(`${ApiUrl}${selectedTab.api}${userId}`);
       const result = await response.json();
-
 
       if (response.ok) {
         setData(result.data || []);
@@ -86,7 +86,6 @@ export default function AccountFavoritePage() {
   //     toast.error(err.message || "Something went wrong");
   //   }
   // };
-
 
   const renderContent = () => {
     if (loading) {
@@ -121,7 +120,7 @@ export default function AccountFavoritePage() {
             profession={item.specialization}
             education={item.education}
             image={item.profile_picture}
-          // onRemove={() => handleRemove(item._id, "doctors")}
+            // onRemove={() => handleRemove(item._id, "doctors")}
           />
         ));
       case "culturalContent":
@@ -134,7 +133,7 @@ export default function AccountFavoritePage() {
             // date={item.addedAt}
             // price={item.cost}
             image={item.file}
-          // onRemove={() => handleRemove(item._id, "culturalContent")}
+            // onRemove={() => handleRemove(item._id, "culturalContent")}
           />
         ));
       // case "group":
@@ -156,28 +155,35 @@ export default function AccountFavoritePage() {
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
       <View className="flex flex-col gap-4">
         <ScrollView
-          horizontal={true}
+          horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerClassName="gap-3"
+          contentContainerStyle={{ gap: 12, paddingVertical: 4 }}
         >
           {tabs.map((tab) => {
-            const isActiveTab = tab.type === activeTab;
+            const isActive = tab.type === activeTab;
             return (
-              <Button
+              <Pressable
                 key={tab.type}
-                size={"sm"}
                 onPress={() => setActiveTab(tab.type)}
-                className={cn(
-                  isActiveTab ? "bg-blue-900" : "bg-white",
-                  "w-36 h-9 rounded-xl"
-                )}
+                style={{
+                  backgroundColor: isActive ? "#005153" : "#E5E7EB", // green-600 / gray-200
+                  paddingHorizontal: 16,
+                  height: 36,
+                  borderRadius: 16,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minWidth: 120,
+                }}
               >
                 <Text
-                  className={cn(isActiveTab ? "text-white" : "", "font-medium")}
+                  style={{
+                    color: isActive ? "#ffffff" : "#000000",
+                    fontWeight: "500",
+                  }}
                 >
                   {tab.name}
                 </Text>
-              </Button>
+              </Pressable>
             );
           })}
         </ScrollView>

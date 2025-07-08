@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#9CA3AF",
     padding: 8,
     marginTop: 4,
     borderRadius: 8,
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   closeButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#9CA3AF",
     marginTop: 20,
     padding: 12,
     borderRadius: 8,

@@ -4,6 +4,7 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import React, { useCallback, useState } from "react";
 import { H3 } from "@/components/ui/Typography";
@@ -38,7 +39,7 @@ const fetchLibrary = async ({ pageParam = 1 }) => {
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState("All");
   const queryClient = useQueryClient();
-const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const {
     data,
@@ -62,7 +63,6 @@ const { t } = useTranslation();
     }, [])
   );
   const allContent = data?.pages.flatMap((page) => page.data) ?? [];
-
 
   const filteredContent =
     activeTab === "All"
@@ -114,27 +114,33 @@ const { t } = useTranslation();
           contentContainerStyle={{ gap: 12, paddingBottom: 10 }}
         >
           {["All", "Video", "Article", "Audio"].map((tab) => {
-            const isActiveTab = tab === activeTab;
+            const isActive = activeTab === tab;
             return (
-              <Button
+              <Pressable
                 key={tab}
-                size={"sm"}
-                className={cn(
-                  isActiveTab ? "bg-blue-900" : "bg-white",
-                  "w-32 h-9 rounded-xl"
-                )}
                 onPress={() => setActiveTab(tab)}
+                style={{
+                  backgroundColor: isActive ? "#005153" : "#E5E7EB", // green-600 / gray-200
+                  paddingHorizontal: 16,
+                  height: 36,
+                  borderRadius: 16,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minWidth: 96,
+                }}
               >
                 <Text
-                  className={cn(isActiveTab ? "text-white" : "", "font-medium")}
+                  style={{
+                    color: isActive ? "white" : "black",
+                    fontWeight: "500",
+                  }}
                 >
                   {t(tab)}
                 </Text>
-              </Button>
+              </Pressable>
             );
           })}
         </ScrollView>
-
         {/* List of Library Content */}
         <FlatList
           data={filteredContent}

@@ -148,6 +148,18 @@ export default function Page() {
                 customCaret={
                   <ArrowDown2 variant="Bold" size="16" color="#000" />
                 }
+                phoneInputStyles={{
+                  container: {
+                    flexDirection: 'row',
+                  },
+                  input: {
+                    direction: 'ltr',
+                    writingDirection: 'ltr',
+                    // textAlign: 'left',
+                    fontSize: 16,
+                    color: '#000',
+                  },
+                }}
                 language={language}
                 defaultCountry="SA"
               />
@@ -174,6 +186,18 @@ export default function Page() {
                   pinCodeContainerStyle: {
                     width: 60,
                     backgroundColor: "white",
+                  },
+                  pinCodeTextStyle: {
+                    direction: 'ltr',
+                    writingDirection: 'ltr',
+                    textAlign: 'left',
+                    fontSize: 20,
+                    color: '#000',
+                  },
+                  // Optional: to help see where RTL might still apply
+                  containerStyle: {
+                    flexDirection: 'row',
+                    direction: 'ltr',
                   },
                 }}
               />

@@ -142,7 +142,7 @@ function FamilyPage() {
     setShowRelationshipDropdown(false);
   };
 
-  const ListHeaderComponent = () => (
+  const ListFooterComponent = () => (
     <Button
       className="mb-4 w-full"
       onPress={() => {
@@ -184,7 +184,7 @@ function FamilyPage() {
           flexGrow: 1 
         }}
         renderItem={renderFamilyMember}
-        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
         ListEmptyComponent={ListEmptyComponent}
         showsVerticalScrollIndicator={false}
       />

@@ -7,7 +7,7 @@ import BackButton from "@/features/Home/Components/BackButton";
 import { useTranslation } from "react-i18next";
 
 export default function ChatLayout() {
-const { name } = useLocalSearchParams();
+  const { name } = useLocalSearchParams();
   const { t } = useTranslation();
 
   return (
@@ -16,21 +16,27 @@ const { name } = useLocalSearchParams();
         headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: true,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "#666666",
+        },
       }}
     >
       <Stack.Screen
         name="chatlist"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("Mychats")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {t("Mychats")}
+            </Text>
           ),
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="c/[id]/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{name}</Text>
+            <Text className="font-semibold text-lg text-white">{name}</Text>
           ),
         }}
       />
