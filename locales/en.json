@@ -340,7 +340,12 @@
   "Program price": "Program price",
   "VAT 15%": "VAT 15%",
   "Total cost:": "Total cost:",
-  "Visa": "Visa"
+  "Visa": "Visa",
+  "room": {
+    "scheduled": "A {{type}} room has been scheduled for {{date}}",
+    "started": "Your scheduled {{type}} room is now active and ready to join",
+    "ready": "Immediate {{type}} room is ready to join!"
+  }
   
 
 

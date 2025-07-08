@@ -257,13 +257,13 @@ export default function AppointmentUpcomingList() {
           <TouchableOpacity
             key={tab}
             className={`flex-1 py-3 rounded-md ${
-              activeTab === tab ? "bg-blue-500" : "bg-transparent"
+              activeTab === tab ? "bg-green-600" : "bg-transparent"
             }`}
             onPress={() => handleTabPress(tab as TabType)}
           >
             <Text
               className={`text-center font-medium ${
-                activeTab === tab ? "text-white" : "text-gray-600"
+                activeTab === tab ? "text-white" : "text-green-600"
               }`}
             >
               {t(tab)}
