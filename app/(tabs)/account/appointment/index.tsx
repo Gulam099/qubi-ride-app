@@ -170,8 +170,8 @@ export default function AppointmentUpcomingList() {
     Object.keys(calendarAppointments).forEach((date) => {
       marked[date] = {
         marked: true,
-        dotColor: "#007BFF",
-        selectedColor: date === selectedDate ? "#007BFF" : undefined,
+        dotColor: "#10B981",
+        selectedColor: date === selectedDate ? "#10B981" : undefined,
       };
     });
 
@@ -180,7 +180,7 @@ export default function AppointmentUpcomingList() {
       marked[selectedDate] = {};
     }
     marked[selectedDate].selected = true;
-    marked[selectedDate].selectedColor = "#007BFF";
+    marked[selectedDate].selectedColor = "#10B981";
 
     return marked;
   }, [calendarAppointments, selectedDate]);
@@ -228,17 +228,17 @@ export default function AppointmentUpcomingList() {
   // Calendar theme
   const calendarTheme = useMemo(
     () => ({
-      selectedDayBackgroundColor: "#007BFF",
+      selectedDayBackgroundColor: "#10B981",
       selectedDayTextColor: "#ffffff",
-      todayTextColor: "#007BFF",
+      todayTextColor: "#10B981",
       dayTextColor: "#2d4150",
       textDisabledColor: "#d9e1e8",
-      dotColor: "#007BFF",
+      dotColor: "#10B981",
       selectedDotColor: "#ffffff",
-      arrowColor: "#007BFF",
+      arrowColor: "#10B981",
       disabledArrowColor: "#d9e1e8",
       monthTextColor: "#2d4150",
-      indicatorColor: "#007BFF",
+      indicatorColor: "#10B981",
       textDayFontFamily: "System",
       textMonthFontFamily: "System",
       textDayHeaderFontFamily: "System",

@@ -23,7 +23,7 @@ export default function LangToggleButton(props: { className?: string }) {
   };
 
   return (
-    <Button onPress={toggleLanguage} className={cn(className)}>
+    <Button onPress={toggleLanguage} style={{ backgroundColor: "#005153" }} className={cn(className)}>
       <Text>{t("toggleLanguage")}</Text>
     </Button>
   );

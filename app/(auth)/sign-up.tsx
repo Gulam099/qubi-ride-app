@@ -121,7 +121,7 @@ export default function Page() {
       }
     } catch (err: any) {
       console.error("Error:", JSON.stringify(err, null, 2));
-      toast.error(err.message ||  t("failedToVerifyOtp"));
+      toast.error(err.message || t("failedToVerifyOtp"));
     }
   };
 
@@ -150,32 +150,37 @@ export default function Page() {
                 }
                 phoneInputStyles={{
                   container: {
-                    flexDirection: 'row',
+                    flexDirection: "row",
                   },
                   input: {
-                    direction: 'ltr',
-                    writingDirection: 'ltr',
+                    direction: "ltr",
+                    writingDirection: "ltr",
                     // textAlign: 'left',
                     fontSize: 16,
-                    color: '#000',
+                    color: "#000",
                   },
                 }}
                 language={language}
                 defaultCountry="SA"
               />
-              <Button onPress={onSignUpPress}>
-                <Text className="text-secondary font-semibold">{t("continue")}</Text>
+              <Button
+                onPress={onSignUpPress}
+                className="rounded-xl py-3 px-4"
+                style={{ backgroundColor: "#005153" }}
+              >
+                <Text className="text-secondary font-semibold">
+                  {t("continue")}
+                </Text>
               </Button>
             </>
           ) : (
             <>
-
               <Text className="text-lg font-semibold">
                 {t("enterVerificationCode")}
               </Text>
               <TouchableOpacity onPress={() => setVerifying(false)}>
                 <Text className="text-blue-600 underline">
-                 {t("verificationSentTo", { phone })}
+                  {t("verificationSentTo", { phone })}
                 </Text>
               </TouchableOpacity>
               <OtpInput
@@ -188,25 +193,30 @@ export default function Page() {
                     backgroundColor: "white",
                   },
                   pinCodeTextStyle: {
-                    direction: 'ltr',
-                    writingDirection: 'ltr',
-                    textAlign: 'left',
+                    direction: "ltr",
+                    writingDirection: "ltr",
+                    textAlign: "left",
                     fontSize: 20,
-                    color: '#000',
+                    color: "#000",
                   },
                   // Optional: to help see where RTL might still apply
                   containerStyle: {
-                    flexDirection: 'row',
-                    direction: 'ltr',
+                    flexDirection: "row",
+                    direction: "ltr",
                   },
                 }}
               />
 
-              <Button onPress={handleVerification}>
-                <Text className="text-secondary font-semibold">
+              <Button
+                onPress={handleVerification}
+                className="rounded-xl py-3 px-4"
+                style={{ backgroundColor: "#005153" }}
+              >
+                <Text className="text-white font-semibold">
                   {t("verifyOtp")}
                 </Text>
               </Button>
+
               {/* <Button
             variant="outline"
             disabled={isDisabled}
@@ -214,7 +224,6 @@ export default function Page() {
           >
             <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
           </Button> */}
-
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">

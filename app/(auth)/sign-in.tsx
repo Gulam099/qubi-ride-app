@@ -122,7 +122,11 @@ export default function Page() {
                 language={language}
                 defaultCountry="SA"
               />
-              <Button onPress={onSignInPress}>
+              <Button
+                onPress={onSignInPress}
+                className="rounded-xl py-3 px-4"
+                style={{ backgroundColor: "#005153" }}
+              >
                 <Text className="text-secondary font-semibold">
                   {t("continue")}
                 </Text>
@@ -162,7 +166,11 @@ export default function Page() {
                 }}
               />
 
-              <Button onPress={handleVerification}>
+              <Button
+                onPress={handleVerification}
+                className="rounded-xl py-3 px-4"
+                style={{ backgroundColor: "#005153" }}
+              >
                 <Text className="text-secondary font-semibold">
                   {t("verifyOtp")}
                 </Text>

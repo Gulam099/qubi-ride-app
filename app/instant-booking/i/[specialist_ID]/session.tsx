@@ -711,7 +711,7 @@ const InstantBookingContent = () => {
                                 : "text-gray-700"
                             }`}
                           >
-                            {slot.formattedTime}
+                             {`${slot.startTime} - ${slot.endTime}`}
                           </Text>
                         </Button>
                       );
@@ -742,7 +742,7 @@ const InstantBookingContent = () => {
                         style={{ minWidth: 90 }}
                       >
                         <Text className="text-red-600 font-medium text-center text-sm">
-                          {slot.formattedTime}
+                           {`${slot.startTime} - ${slot.endTime}`}
                         </Text>
                       </View>
                     ))}
