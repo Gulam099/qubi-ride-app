@@ -547,7 +547,7 @@ export const SchedulePickerSheet = forwardRef<
                               }
                               className={`mb-2 ${
                                 isSelected
-                                  ? "bg-blue-600 border-blue-600"
+                                  ? "bg-[#005153] border-[#005153]"
                                   : !canSelect &&
                                     selectedSlots.length >= numberOfSessions
                                   ? "bg-gray-100 border-gray-200 opacity-50"

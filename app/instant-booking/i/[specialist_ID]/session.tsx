@@ -703,7 +703,7 @@ const InstantBookingContent = () => {
                           <Text
                             className={`font-medium ${
                               isSelected
-                                ? "text-white"
+                                ? "bg-[#005153] border-[#005153]"
                                 : !canSelect &&
                                   selectedSlots.length >=
                                     selectedNumberOfSessions

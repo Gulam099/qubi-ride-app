@@ -74,7 +74,7 @@ export default function AccountLayout() {
         name="profile/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("profile")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("profile")}</Text>
           ),
         }}
       />

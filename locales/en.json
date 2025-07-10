@@ -345,7 +345,15 @@
     "scheduled": "A {{type}} room has been scheduled for {{date}}",
     "started": "Your scheduled {{type}} room is now active and ready to join",
     "ready": "Immediate {{type}} room is ready to join!"
-  }
+  },
+  "deleteChat": {
+  "title": "Delete Chat",
+  "confirmation": "Are you sure you want to delete this chat?",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "errorTitle": "Error",
+  "errorMessage": "Could not delete chat. Try again."
+}
   
 
 

@@ -22,6 +22,14 @@ export default function StacksLayout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="help/ticket"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg text-white">{t("Tickets")}</Text>
+          ),
+        }}
+      />
     </Stack>
   );
 }

@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/Separator";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 import {
   CalendarAdd,
-  CloseCircle,
+  Trash,
   Copy,
   FolderOpen,
   Headphone,
@@ -18,7 +18,7 @@ import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
 import { Ellipsis, Headset } from "lucide-react-native";
 import Drawer from "@/components/ui/Drawer";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 import { Image } from "react-native";
@@ -142,27 +142,27 @@ const SingleAppointmentCard = ({
 
       {/* Action Buttons */}
       <View className="flex-row justify-between gap-3 mt-4">
-        <TouchableOpacity
-          className="flex-1 bg-red-100 py-3.5 rounded-full items-center flex-row justify-center"
+        {/* <TouchableOpacity
+          className="flex-1 bg-red-100 py-2.5 rounded-full items-center flex-row justify-center"
           onPress={() => onCancel && onCancel(appointment, slot)}
         >
-          <CloseCircle size={18} color="#DC2626" />
+          <Trash size={18} color="#DC2626" />
           <Text className="text-red-600 font-semibold ml-1 text-base">
             {t("cancel")}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="flex-1 bg-yellow-100 py-3.5 rounded-full items-center flex-row justify-center"
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
+          className="flex-1 bg-yellow-100 py-2.5 rounded-full items-center flex-row justify-center"
           onPress={() => onReschedule && onReschedule(appointment, slot)}
         >
           <Repeat size={18} color="#B45309" />
           <Text className="text-yellow-700 font-semibold ml-1 text-base">
             {t("reschedule")}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
-          className="flex-1 bg-purple-100 py-3.5 rounded-full items-center flex-row justify-center"
-          onPress={() => onChat && onChat(appointment, slot)}
+          className="flex-1 bg-purple-100 py-2.5 rounded-full items-center flex-row justify-center"
+          onPress={() => router.push("/(tabs)/account/chat/chatlist")}
         >
           <Message size={18} color="#7C3AED" />
           <Text className="text-purple-700 font-semibold ml-1 text-base">

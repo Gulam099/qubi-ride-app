@@ -6,14 +6,9 @@ import React from "react";
 
 export default function HelpLayout() {
   return (
-    // <Stack
-    //   screenOptions={{
-    //     headerShown: false,
-    //   }}
-    // />
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerShadowVisible: false,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerStyle: {
@@ -51,14 +46,14 @@ export default function HelpLayout() {
           ),
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="ticket"
         options={{
           headerTitle: ({ children }) => (
             <Text className="font-semibold text-lg">Tickets</Text>
           ),
         }}
-      />
+      /> */}
     </Stack>
   );
 }

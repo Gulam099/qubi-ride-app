@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -60,6 +67,45 @@ function ChatListPage() {
       .substring(0, 2)
       .toUpperCase();
   };
+
+  const handleDeleteChat = async (doctorId: string) => {
+    Alert.alert(t("deleteChat.title"), t("deleteChat.confirmation"), [
+      {
+        text: t("deleteChat.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("deleteChat.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const res = await fetch(
+              `${apiNewUrl}/api/doctor/chat/deleteChatForUser`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  userId,
+                  doctorId,
+                }),
+              }
+            );
+
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.message);
+            }
+          } catch (error) {
+            console.error("Error deleting chat:", error.message);
+            t("deleteChat.errorTitle"), t("deleteChat.errorMessage");
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <View className="p-4 bg-blue-50/10 h-full">
       <Text className="text-xl font-bold text-gray-900 mb-4">
@@ -117,12 +163,12 @@ function ChatListPage() {
 
                 {/* RIGHT SECTION — delete button */}
                 <TouchableOpacity
-                  onPress={() => console.log("Delete", item.full_name)}
+                  onPress={() => handleDeleteChat(item.doctorId)}
                   className="flex-row items-center gap-1"
                 >
                   <Trash size={16} color="red" />
                   <Text className="text-red-500 text-sm font-medium">
-                    {t("delete")}
+                    {t("deleteChat.title")}
                   </Text>
                 </TouchableOpacity>
               </View>

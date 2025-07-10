@@ -186,11 +186,11 @@ export default function SessionConsultPage() {
         bookingType: t("Scheduled"),
       };
 
+      // 2. Create Payment record
       const paymentResponse = await fetch(`${ApiUrl}/api/payments/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.MYFATOORAH_TEST_TOKEN}`,
         },
         body: JSON.stringify(paymentPayload),
       });
@@ -202,6 +202,22 @@ export default function SessionConsultPage() {
       const paymentId = paymentResult?.payment?.internalPaymentId;
       if (!paymentId) throw new Error("Payment ID missing.");
 
+      // ✅ Now call processPayment to get redirectUrl
+      const processResponse = await fetch(
+        `${ApiUrl}/api/payments/${paymentId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const processResult = await processResponse.json();
+      if (!processResponse.ok)
+        throw new Error(processResult?.error || "Payment processing failed.");
+
+      // ✅ Now you can return redirectUrl
       return {
         paymentId,
         bookingId: bookingResult?.booking?._id,
@@ -212,11 +228,12 @@ export default function SessionConsultPage() {
           sessionDuration: data.sessionDuration,
           numberOfSessions: data.numberOfSessions,
         },
+        redirectUrl: processResult?.redirectUrl,
       };
     },
-    onSuccess: ({ paymentId, bookingId, bookingData }) => {
+    onSuccess: ({ paymentId, bookingId, bookingData, redirectUrl }) => {
       toast.success("Booking created successfully!");
-      if (paymentId) {
+      if (redirectUrl) {
         const queryParams = new URLSearchParams({
           userId: bookingData.userId,
           doctorId: bookingData.doctorId,
@@ -225,10 +242,11 @@ export default function SessionConsultPage() {
           numberOfSessions: bookingData.numberOfSessions.toString(),
           totalFee: totalFee.toString(),
           bookingId: bookingId || "",
+          redirectUrl, // ✅ use it here
         }).toString();
-        router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
+        router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
       } else {
-        toast.error("Payment ID not found.");
+        toast.error("Redirect URL not found.");
       }
     },
     onError: (err: any) => {
