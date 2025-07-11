@@ -32,20 +32,21 @@ const SPECIALIST_TYPES = [
   "Deputy Specialist Doctor",
   "First Deputy Specialist Doctor",
   "Consultant Doctor",
-  "First Consultant Doctor (Subspecialty)"
+  "First Consultant Doctor (Subspecialty)",
 ];
 
 // Dropdown Component
-const SpecialistDropdown = ({ 
-  selectedValue, 
-  onValueChange, 
-  options 
+const SpecialistDropdown = ({
+  selectedValue,
+  onValueChange,
+  options,
 }: {
   selectedValue: string;
   onValueChange: (value: string) => void;
   options: string[];
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <View className="relative">
@@ -53,12 +54,10 @@ const SpecialistDropdown = ({
         className="flex-row items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3"
         onPress={() => setIsOpen(!isOpen)}
       >
-        <Text className="text-gray-700 flex-1">
-          {selectedValue}
-        </Text>
+        <Text className="text-gray-700 flex-1">{t(selectedValue)}</Text>
         <ArrowDown2 size={16} color="#6B7280" />
       </TouchableOpacity>
-      
+
       {isOpen && (
         <View className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-lg mt-1 max-h-48">
           <FlatList
@@ -67,21 +66,21 @@ const SpecialistDropdown = ({
             renderItem={({ item }) => (
               <TouchableOpacity
                 className={`px-4 py-3 border-b border-gray-100 ${
-                  selectedValue === item ? 'bg-blue-50' : ''
+                  selectedValue === item ? "bg-blue-50" : ""
                 }`}
                 onPress={() => {
                   onValueChange(item);
                   setIsOpen(false);
                 }}
               >
-                <Text 
+                <Text
                   className={`${
-                    selectedValue === item 
-                      ? 'text-blue-600 font-medium' 
-                      : 'text-gray-700'
+                    selectedValue === item
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-700"
                   }`}
                 >
-                  {item}
+                  {t(item)}
                 </Text>
               </TouchableOpacity>
             )}
@@ -104,10 +103,11 @@ export default function ConsultPage() {
     duration,
     ClosestAppointment,
   } = useLocalSearchParams();
-const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const [searchText, setSearchText] = useState("");
-  const [selectedSpecialistType, setSelectedSpecialistType] = useState("All Specialists");
+  const [selectedSpecialistType, setSelectedSpecialistType] =
+    useState("All Specialists");
 
   // Fetching consultants using `useQuery`
   const {
@@ -117,9 +117,7 @@ const { t } = useTranslation();
   } = useQuery({
     queryKey: ["doctor"],
     queryFn: async () => {
-      const response = await fetch(
-        `${ApiUrl}/api/doctors/getall`
-      );
+      const response = await fetch(`${ApiUrl}/api/doctors/getall`);
       const result = await response.json();
       if (!response.ok || !result.success) {
         throw new Error("Failed to fetch consultants.");
@@ -132,14 +130,14 @@ const { t } = useTranslation();
   const filteredConsult = consultData?.filter((consultant: ConsultType) => {
     const name = consultant.full_name?.toLowerCase() || "";
     const specialization = consultant.specialist?.toLowerCase() || "";
-    
+
     // Text search filter
-    const matchesSearch = 
+    const matchesSearch =
       name.includes(searchText.toLowerCase()) ||
       specialization.includes(searchText.toLowerCase());
-    
+
     // Specialist type filter
-    const matchesSpecialistType = 
+    const matchesSpecialistType =
       selectedSpecialistType === "All Specialists" || 
       specialization.includes(selectedSpecialistType.toLowerCase());
 
@@ -194,9 +192,7 @@ const { t } = useTranslation();
                 imageUrl={item.profile_picture}
                 shareLink={`${item._id}`}
                 onPress={() =>
-                  router.push(
-                    `/consult/s/${item._id}` as RelativePathString
-                  )
+                  router.push(`/consult/s/${item._id}` as RelativePathString)
                 }
               />
             )}

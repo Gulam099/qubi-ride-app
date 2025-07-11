@@ -663,7 +663,7 @@ const InstantBookingContent = () => {
               {selectedNumberOfSessions > 1 && (
                 <Text className="text-sm text-gray-600">
                   {" "}
-                  ({t("Select",{count:selectedNumberOfSessions})})
+                  ({t("Select", { count: selectedNumberOfSessions })})
                 </Text>
               )}
             </Text>
@@ -693,7 +693,11 @@ const InstantBookingContent = () => {
                         <Button
                           key={slot.iso}
                           onPress={() => handleSlotSelection(slot.iso)}
-                          className="mx-1 mb-2"
+                          className={`mx-1 mb-2 ${
+                            isSelected
+                              ? "bg-[#005153] border-[#005153]"
+                              : "border-gray-300"
+                          }`}
                           variant={isSelected ? "default" : "outline"}
                           disabled={
                             !isSelected &&
@@ -703,7 +707,7 @@ const InstantBookingContent = () => {
                           <Text
                             className={`font-medium ${
                               isSelected
-                                ? "bg-[#005153] border-[#005153]"
+                                ? "text-white"
                                 : !canSelect &&
                                   selectedSlots.length >=
                                     selectedNumberOfSessions
@@ -711,7 +715,7 @@ const InstantBookingContent = () => {
                                 : "text-gray-700"
                             }`}
                           >
-                             {`${slot.startTime} - ${slot.endTime}`}
+                            {`${slot.startTime} - ${slot.endTime}`}
                           </Text>
                         </Button>
                       );
@@ -742,7 +746,7 @@ const InstantBookingContent = () => {
                         style={{ minWidth: 90 }}
                       >
                         <Text className="text-red-600 font-medium text-center text-sm">
-                           {`${slot.startTime} - ${slot.endTime}`}
+                          {`${slot.startTime} - ${slot.endTime}`}
                         </Text>
                       </View>
                     ))}

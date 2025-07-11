@@ -153,6 +153,7 @@
 "scheduled": "Scheduled",
 "instant": "Instant",
 "calendar": "Calendar",
+"appointmentsFor": "Appointments for",
 "noAppointmentsForDate": "No appointments for this date",
 "noAppointmentsAvailable": "No {{type}} appointments available.",
 "loadingFailedScheduled": "Failed to load scheduled appointments",
@@ -375,7 +376,22 @@
   "Technology": "Technology",
   "Administrative": "Administrative",
   "Financial": "Financial",
-  "Report about a situation": "Report about a situation"
+  "Report about a situation": "Report about a situation",
+  "All Specialists": "All Specialists",
+  "Assistant Specialist": "Assistant Specialist",
+  "Specialist": "Specialist",
+  "First Specialist": "First Specialist",
+  "Consultant": "Consultant",
+  "Deputy Specialist Doctor": "Deputy Specialist Doctor",
+  "First Deputy Specialist Doctor": "First Deputy Specialist Doctor",
+  "Consultant Doctor": "Consultant Doctor",
+  "First Consultant Doctor (Subspecialty)": "First Consultant Doctor (Subspecialty)",
+  "familyUpdated": "Family member updated successfully",
+  "familyAdded": "Family member added successfully",
+  "familySaveError": "Error saving family member",
+  "familyDeleted": "Deleted family member",
+  "familyDeleteError": "Failed to delete family member"
+
   
 
 

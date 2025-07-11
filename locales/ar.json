@@ -149,6 +149,7 @@
   "scheduled": "المجدولة",
   "instant": "الفورية",
   "calendar": "التقويم",
+  "appointmentsFor": "المواعيد لـ",
   "noAppointmentsForDate": "لا توجد مواعيد لهذا التاريخ",
   "noAppointmentsAvailable": "لا توجد مواعيد {{type}} متاحة.",
   "loadingFailedScheduled": "فشل تحميل المواعيد المجدولة",
@@ -363,7 +364,6 @@
   "ticketDetails": "تفاصيل التذكرة",
   "ticketType": "نوع التذكرة",
   "ticketSubject": "موضوع التذكرة",
-  "status": "الحالة",
   "loadingTickets": "جارٍ التحميل...",
   "errorLoadingTickets": "حدث خطأ أثناء تحميل التذاكر.",
   "ticketCreated": "تم إنشاء التذكرة بنجاح",
@@ -375,7 +375,21 @@
   "Technology": "تقنية",
   "Administrative": "إدارية",
   "Financial": "مالية",
-  "Report about a situation": "الإبلاغ عن حالة"
+  "Report about a situation": "الإبلاغ عن حالة",
+   "All Specialists": "جميع الأخصائيين",
+  "Assistant Specialist": "أخصائي مساعد",
+  "Specialist": "أخصائي",
+  "First Specialist": "أخصائي أول",
+  "Consultant": "استشاري",
+  "Deputy Specialist Doctor": "نائب أخصائي",
+  "First Deputy Specialist Doctor": "نائب أول أخصائي",
+  "Consultant Doctor": "طبيب استشاري",
+  "First Consultant Doctor (Subspecialty)": "استشاري أول (تخصص دقيق)",
+   "familyUpdated": "تم تحديث فرد العائلة بنجاح",
+  "familyAdded": "تمت إضافة فرد العائلة بنجاح",
+  "familySaveError": "حدث خطأ أثناء حفظ فرد العائلة",
+  "familyDeleted": "تم حذف فرد العائلة",
+  "familyDeleteError": "فشل في حذف فرد العائلة"
 
 
 
