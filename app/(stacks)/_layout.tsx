@@ -26,7 +26,7 @@ export default function StacksLayout() {
         name="help/ticket"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">{t("Tickets")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("tickets")}</Text>
           ),
         }}
       />

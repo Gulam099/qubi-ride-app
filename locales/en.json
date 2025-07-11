@@ -35,6 +35,7 @@
   "DateOfBirthRequired": "Date of birth is required",
   "GenderRequired": "Gender is required",
   "FirstName": "First Name",
+  "onboarding": "Onboarding",
   "LastName":"Last Name",
   "Signout":"Sign out",
   "DeleteAccount":"Delete Account",
@@ -353,7 +354,28 @@
   "delete": "Delete",
   "errorTitle": "Error",
   "errorMessage": "Could not delete chat. Try again."
-}
+},
+ "tickets": "Tickets",
+  "noTickets": "No previous tickets",
+  "openNewTicket": "Open a New Ticket",
+  "addNewTicket": "Add New Ticket",
+  "selectTopic": "Select the ticket topic",
+  "selectType": "Choose ticket type",
+  "ticketDetails": "Ticket Details",
+  "ticketType": "Ticket Type",
+  "ticketSubject": "Ticket Subject",
+  "loadingTickets": "Loading...",
+  "errorLoadingTickets": "Error loading tickets.",
+  "ticketCreated": "Ticket Created Successfully",
+  "ticketFailed": "Error creating ticket.",
+
+  "Request": "Request",
+  "Problem": "Problem",
+  "Other": "Other",
+  "Technology": "Technology",
+  "Administrative": "Administrative",
+  "Financial": "Financial",
+  "Report about a situation": "Report about a situation"
   
 
 

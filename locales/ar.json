@@ -35,6 +35,7 @@
   "DateOfBirthRequired": "تاريخ الميلاد مطلوب",
   "GenderRequired": "الجنس مطلوب",
   "FirstName":"الاسم الأول",
+  "onboarding": "الترحيب",
   "LastName":"اسم العائلة",
   "Signout":"تسجيل الخروج",
   "DeleteAccount":"حذف الحساب",
@@ -352,7 +353,30 @@
   "delete": "حذف",
   "errorTitle": "خطأ",
   "errorMessage": "تعذر حذف المحادثة. حاول مرة أخرى."
-}
+},
+"tickets": "التذاكر",
+  "noTickets": "لا توجد تذاكر سابقة",
+  "openNewTicket": "افتح تذكرة جديدة",
+  "addNewTicket": "إضافة تذكرة جديدة",
+  "selectTopic": "اختر موضوع التذكرة",
+  "selectType": "اختر نوع التذكرة",
+  "ticketDetails": "تفاصيل التذكرة",
+  "ticketType": "نوع التذكرة",
+  "ticketSubject": "موضوع التذكرة",
+  "status": "الحالة",
+  "loadingTickets": "جارٍ التحميل...",
+  "errorLoadingTickets": "حدث خطأ أثناء تحميل التذاكر.",
+  "ticketCreated": "تم إنشاء التذكرة بنجاح",
+  "ticketFailed": "حدث خطأ أثناء إنشاء التذكرة.",
+
+  "Request": "طلب",
+  "Problem": "مشكلة",
+  "Other": "أخرى",
+  "Technology": "تقنية",
+  "Administrative": "إدارية",
+  "Financial": "مالية",
+  "Report about a situation": "الإبلاغ عن حالة"
+
 
 
 

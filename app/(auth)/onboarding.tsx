@@ -140,7 +140,6 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: "Onboarding" }} />
       <ScrollView
         showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
         contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
@@ -166,14 +165,14 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Label className="mb-2">{t("First name")}</Label>
+            <Label className="mb-2">{t("FirstName")}</Label>
             <Controller
               name="first_name"
               control={control}
               rules={{ required: t("First Name required") }}
               render={({ field: { onChange, value } }) => (
                 <Input
-                  placeholder={t("First name")}
+                  placeholder={t("FirstName")}
                   value={value ? (value as string) : undefined}
                   onChangeText={onChange}
                 />
@@ -187,14 +186,14 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Label className="mb-2">{t("Last Name")}</Label>
+            <Label className="mb-2">{t("LastName")}</Label>
             <Controller
               name="last_name"
               control={control}
               rules={{ required: t("Last name required") }}
               render={({ field: { onChange, value } }) => (
                 <Input
-                  placeholder={t("Last name")}
+                  placeholder={t("LastName")}
                   value={value ? (value as string) : undefined}
                   onChangeText={onChange}
                 />
