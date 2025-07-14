@@ -7,13 +7,16 @@ export default function MyFatoorahWebView() {
   const { redirectUrl } = useLocalSearchParams();
   const router = useRouter();
 
+  console.log("Redirect URL:", redirectUrl);
+
   const handleNavigationChange = (navState: any) => {
     const url = navState.url;
 
+    console.log("url", url);
     if (url.includes("payment-success")) {
       router.replace("/(stacks)/payment-success");
-    } else if (url.includes("payment-fail")) {
-      router.replace("/(stacks)/payment-fail");
+    } else if (url.includes("payment-error")) {
+      router.replace("/(tabs)");
     }
   };
 
