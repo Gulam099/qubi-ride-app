@@ -170,8 +170,8 @@ export default function AppointmentUpcomingList() {
     Object.keys(calendarAppointments).forEach((date) => {
       marked[date] = {
         marked: true,
-        dotColor: "#10B981",
-        selectedColor: date === selectedDate ? "#10B981" : undefined,
+        dotColor: "#000F8F",
+        selectedColor: date === selectedDate ? "#000F8F" : undefined,
       };
     });
 
@@ -180,7 +180,7 @@ export default function AppointmentUpcomingList() {
       marked[selectedDate] = {};
     }
     marked[selectedDate].selected = true;
-    marked[selectedDate].selectedColor = "#10B981";
+    marked[selectedDate].selectedColor = "#000F8F";
 
     return marked;
   }, [calendarAppointments, selectedDate]);
@@ -228,17 +228,17 @@ export default function AppointmentUpcomingList() {
   // Calendar theme
   const calendarTheme = useMemo(
     () => ({
-      selectedDayBackgroundColor: "#10B981",
+      selectedDayBackgroundColor: "#000F8F",
       selectedDayTextColor: "#ffffff",
-      todayTextColor: "#10B981",
+      todayTextColor: "#000F8F",
       dayTextColor: "#2d4150",
       textDisabledColor: "#d9e1e8",
-      dotColor: "#10B981",
+      dotColor: "#000F8F",
       selectedDotColor: "#ffffff",
-      arrowColor: "#10B981",
+      arrowColor: "#000F8F",
       disabledArrowColor: "#d9e1e8",
       monthTextColor: "#2d4150",
-      indicatorColor: "#10B981",
+      indicatorColor: "#000F8F",
       textDayFontFamily: "System",
       textMonthFontFamily: "System",
       textDayHeaderFontFamily: "System",
@@ -257,13 +257,13 @@ export default function AppointmentUpcomingList() {
           <TouchableOpacity
             key={tab}
             className={`flex-1 py-3 rounded-md ${
-              activeTab === tab ? "bg-green-600" : "bg-transparent"
+              activeTab === tab ? "bg-[#000F8F]" : "bg-transparent"
             }`}
             onPress={() => handleTabPress(tab as TabType)}
           >
             <Text
               className={`text-center font-medium ${
-                activeTab === tab ? "text-white" : "text-green-600"
+                activeTab === tab ? "text-white" : "text-[#000F8F]"
               }`}
             >
               {t(tab)}

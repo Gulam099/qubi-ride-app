@@ -197,8 +197,8 @@ export const SchedulePickerSheet = forwardRef<
           marks[dateKey] = {
             marked: true,
             selected: dateKey === selectedDate,
-            selectedColor: dateKey === selectedDate ? "#005153" : "#10B981",
-            dotColor: dateKey === selectedDate ? "#005153" : "#10B981",
+            selectedColor: dateKey === selectedDate ? "#8A00FA" : "#10B981",
+            dotColor: dateKey === selectedDate ? "#8A00FA" : "#10B981",
           };
         }
       });
@@ -460,13 +460,13 @@ export const SchedulePickerSheet = forwardRef<
                       }}
                       className="items-center justify-center w-10 h-10 rounded-full"
                       className={`w-10 h-10 rounded-full items-center justify-center ${
-                        isSelected ? "bg-green-500" : "bg-transparent"
+                        isSelected ? "bg-[#8A00FA]" : "bg-transparent"
                       }`}
                     >
                       <Text
                         className={`${
                           finalDisabled || state === "disabled"
-                            ? "#005153"
+                            ? "#8A00FA"
                             : isSelected
                             ? "text-white"
                             : isAvailable
@@ -547,7 +547,7 @@ export const SchedulePickerSheet = forwardRef<
                               }
                               className={`mb-2 ${
                                 isSelected
-                                  ? "bg-[#005153] border-[#005153]"
+                                  ? "bg-[#8A00FA] border-[#8A00FA]"
                                   : !canSelect &&
                                     selectedSlots.length >= numberOfSessions
                                   ? "bg-gray-100 border-gray-200 opacity-50"

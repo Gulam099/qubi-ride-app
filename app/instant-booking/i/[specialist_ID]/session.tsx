@@ -695,7 +695,7 @@ const InstantBookingContent = () => {
                           onPress={() => handleSlotSelection(slot.iso)}
                           className={`mx-1 mb-2 ${
                             isSelected
-                              ? "bg-[#005153] border-[#005153]"
+                              ? "bg-[#8A00FA] border-[#8A00FA]"
                               : "border-gray-300"
                           }`}
                           variant={isSelected ? "default" : "outline"}
@@ -759,7 +759,7 @@ const InstantBookingContent = () => {
 
         {/* Fee Calculation */}
         {selectedSlots.length > 0 && (
-          <View className="bg-gray-400 p-4 rounded-lg">
+          <View className="bg-[#8A00FA] p-4 rounded-lg">
             <Text className="font-semibold text-lg mb-2 text-white">
               {t("Fee Calculation")}
             </Text>

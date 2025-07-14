@@ -140,7 +140,7 @@ export default function SpecialistConsultantPage() {
       <View className="bg-white py-4 rounded-2xl items-center mt-2 relative">
         <View
           className="absolute w-full h-24"
-          style={{ backgroundColor: "#005153" }}
+          style={{ backgroundColor: "#000F8F" }}
         ></View>
         <ProfileImage
           imageUrl={specialistData?.data?.profile_picture ?? ""}

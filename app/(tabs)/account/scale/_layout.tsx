@@ -9,7 +9,7 @@ export default function ChatLayout() {
   return (
     <Stack
       screenOptions={{
-        headerBackVisible: true,
+        headerLeft: () => <BackButton className="mr-4" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: false,
       }}
