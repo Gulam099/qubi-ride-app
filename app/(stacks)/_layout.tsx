@@ -24,6 +24,16 @@ export default function StacksLayout() {
         }}
       />
       <Stack.Screen
+        name="joinroom/[roomId]/index"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("joinRoom")}
+            </Text>
+          ),
+        }}
+      />
+      <Stack.Screen
         name="notification/index"
         options={{
           headerTitle: () => (

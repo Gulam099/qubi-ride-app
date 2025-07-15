@@ -1,7 +1,9 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, Touchable } from "react-native";
-import { Heart, Share, Clock, Share2 } from "lucide-react-native"; // Replace with your icons library
+import { Share, Clock, Share2 } from "lucide-react-native"; // Replace with your icons library
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
+import { Heart } from "iconsax-react-native";
+
 import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
 import { EmptyWalletTick } from "iconsax-react-native";
@@ -15,6 +17,8 @@ type SpecialistCardProps = {
   imageUrl: string;
   shareLink: string;
   onPress: () => void;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
 };
 
 export default function SpecialistCard({
@@ -23,7 +27,9 @@ export default function SpecialistCard({
   price,
   likes,
   imageUrl,
+  isFavorited,
   shareLink,
+  onToggleFavorite,
   onPress,
 }: SpecialistCardProps) {
   return (
@@ -51,16 +57,20 @@ export default function SpecialistCard({
         {/* Price and Duration */}
         <View className="flex-row items-center gap-1">
           <Text className="text-gray-800 font-bold mr-2">
-            {price == 0  ?   "Free": currencyFormatter(price)}
+            {price == 0 ? "Free" : currencyFormatter(price)}
           </Text>
           <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8  flex justify-center items-center">
             <EmptyWalletTick size="16" color={colors.primary[900]} />
           </View>
 
           <Text className="text-gray-600 ml-1">{likes}</Text>
-          <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8  flex justify-center items-center">
-            <Heart size="16" color={colors.primary[900]} />
-          </View>
+          <TouchableOpacity onPress={onToggleFavorite}>
+            <Heart
+              size={20}
+              color={isFavorited ? "#FF0000" : "#9CA3AF"} // red if favorited, gray otherwise
+              variant={isFavorited ? "Bold" : "Linear"}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 

@@ -742,10 +742,10 @@ const InstantBookingContent = () => {
                     {bookedSlotsForDate.map((slot) => (
                       <View
                         key={slot.iso}
-                        className="bg-red-50 border border-red-200 px-3 py-2 rounded-md mx-1 mb-2"
+                        className="bg-[#8A00FA] border-[#8A00FA] px-3 py-2 rounded-md mx-1 mb-2"
                         style={{ minWidth: 90 }}
                       >
-                        <Text className="text-red-600 font-medium text-center text-sm">
+                        <Text className="text-white font-medium text-center text-sm">
                           {`${slot.startTime} - ${slot.endTime}`}
                         </Text>
                       </View>

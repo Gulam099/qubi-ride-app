@@ -154,7 +154,7 @@ export default function SpecialistConsultantPage() {
           {specialistData?.data?.specialization ?? "Specialist"}
         </Text>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md"
           onPress={
             isFavorited ? handleRemoveFromFavorites : handleAddToFavorites
@@ -165,7 +165,7 @@ export default function SpecialistConsultantPage() {
             color={isFavorited ? "#2563eb" : "#9ca3af"} // Blue or gray
             variant="Bold"
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View className="mt-4">
           <View className="flex-row w-full">

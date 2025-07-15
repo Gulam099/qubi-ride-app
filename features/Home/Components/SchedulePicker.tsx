@@ -591,14 +591,14 @@ export const SchedulePickerSheet = forwardRef<
                         {bookedSlotsForDate.map((slot) => (
                           <View
                             key={slot.iso}
-                            className="bg-red-50 border border-red-200 px-3 py-2 rounded-md"
+                            className="bg-[#8A00FA] border-[#8A00FA] px-3 py-2 rounded-md"
                             style={{
                               minWidth: 90,
                               marginRight: 8,
                               marginBottom: 8,
                             }}
                           >
-                            <Text className="text-red-600 font-medium text-center">
+                            <Text className="text-white font-medium text-center">
                               {`${slot.startTime} - ${slot.endTime}`}
                             </Text>
                           </View>
