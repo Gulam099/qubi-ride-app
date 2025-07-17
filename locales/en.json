@@ -183,9 +183,10 @@
 "psychic": "Psychic",
 "download": "Download",
 "totalCost": "Total Cost",
-"programPrice": "Program Price",
+"programPrice": "Sessions Price",
 "paidBy": "Paid By",
-
+"AM": "AM",
+"PM": "PM",
 "addNewMember": "Add a new member",
 "name": "Name",
 "namePlaceholder": "Enter name",

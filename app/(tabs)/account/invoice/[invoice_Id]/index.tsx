@@ -111,7 +111,7 @@ export default function InvoiceIdPerPage() {
                   {invoice.doctorId?.full_name}
                 </Text>
                 <Text className="text-sm text-gray-800 font-medium">
-                  {t("paymentId")}: {invoice._id}
+                  {t("paymentId")}: {invoice.paymentId}
                 </Text>
               </View>
 
@@ -209,7 +209,7 @@ export default function InvoiceIdPerPage() {
               <View className="gap-3">
                 {/* Program Price */}
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-gray-600">{t("Program price")}:</Text>
+                  <Text className="text-sm text-gray-600">{t("programPrice")}:</Text>
                   <Text className="text-sm text-gray-800 font-medium">
                     {invoice.amount} SAR
                   </Text>
@@ -233,15 +233,13 @@ export default function InvoiceIdPerPage() {
                   </Text>
                 </View>
 
-                <Separator />
-
                 {/* Paid By */}
-                <View className="flex-row justify-between items-center">
+                {/* <View className="flex-row justify-between items-center">
                   <Text className="text-sm text-gray-600">{t("paidBy")}:</Text>
                   <Text className="text-sm text-gray-800 font-medium">
-                    {/* {invoice.userId?.name} */}{t("Visa")}
+                    {invoice.userId?.name}{t("Visa")}
                   </Text>
-                </View>
+                </View> */}
               </View>
             </View>
           </>

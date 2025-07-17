@@ -49,7 +49,8 @@
   "What type of consultation do you need?": "ما نوع الاستشارة التي تحتاجها؟",
   "Immediate sessions with a specialist": "جلسات فورية مع أخصائي",
   "Book your appointment with the appropriate specialist for you": "احجز موعدك مع الأخصائي المناسب لك",
-
+  "AM": "ص",
+  "PM": "م",
   "Home": "الصفحة الرئيسية",
   "Program": "البرنامج",
   "Library": "المكتبة",

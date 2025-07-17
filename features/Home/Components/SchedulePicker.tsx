@@ -17,6 +17,7 @@ import BottomSheet, {
 import { useQuery } from "@tanstack/react-query";
 import { ApiUrl } from "@/const";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 type SchedulePickerSheetRef = {
   open: () => void;
@@ -256,6 +257,15 @@ export const SchedulePickerSheet = forwardRef<
       return bookedSlots.flatMap((booking: any) => booking?.selectedSlots);
     }, [bookedSlots]);
 
+    const localizeAMPM = (timeString: string) => {
+      if (!timeString) return "";
+
+      if (i18n.language === "ar") {
+        return timeString.replace("AM", "ص").replace("PM", "م");
+      }
+
+      return timeString;
+    };
     // ✅ Generate time slots for selected date
     const { availableSlots, bookedSlots: bookedSlotsForDate } = useMemo(() => {
       if (
@@ -570,7 +580,7 @@ export const SchedulePickerSheet = forwardRef<
                                     : "text-gray-700"
                                 }`}
                               >
-                                {`${slot.startTime} - ${slot.endTime}`}
+                                {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                               </Text>
                             </Button>
                           );
@@ -599,7 +609,7 @@ export const SchedulePickerSheet = forwardRef<
                             }}
                           >
                             <Text className="text-white font-medium text-center">
-                              {`${slot.startTime} - ${slot.endTime}`}
+                              {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                             </Text>
                           </View>
                         ))}

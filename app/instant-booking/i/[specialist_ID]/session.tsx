@@ -15,6 +15,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { format, isBefore, addMinutes, parse, isSameDay } from "date-fns";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 const InstantBookingContent = () => {
   const router = useRouter();
@@ -180,6 +181,16 @@ const InstantBookingContent = () => {
 
     return true;
   };
+
+  const localizeAMPM = (timeString: string) => {
+      if (!timeString) return "";
+
+      if (i18n.language === "ar") {
+        return timeString.replace("AM", "ص").replace("PM", "م");
+      }
+
+      return timeString;
+    };
 
   const { availableSlots, bookedSlotsForDate } = useMemo(() => {
     if (!selectedDate || !doctorSchedule) {
@@ -715,7 +726,7 @@ const InstantBookingContent = () => {
                                 : "text-gray-700"
                             }`}
                           >
-                            {`${slot.startTime} - ${slot.endTime}`}
+                            {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                           </Text>
                         </Button>
                       );
@@ -746,7 +757,7 @@ const InstantBookingContent = () => {
                         style={{ minWidth: 90 }}
                       >
                         <Text className="text-white font-medium text-center text-sm">
-                          {`${slot.startTime} - ${slot.endTime}`}
+                          {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                         </Text>
                       </View>
                     ))}

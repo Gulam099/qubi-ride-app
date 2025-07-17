@@ -59,41 +59,37 @@ export default function PaymentsList() {
   );
 }
 
-// 🔸 Pending Payment Card
-const PendingPaymentCard = ({ item }: any) => (
-  <View className="bg-white p-4 mb-3 rounded-xl shadow-sm border border-gray-100">
-    <View className="flex-row justify-between mb-2">
-      <Text className="text-lg font-semibold text-gray-800">
-        {item.description}
-      </Text>
-      <Text className="text-base font-medium text-blue-600">
-        {item.amount} {item.currency}
-      </Text>
-    </View>
-    <Text className="text-sm text-gray-600 mb-1">
-      {t("bookingType")}: {item.bookingType}
-    </Text>
-    <Text className="text-sm text-gray-500">
-      {t("createdAt")}:{" "}
-      {format(new Date(item.createdAt), "dd MMM yyyy, hh:mm a")}
-    </Text>
-    <View className="mt-2 self-start px-3 py-1 rounded-full bg-yellow-50 border border-yellow-300">
-      <Text className="text-xs font-medium text-yellow-600 capitalize">
-        {item.status}
-      </Text>
-    </View>
-  </View>
-);
-
 // 🔸 Invoice Card
 const InvoiceCard = ({ invoice }: any) => {
   const router = useRouter();
 
-  const handlePress = () => {
+  const handlePress = async () => {
     if (invoice.status === "paid") {
       router.push(`/account/invoice/${invoice._id}`);
     } else if (invoice.status === "pending") {
-      router.push(`/payment/${invoice._id}`);
+      try {
+        const response = await fetch(`${ApiUrl}/api/payments/${invoice._id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const result = await response.json();
+
+        console.log("result",result)
+        if (response.ok && result?.redirectUrl) {
+          // ✅ Redirect user to payment WebView
+          router.push(
+            `/(stacks)/fatoorah/MyFatoorahWebView?redirectUrl=${encodeURIComponent(
+              result.redirectUrl
+            )}`
+          );
+        } else {
+          alert(result?.error || "Redirect URL not found");
+        }
+      } catch (err) {
+        console.error("Redirect error", err);
+        alert("Something went wrong. Try again.");
+      }
     }
   };
 
