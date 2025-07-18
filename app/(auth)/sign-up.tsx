@@ -126,8 +126,8 @@ export default function Page() {
   };
 
   return (
-    <SafeAreaView>
-      <View className="bg-blue-50/40 w-full py-24">
+    <SafeAreaView className="bg-blue-50/40 w-full">
+      <View>
         <View className="absolute top-16 z-50 flex flex-row w-full justify-between">
           <LangToggleButton className="rounded-none rounded-r-full px-8 w-24" />
         </View>

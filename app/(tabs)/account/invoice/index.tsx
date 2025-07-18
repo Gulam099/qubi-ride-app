@@ -96,11 +96,11 @@ const InvoiceCard = ({ invoice }: any) => {
   const getStatusStyle = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-green-50/50 text-green-500";
+        return "bg-[#DDF9E5] text-green-500";
       case "pending":
-        return "bg-blue-50/50 text-blue-500";
+        return "bg-[#D2F7F8] text-green-500";
       case "cancel":
-        return "bg-red-100/50 text-red-500";
+        return "bg-[#F8D2D2] text-red-500";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -123,7 +123,7 @@ const InvoiceCard = ({ invoice }: any) => {
             {invoice.doctorId?.full_name}
           </Text>
           <Text className="text-sm text-gray-600">
-            {t("typeConsultation")} : {t("psychic")}
+            {t("typeConsultation")} : {invoice.doctorId?.specialization}
           </Text>
           <Text className="text-sm text-gray-600">
             {t("paymentId")} : {invoice.paymentId}

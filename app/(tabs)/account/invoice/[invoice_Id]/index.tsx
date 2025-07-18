@@ -102,7 +102,9 @@ export default function InvoiceIdPerPage() {
             <View className="items-start justify-start flex-row gap-3">
               <View className="flex-1 flex-col gap-2">
                 <View className="flex justify-center items-center">
-                  <Logo size={100} />
+                  <View>
+                    <Logo size={150} />
+                  </View>
                 </View>
                 <Text className="font-semibold text-lg text-gray-800">
                   {invoice.description}
@@ -115,7 +117,7 @@ export default function InvoiceIdPerPage() {
                 </Text>
               </View>
 
-              <View className="flex-col justify-end items-end gap-1">
+              <View className="flex-col justify-end items-end gap-1 absolute right-0">
                 <Text
                   className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${getStatusStyle(
                     invoice.status
@@ -140,7 +142,9 @@ export default function InvoiceIdPerPage() {
               <View className="gap-3">
                 {/* Day */}
                 <View className="flex-row items-start justify-between gap-2">
-                  <Text className="text-sm text-gray-600">{t("sessionDay")}:</Text>
+                  <Text className="text-sm text-gray-600">
+                    {t("sessionDay")}:
+                  </Text>
                   <View className="flex-1 items-end">
                     {invoice.booking.selectedSlots.length > 0 ? (
                       invoice.booking.selectedSlots.map((slot, index) => (
@@ -153,7 +157,7 @@ export default function InvoiceIdPerPage() {
                       ))
                     ) : (
                       <Text className="text-sm text-gray-800 font-medium">
-                       {t("notAvailable")}
+                        {t("notAvailable")}
                       </Text>
                     )}
                   </View>
@@ -161,7 +165,9 @@ export default function InvoiceIdPerPage() {
 
                 {/* Time */}
                 <View className="flex-row items-start justify-between gap-2 mt-1">
-                  <Text className="text-sm text-gray-600">{t("sessionTime")}:</Text>
+                  <Text className="text-sm text-gray-600">
+                    {t("sessionTime")}:
+                  </Text>
                   <View className="flex-1 items-end">
                     {invoice.booking.selectedSlots.length > 0 ? (
                       invoice.booking.selectedSlots.map((slot, index) => (
@@ -174,7 +180,7 @@ export default function InvoiceIdPerPage() {
                       ))
                     ) : (
                       <Text className="text-sm text-gray-800 font-medium">
-                       {t("notAvailable")}
+                        {t("notAvailable")}
                       </Text>
                     )}
                   </View>
@@ -182,7 +188,9 @@ export default function InvoiceIdPerPage() {
 
                 {/* Sessions */}
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-gray-600">{t("Number of sessions")}:</Text>
+                  <Text className="text-sm text-gray-600">
+                    {t("Number of sessions")}:
+                  </Text>
                   <Text className="text-sm text-gray-800 font-medium">
                     {invoice.booking.numberOfSessions || "One session"}
                   </Text>
@@ -190,7 +198,9 @@ export default function InvoiceIdPerPage() {
 
                 {/* Duration */}
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-gray-600">{t("sessionDuration")}:</Text>
+                  <Text className="text-sm text-gray-600">
+                    {t("sessionDuration")}:
+                  </Text>
                   <Text className="text-sm text-gray-800 font-medium">
                     {invoice.booking.duration}
                   </Text>
@@ -209,7 +219,9 @@ export default function InvoiceIdPerPage() {
               <View className="gap-3">
                 {/* Program Price */}
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-gray-600">{t("programPrice")}:</Text>
+                  <Text className="text-sm text-gray-600">
+                    {t("programPrice")}:
+                  </Text>
                   <Text className="text-sm text-gray-800 font-medium">
                     {invoice.amount} SAR
                   </Text>
@@ -229,7 +241,8 @@ export default function InvoiceIdPerPage() {
                     Total cost:
                   </Text>
                   <Text className="text-sm text-gray-800 font-semibold">
-                    {Math.round(invoice.amount * 1.15)}{t("SAR")}
+                    {Math.round(invoice.amount * 1.15)}
+                    {t("SAR")}
                   </Text>
                 </View>
 
