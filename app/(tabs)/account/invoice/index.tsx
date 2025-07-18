@@ -98,7 +98,7 @@ const InvoiceCard = ({ invoice }: any) => {
       case "paid":
         return "bg-[#DDF9E5] text-green-500";
       case "pending":
-        return "bg-[#D2F7F8] text-green-500";
+        return "bg-[#D2F7F8] text-blue-500";
       case "cancel":
         return "bg-[#F8D2D2] text-red-500";
       default:

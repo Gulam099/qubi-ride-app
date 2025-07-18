@@ -80,7 +80,7 @@ const SwitchNative = forwardRef<
       <SwitchPrimitives.Root
         className={cn(
           "flex-row h-8 w-[46px] shrink-0 items-center rounded-full border-2 border-transparent",
-          props.checked ? "bg-[#8A00FA]" : "bg-input",
+          props.checked ? "bg-[#000F8F]" : "bg-input",
           className
         )}
         {...props}
