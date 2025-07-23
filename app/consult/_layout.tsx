@@ -7,7 +7,7 @@ import BackButton from "@/features/Home/Components/BackButton";
 import { useTranslation } from "react-i18next";
 
 export default function ConsultLayout() {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <Stack
@@ -15,13 +15,20 @@ export default function ConsultLayout() {
         headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: true,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "#666666",
+        },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg"> {t("Schedule booking")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {" "}
+              {t("Schedule booking")}
+            </Text>
           ),
         }}
       />
@@ -29,7 +36,10 @@ export default function ConsultLayout() {
         name="s/[specialist_Id]/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg"> {t("Specialist Details")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {" "}
+              {t("Specialist Details")}
+            </Text>
           ),
         }}
       />
@@ -37,7 +47,9 @@ export default function ConsultLayout() {
         name="s/[specialist_Id]/session"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("Schedule Appointment")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {t("Schedule Appointment")}
+            </Text>
           ),
         }}
       />

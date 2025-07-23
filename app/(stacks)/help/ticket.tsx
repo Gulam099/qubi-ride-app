@@ -14,6 +14,7 @@ import { UserType } from "@/features/user/types/user.type";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
 import { Buffer } from "buffer";
+import { useTranslation } from "react-i18next";
 
 
 export default function TicketPage() {
@@ -24,6 +25,7 @@ export default function TicketPage() {
   const userId = user?.publicMetadata.dbPatientId as string;
   const [tickets, setTickets] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const {
     control,
@@ -52,7 +54,7 @@ export default function TicketPage() {
         }
       } catch (error) {
         console.error("Error fetching tickets:", error);
-        toast.error("Error loading tickets.");
+        toast.error(t("errorLoadingTickets"));
       } finally {
         setLoading(false);
       }
@@ -92,22 +94,22 @@ export default function TicketPage() {
 
       if (response.ok && result.success) {
         setTickets((prev) => [...prev, result.data]);
-        toast.success("Ticket Created Successfully");
+        toast.success(t("ticketCreated"));
         setShowForm(false);
         reset();
       } else {
         throw new Error(result.message || "Failed to create ticket.");
       }
     } catch (error) {
-      console.error("Error creating ticket:", error);
-      toast.error("Error creating ticket.");
+      console.error(t("ticketFailed"), error);
+      toast.error(t("ticketFailed"));
     }
   };
 
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <Text className="text-gray-500">{t("loadingTickets")}</Text>
       </View>
     );
   }
@@ -209,12 +211,12 @@ export default function TicketPage() {
 
   return (
     <View className="p-4 bg-blue-50/20 h-full">
-      <Text className="font-bold text-lg mb-4">Tickets</Text>
+      <Text className="font-bold text-lg mb-4">{t("tickets")}</Text>
       {tickets.length === 0 ? (
         <View className="items-center justify-center flex-1">
-          <Text className="text-blue-500 mb-4">No previous tickets</Text>
+          <Text className="text-blue-500 mb-4">{t("noTickets")}</Text>
           <Button onPress={handleAddNewTicket}>
-            <Text className="text-white font-bold">Open a New Ticket</Text>
+            <Text className="text-white font-bold">{t("openNewTicket")}</Text>
           </Button>
         </View>
       ) : (
@@ -235,13 +237,13 @@ export default function TicketPage() {
                   </Badge>
                 </View>
                 <Separator />
-                <Text className="text-sm mb-1">Ticket Type: {item.type}</Text>
-                <Text className="text-sm">Ticket Subject: {item.subject}</Text>
+                <Text className="text-sm mb-1">{t("ticketType")}: {item.type}</Text>
+                <Text className="text-sm">{t("ticketSubject")}: {item.subject}</Text>
               </View>
             )}
           />
           <Button onPress={handleAddNewTicket} className="mt-4">
-            <Text className="text-white font-bold">Add New Ticket</Text>
+            <Text className="text-white font-bold">{t("addNewTicket")}</Text>
           </Button>
         </>
       )}

@@ -15,13 +15,17 @@ export default function InvoiceLayout() {
         headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: true,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "#666666",
+        },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("invoices")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("invoices")}</Text>
           ),
         }}
       />
@@ -29,7 +33,7 @@ export default function InvoiceLayout() {
         name="[invoice_Id]/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("invoiceDetails")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("invoiceDetails")}</Text>
           ),
         }}
       />

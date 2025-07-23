@@ -7,12 +7,26 @@ export default function StacksLayout() {
     const { t } = useTranslation();
   
   return (
-    <Stack screenOptions={{ headerShown: true }}>
+    <Stack screenOptions={{
+       headerShown: true,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "#666666",
+        },
+        }}>
       <Stack.Screen
         name="notification/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("notification")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("notification")}</Text>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="help/ticket"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg text-white">{t("tickets")}</Text>
           ),
         }}
       />

@@ -154,10 +154,10 @@ export default function AccountPage() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.primary[800] }}>
+    <View style={{ flex: 1, backgroundColor: "#005153"}}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={colors.primary[800]}
+        backgroundColor="#005153"
       />
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <ScrollView
@@ -166,7 +166,9 @@ export default function AccountPage() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header Section */}
-          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8">
+          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8"
+          style={{ backgroundColor: "#005153" }}
+          >
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-white ">
@@ -183,7 +185,8 @@ export default function AccountPage() {
             </View>
 
             <Button
-              className="bg-primary-700 p-2 rounded-2xl aspect-square"
+              className="p-2 rounded-2xl aspect-square"
+              style={{ backgroundColor: "#005153" }}
               onPress={() => router.push("/account/profile")}
             >
               <Edit size="24" color={colors.gray[100]} />
@@ -203,7 +206,7 @@ export default function AccountPage() {
                     key={section.title}
                     className="flex flex-col gap-4 py-4"
                   >
-                    <H4 className=" text-[20px] font-normal font-semibold text-gray-800">
+                    <H4 className="font-semibold text-gray-800">
                       {section.title}
                     </H4>
                     <View className="flex flex-row flex-wrap gap-4">

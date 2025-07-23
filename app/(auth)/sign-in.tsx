@@ -95,7 +95,7 @@ export default function Page() {
         </View>
         <View className="bg-background h-full pt-16 rounded-t-[50px] px-4 gap-6">
           <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
-           {t("welcomeBack")}
+            {t("welcomeBack")}
           </Text>
           {!verifying ? (
             <>
@@ -107,11 +107,29 @@ export default function Page() {
                 customCaret={
                   <ArrowDown2 variant="Bold" size="16" color="#000" />
                 }
+                phoneInputStyles={{
+                  container: {
+                    flexDirection: "row",
+                  },
+                  input: {
+                    direction: "ltr",
+                    writingDirection: "ltr",
+                    // textAlign: 'left',
+                    fontSize: 16,
+                    color: "#000",
+                  },
+                }}
                 language={language}
                 defaultCountry="SA"
               />
-              <Button onPress={onSignInPress}>
-                <Text className="text-secondary font-semibold">{t("continue")}</Text>
+              <Button
+                onPress={onSignInPress}
+                className="rounded-xl py-3 px-4"
+                style={{ backgroundColor: "#005153" }}
+              >
+                <Text className="text-secondary font-semibold">
+                  {t("continue")}
+                </Text>
               </Button>
             </>
           ) : (
@@ -121,7 +139,7 @@ export default function Page() {
               </Text>
               <TouchableOpacity onPress={() => setVerifying(false)}>
                 <Text className="text-blue-600 underline">
-                 {t("verificationSentTo", { phone })}
+                  {t("verificationSentTo", { phone })}
                 </Text>
               </TouchableOpacity>
               <OtpInput
@@ -133,11 +151,29 @@ export default function Page() {
                     width: 60,
                     backgroundColor: "white",
                   },
+                  pinCodeTextStyle: {
+                    direction: "ltr",
+                    writingDirection: "ltr",
+                    textAlign: "left",
+                    fontSize: 20,
+                    color: "#000",
+                  },
+                  // Optional: to help see where RTL might still apply
+                  containerStyle: {
+                    flexDirection: "row",
+                    direction: "ltr",
+                  },
                 }}
               />
 
-              <Button onPress={handleVerification}>
-                <Text className="text-secondary font-semibold">{t("verifyOtp")}</Text>
+              <Button
+                onPress={handleVerification}
+                className="rounded-xl py-3 px-4"
+                style={{ backgroundColor: "#005153" }}
+              >
+                <Text className="text-secondary font-semibold">
+                  {t("verifyOtp")}
+                </Text>
               </Button>
               {/* <Button
             variant="outline"

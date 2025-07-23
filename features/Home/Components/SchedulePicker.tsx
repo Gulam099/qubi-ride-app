@@ -197,8 +197,8 @@ export const SchedulePickerSheet = forwardRef<
           marks[dateKey] = {
             marked: true,
             selected: dateKey === selectedDate,
-            selectedColor: dateKey === selectedDate ? "#1E3A8A" : "#10B981",
-            dotColor: dateKey === selectedDate ? "#1E3A8A" : "#10B981",
+            selectedColor: dateKey === selectedDate ? "#005153" : "#10B981",
+            dotColor: dateKey === selectedDate ? "#005153" : "#10B981",
           };
         }
       });
@@ -459,18 +459,14 @@ export const SchedulePickerSheet = forwardRef<
                         }
                       }}
                       className="items-center justify-center w-10 h-10 rounded-full"
-                      variant={
-                        isSelected
-                          ? "default"
-                          : isAvailable && !finalDisabled
-                          ? "outline"
-                          : "ghost"
-                      }
+                      className={`w-10 h-10 rounded-full items-center justify-center ${
+                        isSelected ? "bg-green-500" : "bg-transparent"
+                      }`}
                     >
                       <Text
                         className={`${
                           finalDisabled || state === "disabled"
-                            ? "text-gray-300"
+                            ? "#005153"
                             : isSelected
                             ? "text-white"
                             : isAvailable
@@ -551,7 +547,7 @@ export const SchedulePickerSheet = forwardRef<
                               }
                               className={`mb-2 ${
                                 isSelected
-                                  ? "bg-blue-600 border-blue-600"
+                                  ? "bg-[#005153] border-[#005153]"
                                   : !canSelect &&
                                     selectedSlots.length >= numberOfSessions
                                   ? "bg-gray-100 border-gray-200 opacity-50"
@@ -574,7 +570,7 @@ export const SchedulePickerSheet = forwardRef<
                                     : "text-gray-700"
                                 }`}
                               >
-                                {slot.formattedTime}
+                                {`${slot.startTime} - ${slot.endTime}`}
                               </Text>
                             </Button>
                           );
@@ -603,7 +599,7 @@ export const SchedulePickerSheet = forwardRef<
                             }}
                           >
                             <Text className="text-red-600 font-medium text-center">
-                              {slot.formattedTime}
+                              {`${slot.startTime} - ${slot.endTime}`}
                             </Text>
                           </View>
                         ))}

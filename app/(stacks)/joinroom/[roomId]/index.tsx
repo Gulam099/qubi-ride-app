@@ -287,42 +287,84 @@ const JoinRoom = () => {
 
   // Redirect to payment page
   const redirectToPayment = async () => {
-    if (roomData && roomData.instant === true) {
-      try {
-        setPaymentLoading(true);
-        const paymentId = await createPayment();
+  if (roomData && roomData.instant === true) {
+    try {
+      setPaymentLoading(true);
 
-        const bookingData = {
-          userId: roomData.patientId,
-          doctorId: roomData.doctorId,
-          selectedDateTime: roomData.scheduledAt,
-          sessionDuration: roomData.duration || 30,
-          numberOfSessions: 1,
-        };
+      const userId = roomData?.patientId ?? roomData?.patient?._id;
+      const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
 
-        const queryParams = new URLSearchParams({
-          userId: bookingData.userId,
-          doctorId: bookingData.doctorId,
-          selectedDateTime: bookingData.selectedDateTime,
-          sessionDuration: bookingData.sessionDuration.toString(),
-          numberOfSessions: bookingData.numberOfSessions.toString(),
-          bookingId: roomData.bookingId || "",
-          totalFee: totalFee,
-          instant: "true",
-        }).toString();
+      const paymentPayload = {
+        userId,
+        doctorId,
+        amount: totalFee,
+        currency: t("SAR"),
+        description: t("medical_consultation_session"),
+        status: "initiated",
+        bookingId: roomData?.bookingId,
+        bookingType: t("Instant"),
+      };
 
-        router.push(`/(stacks)/paymentpage/${paymentId}?${queryParams}`);
-      } catch (error) {
-        console.error("Payment creation failed:", error);
-        Alert.alert(
-          "Payment Error",
-          "Failed to create payment. Please try again.",
-          [{ text: "OK" }]
-        );
-        setPaymentLoading(false);
+      const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(paymentPayload),
+      });
+
+      const paymentResult = await paymentResponse.json();
+
+      if (!paymentResponse.ok) {
+        throw new Error(paymentResult?.message || "Payment creation failed.");
       }
+
+      const paymentId = paymentResult?.payment?.internalPaymentId;
+      if (!paymentId) throw new Error("Payment ID missing.");
+
+      // ✅ Get redirect URL
+      const processResponse = await fetch(
+        `${apiNewUrl}/api/payments/${paymentId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const processResult = await processResponse.json();
+      if (!processResponse.ok)
+        throw new Error(processResult?.error || "Payment processing failed.");
+
+      const redirectUrl = processResult?.redirectUrl;
+      if (!redirectUrl) throw new Error("Redirect URL not found.");
+
+      // Build query params
+      const queryParams = new URLSearchParams({
+        userId: userId,
+        doctorId: doctorId,
+        selectedDateTime: roomData.scheduledAt,
+        sessionDuration: (roomData.duration || 30).toString(),
+        numberOfSessions: "1",
+        totalFee: totalFee.toString(),
+        bookingId: roomData.bookingId || "",
+        redirectUrl,
+        instant: "true",
+      }).toString();
+
+      router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
+    } catch (error) {
+      console.error("Payment creation failed:", error);
+      Alert.alert(
+        "Payment Error",
+        "Failed to create payment. Please try again.",
+        [{ text: "OK" }]
+      );
+      setPaymentLoading(false);
     }
-  };
+  }
+};
 
   // Format time display
   const formatTime = (seconds) => {

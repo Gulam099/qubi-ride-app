@@ -318,7 +318,8 @@ export default function ProfilePage() {
           )}
         </View>
 
-        <Button className="bg-purple-500 mt-4" onPress={handleSubmit(onSubmit)}>
+        <Button className="mt-4" onPress={handleSubmit(onSubmit)}
+        style={{ backgroundColor: "#005153" }}>
           <Text className="text-white font-semibold">{t("Update")}</Text>
         </Button>
       </View>

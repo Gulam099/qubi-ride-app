@@ -74,13 +74,13 @@ function FamilyPage() {
           phoneNumber,
           familyMemberId: currentMember._id,
         });
-        toast.success("Family member updated successfully");
+        toast.success(t("familyUpdated"));
       } else {
         await axios.post(`${ApiUrl}/api/add-family-member`, {
           ...data,
           phoneNumber,
         });
-        toast.success("Family member added successfully");
+        toast.success(t("familyAdded"));
       }
 
       const res = await axios.get(`${ApiUrl}/api/user/${phoneNumber}/family`);
@@ -100,7 +100,7 @@ function FamilyPage() {
       AddFamilyMemberFormBottomSheetRef.current?.close();
     } catch (error) {
       console.error("Error saving family member:", error);
-      toast.error("Error saving family member");
+      toast.error(t("familySaveError"));
     }
   };
 
@@ -123,10 +123,10 @@ function FamilyPage() {
         },
       });
 
-      toast.success("Deleted family member");
+      toast.success(t("familyDeleted"));
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("Failed to delete family member");
+      toast.error(t("familyDeleteError"));
     }
   };
 
@@ -142,7 +142,7 @@ function FamilyPage() {
     setShowRelationshipDropdown(false);
   };
 
-  const ListHeaderComponent = () => (
+  const ListFooterComponent = () => (
     <Button
       className="mb-4 w-full"
       onPress={() => {
@@ -184,7 +184,7 @@ function FamilyPage() {
           flexGrow: 1 
         }}
         renderItem={renderFamilyMember}
-        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
         ListEmptyComponent={ListEmptyComponent}
         showsVerticalScrollIndicator={false}
       />

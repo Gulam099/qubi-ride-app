@@ -7,21 +7,27 @@ import BackButton from "@/features/Home/Components/BackButton";
 import { useTranslation } from "react-i18next";
 
 export default function InstantBookingLayout() {
-    const { t } = useTranslation();
-  
+  const { t } = useTranslation();
+
   return (
     <Stack
       screenOptions={{
         headerBackVisible: true,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: true,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "#666666",
+        },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("Instant booking")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {t("Instant booking")}
+            </Text>
           ),
         }}
       />
@@ -29,7 +35,9 @@ export default function InstantBookingLayout() {
         name="i/[specialist_ID]/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("Specialist Details")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {t("Specialist Details")}
+            </Text>
           ),
         }}
       />
@@ -37,7 +45,9 @@ export default function InstantBookingLayout() {
         name="i/[specialist_ID]/session"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("Instant Appointment")}</Text>
+            <Text className="font-semibold text-lg text-white">
+              {t("Instant Appointment")}
+            </Text>
           ),
         }}
       />

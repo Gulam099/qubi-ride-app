@@ -16,6 +16,10 @@ export default function AccountLayout() {
         headerBackButtonDisplayMode: "generic",
         headerBackVisible: true,
         headerShadowVisible: true,
+        headerTintColor: "white",
+        headerStyle: {
+          backgroundColor: "#666666",
+        },
         headerRight: () => <NotificationIconButton className="mr-4" />,
       }}
     >
@@ -25,28 +29,28 @@ export default function AccountLayout() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="notification/index"
          options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">{t("notifications")}</Text>
           ),
         }}
-      />
+      /> */}
 
       <Stack.Screen
         name="calendar/index"
-         options={{
+        options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("calendar")}</Text>
+            <Text className="font-semibold text-lg" >{t("calendar")}</Text>
           ),
         }}
       />
       <Stack.Screen
         name="appointment/index"
-         options={{
+        options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("appointments")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("appointments")}</Text>
           ),
         }}
       />
@@ -54,15 +58,15 @@ export default function AccountLayout() {
         name="favorite/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("favorites")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("favorites")}</Text>
           ),
         }}
       />
       <Stack.Screen
         name="family/index"
-         options={{
+        options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("family")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("family")}</Text>
           ),
         }}
       />
@@ -70,7 +74,7 @@ export default function AccountLayout() {
         name="profile/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("profile")}</Text>
+            <Text className="font-semibold text-lg text-white">{t("profile")}</Text>
           ),
         }}
       />
@@ -85,9 +89,9 @@ export default function AccountLayout() {
       />
       <Stack.Screen
         name="report/index"
-         options={{
+        options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">
+            <Text className="font-semibold text-lg text-white">
               {t("profileVerificationCode")}
             </Text>
           ),
@@ -96,7 +100,9 @@ export default function AccountLayout() {
       <Stack.Screen
         name="setting/index"
         options={{
-          headerTitle: () => <Text className="font-semibold text-lg ">{t("settings")}</Text>,
+          headerTitle: () => (
+            <Text className="font-semibold text-lg text-white ">{t("settings")}</Text>
+          ),
         }}
       />
       {/* <Stack.Screen

@@ -11,11 +11,13 @@ import axios from "axios";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import { FlatList } from "react-native";
 import { Text } from "react-native";
@@ -34,6 +36,7 @@ function ChatScreen() {
   const { id, name, canChat } = useLocalSearchParams();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = id as string;
@@ -118,8 +121,8 @@ function ChatScreen() {
   const fetchChats = async () => {
     try {
       if (!userId) {
-          return;
-        }
+        return;
+      }
       const res = await axios.post(
         `${apiNewUrl}/api/doctor/chat/getUserChats`,
         {
@@ -127,6 +130,7 @@ function ChatScreen() {
         }
       );
 
+      console.log('res',res)
       // Find the chat between this patient and the specific doctor
       const chat = res?.data?.chats?.find(
         (c) => c?.doctorId?._id === doctorId || c?.doctorId === doctorId
@@ -143,6 +147,7 @@ function ChatScreen() {
               name: msg.role === "doctor" ? "Doctor" : "Patient",
               avatar: msg.imageUrl || undefined,
             },
+            image: msg.imageUrl || undefined,
           }))
           .sort(
             (a, b) =>
@@ -290,37 +295,151 @@ function ChatScreen() {
         </View>
       );
     }
-
+    const isMyMessage = item.user._id === userId;
+    const hasImageOnly = item.image && !item.text;
     // Render message
     return (
       <View
         style={[
           styles.messageBubble,
-          item.user._id === userId ? styles.myMessage : styles.otherMessage,
+          isMyMessage ? styles.myMessage : styles.otherMessage,
+          hasImageOnly && styles.imageOnlyBubble,
         ]}
       >
+        {item.image && (
+          <Image
+            source={{ uri: item.image }}
+            style={styles.messageImage}
+            resizeMode="cover"
+          />
+        )}
+        {item.text && (
+          <Text
+            style={[
+              styles.messageText,
+              isMyMessage ? styles.myMessageText : styles.otherMessageText,
+            ]}
+          >
+            {item.text}
+          </Text>
+        )}
         <Text
           style={[
-            styles.messageText,
-            item.user._id === userId
-              ? styles.myMessageText
-              : styles.otherMessageText,
-          ]}
-        >
-          {item.text}
-        </Text>
-        <Text
-          style={[
-            styles.timestamp,
-            item.user._id === userId
-              ? styles.myTimestamp
-              : styles.otherTimestamp,
+             styles.timestamp,
+          isMyMessage ? styles.myTimestamp : styles.otherTimestamp,
           ]}
         >
           {formatTime(item.createdAt)}
         </Text>
       </View>
     );
+  };
+
+  const handlePickImage = async () => {
+    if (!isChatAllowed) {
+      Alert.alert("Chat Disabled", "You cannot send images in this chat.");
+      return;
+    }
+
+    try {
+      // Request permissions
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Sorry, we need camera roll permissions to make this work!"
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const image = result.assets[0];
+        const uri = image.uri;
+        const name = uri.split("/").pop() || `image_${Date.now()}.jpg`;
+        const match = /\.(\w+)$/.exec(name);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        const formData = new FormData();
+        formData.append("userId", userId);
+        formData.append("doctorId", doctorId);
+        formData.append("senderId", userId);
+        formData.append("image", {
+          uri,
+          name,
+          type,
+        } as any);
+
+        setIsUploading(true);
+
+        try {
+          const res = await axios.post(
+            `${apiNewUrl}/api/doctor/chat/addChat`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              timeout: 30000, // 30 seconds timeout
+            }
+          );
+
+          const msg = res.data?.chat?.messages?.slice(-1)[0];
+          const uploadedUrl = res.data?.imageUrl;
+          if (msg) {
+            const formatted = {
+              _id: `${Date.now()}-${Math.random()}`,
+              text: msg.text || "",
+              createdAt: new Date(msg.createdAt || Date.now()),
+              user: {
+                _id: msg.senderId,
+                name: msg.role === "doctor" ? "Doctor" : "Patient",
+                avatar: uploadedUrl,
+              },
+              image: uploadedUrl,
+              isUploading: true,
+            };
+
+            setMessages((prev) => {
+              const messagesOnly = prev.filter(
+                (item) => item.type !== "date-divider"
+              );
+              const newMessages = [...messagesOnly, formatted];
+              return addDateDividers(newMessages);
+            });
+
+            // Send via socket
+            socket.emit("new_message", {
+              userId,
+              doctorId,
+              senderId: userId,
+              text: msg.text || "",
+              imageUrl: msg.imageUrl,
+              role: "patient",
+            });
+          }
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          Alert.alert(
+            "Upload Error",
+            "Failed to upload image. Please try again."
+          );
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    } catch (error) {
+      setIsUploading(false);
+      console.error("Image picking error:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
+    }
   };
 
   return (
@@ -342,6 +461,13 @@ function ChatScreen() {
       />
 
       <View style={styles.inputContainer}>
+        <TouchableOpacity
+          onPress={handlePickImage}
+          style={styles.iconButton}
+          disabled={isUploading || !isChatAllowed}
+        >
+          <Ionicons name="add" size={24} color="#666" />
+        </TouchableOpacity>
         <TextInput
           style={styles.textInput}
           value={inputText}
@@ -353,13 +479,18 @@ function ChatScreen() {
         />
         <TouchableOpacity
           onPress={handleSend}
-          style={[
-            styles.sendButton,
-            { opacity: inputText.trim() && isChatAllowed ? 1 : 0.5 },
-          ]}
+          style={styles.sendIconWrapper}
           disabled={!inputText.trim() || !isChatAllowed}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Ionicons
+            name="send"
+            size={22}
+            color={
+              inputText.trim() || selectedImage
+                ? "#6B7280"
+                : "rgba(107, 103, 103, 0.55)"
+            }
+          />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -390,7 +521,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   myMessage: {
-    backgroundColor: "#0a84ff",
+    backgroundColor: "#9CA3AF",
     alignSelf: "flex-end",
     borderBottomRightRadius: 4,
   },
@@ -470,6 +601,33 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
+  iconButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+    width: 36,
+    height: 36,
+  },
+  sendIconWrapper: {
+    borderRadius: 20,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  messageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 5,
+  },
+  imageOnlyBubble: {
+  backgroundColor: "transparent",
+  padding: 0,
+  borderRadius: 0,
+  shadowColor: "transparent",
+  elevation: 0,
+},
 });
 
 export default ChatScreen;

@@ -37,12 +37,12 @@ SwitchWeb.displayName = "SwitchWeb";
 
 const RGB_COLORS = {
   light: {
-    primary: "rgb(24, 24, 27)",
-    input: "rgb(228, 228, 231)",
+    primary: "rgb(0, 77, 71)",        // #004D47 when ON
+    input: "rgb(240, 240, 240)",      // #F0F0F0 when OFF
   },
   dark: {
-    primary: "rgb(250, 250, 250)",
-    input: "rgb(39, 39, 42)",
+    primary: "rgb(0, 77, 71)",        // same for dark mode
+    input: "rgb(60, 60, 60)",         // slightly darker in dark mode
   },
 } as const;
 
@@ -80,7 +80,7 @@ const SwitchNative = forwardRef<
       <SwitchPrimitives.Root
         className={cn(
           "flex-row h-8 w-[46px] shrink-0 items-center rounded-full border-2 border-transparent",
-          props.checked ? "bg-primary" : "bg-input",
+          props.checked ? "bg-[#005153]" : "bg-input",
           className
         )}
         {...props}
