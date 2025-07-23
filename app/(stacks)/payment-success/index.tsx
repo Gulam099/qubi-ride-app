@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 export default function PaymentSuccess() {
-  const { totalFee, status } = useLocalSearchParams();
+  const { amount, status } = useLocalSearchParams();
   const { t } = useTranslation();
 
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function PaymentSuccess() {
         <TickCircle size={64} color="#10B981" />
         <Text style={styles.title}>{t("paymentSuccess")}</Text>
         <Text style={styles.amount}>
-          {t("amount")}: SAR {totalFee}
+          {t("amount")}: {amount} {("SAR")}
         </Text>
         <Text style={styles.status}>
           {t("status")}: {status}

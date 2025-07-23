@@ -18,10 +18,13 @@ import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
+import { ActivityIndicator } from "react-native";
 
 function ChatListPage() {
   const { user } = useUser();
   const [value, setValue] = useState("specific_specialists");
+  const [loading, setLoading] = useState(true);
+
   const [doctors, setDoctors] = useState([]);
   const router = useRouter();
   const { t } = useTranslation();
@@ -33,14 +36,16 @@ function ChatListPage() {
   useEffect(() => {
     const fetchdoctors = async () => {
       try {
+        setLoading(true); // Start loading
         const response = await fetch(
           `${apiNewUrl}/api/doctor/chat/userId/${userId}`
         );
         const doctorData = await response.json();
-
         setDoctors(doctorData.doctors);
       } catch (error) {
         console.error("Error fetching doctors:", error.message);
+      } finally {
+        setLoading(false); // Stop loading
       }
     };
 
@@ -117,70 +122,82 @@ function ChatListPage() {
         className="w-full flex-col gap-2"
       >
         <TabsContent value="specific_specialists" className="h-full">
-          <FlatList
-            data={doctors}
-            contentContainerClassName="gap-3 pb-4"
-            showsVerticalScrollIndicator={false}
-            keyExtractor={(item, index) =>
-              item.id ? item.id.toString() : `doctor-${index}`
-            }
-            renderItem={({ item }) => (
-              <View className="bg-white rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-sm">
-                {/* LEFT SECTION — tap to chat */}
-                <TouchableOpacity
-                  className="flex-row items-center gap-3 flex-1"
-                  onPress={() =>
-                    handleChatPress(item.doctorId, item.full_name, item.canChat)
-                  }
-                >
-                  {/* Avatar */}
-                  {item?.profile_picture ? (
-                    <Image
-                      source={{ uri: item.profile_picture }}
-                      className="w-12 h-12 rounded-full"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center">
-                      <Text className="text-white font-bold text-sm">
-                        {getInitials(item.full_name)}
+          {loading ? (
+            <View className="flex-1 justify-center items-center">
+              <Text className="text-gray-500">{t("loading")}...</Text>
+              {/* You can replace above Text with ActivityIndicator if needed */}
+              <ActivityIndicator size="large" color="#8A00FA" />
+            </View>
+          ) : (
+            <FlatList
+              data={doctors}
+              contentContainerClassName="gap-3 pb-4"
+              showsVerticalScrollIndicator={false}
+              keyExtractor={(item, index) =>
+                item.id ? item.id.toString() : `doctor-${index}`
+              }
+              renderItem={({ item }) => (
+                <View className="bg-white rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-sm">
+                  {/* LEFT SECTION — tap to chat */}
+                  <TouchableOpacity
+                    className="flex-row items-center gap-3 flex-1"
+                    onPress={() =>
+                      handleChatPress(
+                        item.doctorId,
+                        item.full_name,
+                        item.canChat
+                      )
+                    }
+                  >
+                    {/* Avatar */}
+                    {item?.profile_picture ? (
+                      <Image
+                        source={{ uri: item.profile_picture }}
+                        className="w-12 h-12 rounded-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center">
+                        <Text className="text-white font-bold text-sm">
+                          {getInitials(item.full_name)}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Name & Date */}
+                    <View>
+                      <Text className="text-lg font-semibold text-black">
+                        {item.full_name}
+                      </Text>
+                      <Text className="text-gray-500 text-sm">
+                        {item.lastMessageDate
+                          ? format(new Date(item.lastMessageDate), "MMMM, dd")
+                          : ""}
                       </Text>
                     </View>
-                  )}
+                  </TouchableOpacity>
 
-                  {/* Name & Date */}
-                  <View>
-                    <Text className="text-lg font-semibold text-black">
-                      {item.full_name}
+                  {/* RIGHT SECTION — delete button */}
+                  <TouchableOpacity
+                    onPress={() => handleDeleteChat(item.doctorId)}
+                    className="flex-row items-center gap-1"
+                  >
+                    <Trash size={16} color="red" />
+                    <Text className="text-red-500 text-sm font-medium">
+                      {t("deleteChat.title")}
                     </Text>
-                    <Text className="text-gray-500 text-sm">
-                      {item.lastMessageDate
-                        ? format(new Date(item.lastMessageDate), "MMMM, dd")
-                        : ""}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                {/* RIGHT SECTION — delete button */}
-                <TouchableOpacity
-                  onPress={() => handleDeleteChat(item.doctorId)}
-                  className="flex-row items-center gap-1"
-                >
-                  <Trash size={16} color="red" />
-                  <Text className="text-red-500 text-sm font-medium">
-                    {t("deleteChat.title")}
+                  </TouchableOpacity>
+                </View>
+              )}
+              ListEmptyComponent={() => (
+                <View className="flex-1 justify-center items-center py-10">
+                  <Text className="text-gray-500 text-center">
+                    {t("noDoctors")}
                   </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            ListEmptyComponent={() => (
-              <View className="flex-1 justify-center items-center py-10">
-                <Text className="text-gray-500 text-center">
-                  {t("noDoctors")}
-                </Text>
-              </View>
-            )}
-          />
+                </View>
+              )}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="specialists" className="h-full">

@@ -17,6 +17,7 @@ import BottomSheet, {
 import { useQuery } from "@tanstack/react-query";
 import { ApiUrl } from "@/const";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 type SchedulePickerSheetRef = {
   open: () => void;
@@ -197,8 +198,8 @@ export const SchedulePickerSheet = forwardRef<
           marks[dateKey] = {
             marked: true,
             selected: dateKey === selectedDate,
-            selectedColor: dateKey === selectedDate ? "#005153" : "#10B981",
-            dotColor: dateKey === selectedDate ? "#005153" : "#10B981",
+            selectedColor: dateKey === selectedDate ? "#8A00FA" : "#10B981",
+            dotColor: dateKey === selectedDate ? "#8A00FA" : "#10B981",
           };
         }
       });
@@ -256,6 +257,15 @@ export const SchedulePickerSheet = forwardRef<
       return bookedSlots.flatMap((booking: any) => booking?.selectedSlots);
     }, [bookedSlots]);
 
+    const localizeAMPM = (timeString: string) => {
+      if (!timeString) return "";
+
+      if (i18n.language === "ar") {
+        return timeString.replace("AM", "ص").replace("PM", "م");
+      }
+
+      return timeString;
+    };
     // ✅ Generate time slots for selected date
     const { availableSlots, bookedSlots: bookedSlotsForDate } = useMemo(() => {
       if (
@@ -460,13 +470,13 @@ export const SchedulePickerSheet = forwardRef<
                       }}
                       className="items-center justify-center w-10 h-10 rounded-full"
                       className={`w-10 h-10 rounded-full items-center justify-center ${
-                        isSelected ? "bg-green-500" : "bg-transparent"
+                        isSelected ? "bg-[#8A00FA]" : "bg-transparent"
                       }`}
                     >
                       <Text
                         className={`${
                           finalDisabled || state === "disabled"
-                            ? "#005153"
+                            ? "#8A00FA"
                             : isSelected
                             ? "text-white"
                             : isAvailable
@@ -547,7 +557,7 @@ export const SchedulePickerSheet = forwardRef<
                               }
                               className={`mb-2 ${
                                 isSelected
-                                  ? "bg-[#005153] border-[#005153]"
+                                  ? "bg-[#8A00FA] border-[#8A00FA]"
                                   : !canSelect &&
                                     selectedSlots.length >= numberOfSessions
                                   ? "bg-gray-100 border-gray-200 opacity-50"
@@ -570,7 +580,7 @@ export const SchedulePickerSheet = forwardRef<
                                     : "text-gray-700"
                                 }`}
                               >
-                                {`${slot.startTime} - ${slot.endTime}`}
+                                {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                               </Text>
                             </Button>
                           );
@@ -591,15 +601,15 @@ export const SchedulePickerSheet = forwardRef<
                         {bookedSlotsForDate.map((slot) => (
                           <View
                             key={slot.iso}
-                            className="bg-red-50 border border-red-200 px-3 py-2 rounded-md"
+                            className="bg-[#8A00FA] border-[#8A00FA] px-3 py-2 rounded-md"
                             style={{
                               minWidth: 90,
                               marginRight: 8,
                               marginBottom: 8,
                             }}
                           >
-                            <Text className="text-red-600 font-medium text-center">
-                              {`${slot.startTime} - ${slot.endTime}`}
+                            <Text className="text-white font-medium text-center">
+                              {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                             </Text>
                           </View>
                         ))}

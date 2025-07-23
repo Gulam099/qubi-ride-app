@@ -541,12 +541,6 @@ const JoinRoom = () => {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTitle: t("joinRoom"),
-        }}
-      />
       <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
         {/* Timer Display */}
         <View

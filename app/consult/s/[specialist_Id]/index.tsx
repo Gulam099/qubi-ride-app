@@ -140,7 +140,7 @@ export default function SpecialistConsultantPage() {
       <View className="bg-white py-4 rounded-2xl items-center mt-2 relative">
         <View
           className="absolute w-full h-24"
-          style={{ backgroundColor: "#005153" }}
+          style={{ backgroundColor: "#000F8F" }}
         ></View>
         <ProfileImage
           imageUrl={specialistData?.data?.profile_picture ?? ""}
@@ -154,7 +154,7 @@ export default function SpecialistConsultantPage() {
           {specialistData?.data?.specialization ?? "Specialist"}
         </Text>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md"
           onPress={
             isFavorited ? handleRemoveFromFavorites : handleAddToFavorites
@@ -165,7 +165,7 @@ export default function SpecialistConsultantPage() {
             color={isFavorited ? "#2563eb" : "#9ca3af"} // Blue or gray
             variant="Bold"
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View className="mt-4">
           <View className="flex-row w-full">

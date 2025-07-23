@@ -1,5 +1,5 @@
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -13,6 +13,7 @@ import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
 import { SearchNormal1, ArrowDown2 } from "iconsax-react-native";
 import { useTranslation } from "react-i18next";
+import { useUser } from "@clerk/clerk-expo";
 
 type ConsultType = {
   _id: string;
@@ -94,6 +95,8 @@ const SpecialistDropdown = ({
 
 export default function ConsultPage() {
   const router = useRouter();
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
   const {
     situation,
     budget,
@@ -104,6 +107,7 @@ export default function ConsultPage() {
     ClosestAppointment,
   } = useLocalSearchParams();
   const { t } = useTranslation();
+  const [favoriteDoctors, setFavoriteDoctors] = useState<string[]>([]);
 
   const [searchText, setSearchText] = useState("");
   const [selectedSpecialistType, setSelectedSpecialistType] =
@@ -126,6 +130,59 @@ export default function ConsultPage() {
     },
   });
 
+  const handleToggleFavorite = async (specialist_Id: string) => {
+    try {
+      const isAlreadyFav = favoriteDoctors.includes(specialist_Id);
+
+      const url = `${ApiUrl}/api/favorites/${isAlreadyFav ? "remove" : "add"}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          itemId: specialist_Id,
+          type: "doctors",
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to update");
+
+      toast.success(
+        isAlreadyFav
+          ? t("Doctor removed from favorites!")
+          : t("Doctor added to favorites!")
+      );
+
+      setFavoriteDoctors((prev) =>
+        isAlreadyFav
+          ? prev.filter((id) => id !== specialist_Id)
+          : [...prev, specialist_Id]
+      );
+    } catch (err) {
+      toast.error(err.message || "Something went wrong");
+    }
+  };
+
+  // Fetch favorites on mount
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch(`${ApiUrl}/api/favorites/${userId}`);
+        const data = await res.json();
+        if (res.ok && data?.favorites?.doctors) {
+          const doctorIds = data.favorites.doctors.map((doc) => doc._id);
+          setFavoriteDoctors(doctorIds);
+        }
+      } catch (e) {
+        console.error("Error fetching favorites:", e);
+      }
+    };
+
+    if (userId) {
+      fetchFavorites(); // 🔁 call it on page mount
+    }
+  }, [userId]);
   // Handle search and dropdown filtering
   const filteredConsult = consultData?.filter((consultant: ConsultType) => {
     const name = consultant.full_name?.toLowerCase() || "";
@@ -138,7 +195,7 @@ export default function ConsultPage() {
 
     // Specialist type filter
     const matchesSpecialistType =
-      selectedSpecialistType === "All Specialists" || 
+      selectedSpecialistType === "All Specialists" ||
       specialization.includes(selectedSpecialistType.toLowerCase());
 
     return matchesSearch && matchesSpecialistType;
@@ -194,6 +251,8 @@ export default function ConsultPage() {
                 onPress={() =>
                   router.push(`/consult/s/${item._id}` as RelativePathString)
                 }
+                isFavorited={favoriteDoctors.includes(item._id)}
+                onToggleFavorite={() => handleToggleFavorite(item._id)}
               />
             )}
             showsVerticalScrollIndicator={false}

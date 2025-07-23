@@ -14,12 +14,8 @@ export default function AccountLayout() {
     <Stack
       screenOptions={{
         headerBackButtonDisplayMode: "generic",
-        headerBackVisible: true,
+        headerLeft: () => <BackButton className="mr-4" />,
         headerShadowVisible: true,
-        headerTintColor: "white",
-        headerStyle: {
-          backgroundColor: "#666666",
-        },
         headerRight: () => <NotificationIconButton className="mr-4" />,
       }}
     >
@@ -42,7 +38,7 @@ export default function AccountLayout() {
         name="calendar/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg" >{t("calendar")}</Text>
+            <Text className="font-semibold text-lg">{t("calendar")}</Text>
           ),
         }}
       />
@@ -50,7 +46,9 @@ export default function AccountLayout() {
         name="appointment/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">{t("appointments")}</Text>
+            <Text className="font-semibold text-lg">
+              {t("appointments")}
+            </Text>
           ),
         }}
       />
@@ -58,7 +56,9 @@ export default function AccountLayout() {
         name="favorite/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">{t("favorites")}</Text>
+            <Text className="font-semibold text-lg">
+              {t("favorites")}
+            </Text>
           ),
         }}
       />
@@ -66,7 +66,9 @@ export default function AccountLayout() {
         name="family/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">{t("family")}</Text>
+            <Text className="font-semibold text-lg">
+              {t("family")}
+            </Text>
           ),
         }}
       />
@@ -74,7 +76,9 @@ export default function AccountLayout() {
         name="profile/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">{t("profile")}</Text>
+            <Text className="font-semibold text-lg">
+              {t("profile")}
+            </Text>
           ),
         }}
       />
@@ -91,7 +95,7 @@ export default function AccountLayout() {
         name="report/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">
+            <Text className="font-semibold text-lg">
               {t("profileVerificationCode")}
             </Text>
           ),
@@ -101,7 +105,9 @@ export default function AccountLayout() {
         name="setting/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white ">{t("settings")}</Text>
+            <Text className="font-semibold text-lg">
+              {t("settings")}
+            </Text>
           ),
         }}
       />
