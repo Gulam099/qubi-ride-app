@@ -130,7 +130,7 @@ function ChatScreen() {
         }
       );
 
-      console.log('res',res)
+      console.log("res", res);
       // Find the chat between this patient and the specific doctor
       const chat = res?.data?.chats?.find(
         (c) => c?.doctorId?._id === doctorId || c?.doctorId === doctorId
@@ -325,8 +325,8 @@ function ChatScreen() {
         )}
         <Text
           style={[
-             styles.timestamp,
-          isMyMessage ? styles.myTimestamp : styles.otherTimestamp,
+            styles.timestamp,
+            isMyMessage ? styles.myTimestamp : styles.otherTimestamp,
           ]}
         >
           {formatTime(item.createdAt)}
@@ -473,24 +473,20 @@ function ChatScreen() {
           value={inputText}
           onChangeText={setInputText}
           placeholder={t("typeMessage")}
+          placeholderTextColor="#000" 
           multiline
           onSubmitEditing={handleSend}
           returnKeyType={t("send")}
         />
         <TouchableOpacity
           onPress={handleSend}
-          style={styles.sendIconWrapper}
+          style={[
+            styles.sendIconWrapper,
+            (!inputText.trim() || !isChatAllowed) && styles.sendIconDisabled,
+          ]}
           disabled={!inputText.trim() || !isChatAllowed}
         >
-          <Ionicons
-            name="send"
-            size={22}
-            color={
-              inputText.trim() || selectedImage
-                ? "#6B7280"
-                : "rgba(107, 103, 103, 0.55)"
-            }
-          />
+          <Ionicons name="send" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -521,12 +517,12 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   myMessage: {
-    backgroundColor: "#9CA3AF",
+    backgroundColor: "#E5E5E7",
     alignSelf: "flex-end",
     borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: "#ECECEC",
+    backgroundColor: "#C1EFFF",
     alignSelf: "flex-start",
     borderBottomLeftRadius: 4,
   },
@@ -535,7 +531,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   myMessageText: {
-    color: "#fff",
+    color: "#000",
   },
   otherMessageText: {
     color: "#000",
@@ -546,10 +542,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   myTimestamp: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "#000",
   },
   otherTimestamp: {
-    color: "#666",
+    color: "#000",
   },
   dateDividerContainer: {
     flexDirection: "row",
@@ -588,19 +584,6 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     fontSize: 16,
   },
-  sendButton: {
-    justifyContent: "center",
-    marginLeft: 10,
-    paddingHorizontal: 16,
-    backgroundColor: "#0a84ff",
-    borderRadius: 20,
-    minHeight: 40,
-  },
-  sendButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
   iconButton: {
     justifyContent: "center",
     alignItems: "center",
@@ -609,11 +592,15 @@ const styles = StyleSheet.create({
     height: 36,
   },
   sendIconWrapper: {
+    backgroundColor: "#ccc",
     borderRadius: 20,
     padding: 10,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,
+  },
+  sendIconDisabled: {
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
   },
   messageImage: {
     width: 200,
@@ -622,12 +609,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   imageOnlyBubble: {
-  backgroundColor: "transparent",
-  padding: 0,
-  borderRadius: 0,
-  shadowColor: "transparent",
-  elevation: 0,
-},
+    backgroundColor: "transparent",
+    padding: 0,
+    borderRadius: 0,
+    shadowColor: "transparent",
+    elevation: 0,
+  },
 });
 
 export default ChatScreen;

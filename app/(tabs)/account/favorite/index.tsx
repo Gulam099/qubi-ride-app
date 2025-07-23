@@ -166,7 +166,7 @@ export default function AccountFavoritePage() {
                 key={tab.type}
                 onPress={() => setActiveTab(tab.type)}
                 style={{
-                  backgroundColor: isActive ? "#005153" : "#E5E7EB", // green-600 / gray-200
+                  backgroundColor: isActive ? "#000F8F" : "#E5E7EB", // green-600 / gray-200
                   paddingHorizontal: 16,
                   height: 36,
                   borderRadius: 16,

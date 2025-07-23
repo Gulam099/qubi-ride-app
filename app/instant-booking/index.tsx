@@ -1,11 +1,12 @@
 import { View, Text, FlatList } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { RelativePathString, useRouter } from "expo-router";
 import SpecialistCard from "@/features/account/components/SpecialistCard";
 import { Input } from "@/components/ui/Input";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useUser } from "@clerk/clerk-expo";
 
 type UserScheduleType = {
   id: string;
@@ -23,6 +24,9 @@ type UserScheduleType = {
 };
 
 export default function UsersTodayPage() {
+  const [favoriteDoctors, setFavoriteDoctors] = useState<string[]>([]);
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const { t } = useTranslation();
@@ -39,7 +43,6 @@ export default function UsersTodayPage() {
       if (!res.ok) throw new Error(result.error || "Failed to fetch users.");
       return result.users; // Includes both today & tomorrow
     },
-    
   });
 
   const getAvailableUsers = (users: UserScheduleType[]) => {
@@ -70,6 +73,51 @@ export default function UsersTodayPage() {
     const search = searchText.toLowerCase();
     return fullName.includes(search) || email.includes(search);
   });
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch(`${ApiUrl}/api/favorites/${userId}`);
+        const data = await res.json();
+        if (res.ok && data?.favorites?.doctors) {
+          const ids = data.favorites.doctors.map((doc) => doc._id);
+          setFavoriteDoctors(ids);
+        }
+      } catch (e) {
+        console.error("Error fetching favorites:", e);
+      }
+    };
+
+    if (userId) fetchFavorites();
+  }, [userId]);
+
+  const handleToggleFavorite = async (specialist_Id: string) => {
+    const isFav = favoriteDoctors.includes(specialist_Id);
+    const url = `${ApiUrl}/api/favorites/${isFav ? "remove" : "add"}`;
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          itemId: specialist_Id,
+          type: "doctors",
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed");
+
+      setFavoriteDoctors((prev) =>
+        isFav
+          ? prev.filter((id) => id !== specialist_Id)
+          : [...prev, specialist_Id]
+      );
+    } catch (e) {
+      console.error("Favorite toggle error:", e);
+    }
+  };
 
   const getEmptyStateMessage = () => {
     if (!availableUsers || availableUsers.length === 0) {
@@ -116,12 +164,15 @@ export default function UsersTodayPage() {
                 name={`${item.firstName} ${item.lastName}`.trim()}
                 title={item.specialization}
                 price={item.fees}
-                likes={0}
+                likes={item.likes}
                 imageUrl={item.image}
                 shareLink={item.id}
+                isFavorited={favoriteDoctors.includes(item.id)} 
+                onToggleFavorite={() => handleToggleFavorite(item.id)} 
                 onPress={() => {
                   router.push({
-                    pathname: `/instant-booking/i/${item.id}` as RelativePathString,
+                    pathname:
+                      `/instant-booking/i/${item.id}` as RelativePathString,
                     params: {
                       todaySchedule: JSON.stringify(item.schedule),
                       doctorFees: "0",

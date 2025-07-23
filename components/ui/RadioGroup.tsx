@@ -25,14 +25,14 @@ const RadioGroupItem = forwardRef<
     <RadioGroupPrimitive.Item
       ref={ref}
       className={cn(
-        "aspect-square h-5 w-5 rounded-full justify-center items-center border-2 border-green-600 text-green-600", // green border + indicator
+        "aspect-square h-5 w-5 rounded-full justify-center items-center border-2 border-[#000F8F]text-[#000F8F]", // green border + indicator
         props.disabled && "opacity-50",
         className
       )}
       {...props}
     >
       <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <View className="aspect-square h-[10px] w-[10px] bg-green-600 rounded-full" />
+        <View className="aspect-square h-[10px] w-[10px] bg-[#000F8F] rounded-full" />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );

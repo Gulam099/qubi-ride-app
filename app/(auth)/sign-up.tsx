@@ -126,8 +126,8 @@ export default function Page() {
   };
 
   return (
-    <SafeAreaView>
-      <View className="bg-blue-50/40 w-full py-24">
+    <SafeAreaView className="bg-blue-50/40 w-full">
+      <View>
         <View className="absolute top-16 z-50 flex flex-row w-full justify-between">
           <LangToggleButton className="rounded-none rounded-r-full px-8 w-24" />
         </View>
@@ -166,7 +166,7 @@ export default function Page() {
               <Button
                 onPress={onSignUpPress}
                 className="rounded-xl py-3 px-4"
-                style={{ backgroundColor: "#005153" }}
+                style={{ backgroundColor: "#8A00FA" }}
               >
                 <Text className="text-secondary font-semibold">
                   {t("continue")}
@@ -210,7 +210,7 @@ export default function Page() {
               <Button
                 onPress={handleVerification}
                 className="rounded-xl py-3 px-4"
-                style={{ backgroundColor: "#005153" }}
+                style={{ backgroundColor: "#8A00FA" }}
               >
                 <Text className="text-white font-semibold">
                   {t("verifyOtp")}

@@ -15,6 +15,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { format, isBefore, addMinutes, parse, isSameDay } from "date-fns";
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 const InstantBookingContent = () => {
   const router = useRouter();
@@ -180,6 +181,16 @@ const InstantBookingContent = () => {
 
     return true;
   };
+
+  const localizeAMPM = (timeString: string) => {
+      if (!timeString) return "";
+
+      if (i18n.language === "ar") {
+        return timeString.replace("AM", "ص").replace("PM", "م");
+      }
+
+      return timeString;
+    };
 
   const { availableSlots, bookedSlotsForDate } = useMemo(() => {
     if (!selectedDate || !doctorSchedule) {
@@ -695,7 +706,7 @@ const InstantBookingContent = () => {
                           onPress={() => handleSlotSelection(slot.iso)}
                           className={`mx-1 mb-2 ${
                             isSelected
-                              ? "bg-[#005153] border-[#005153]"
+                              ? "bg-[#8A00FA] border-[#8A00FA]"
                               : "border-gray-300"
                           }`}
                           variant={isSelected ? "default" : "outline"}
@@ -715,7 +726,7 @@ const InstantBookingContent = () => {
                                 : "text-gray-700"
                             }`}
                           >
-                            {`${slot.startTime} - ${slot.endTime}`}
+                            {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                           </Text>
                         </Button>
                       );
@@ -742,11 +753,11 @@ const InstantBookingContent = () => {
                     {bookedSlotsForDate.map((slot) => (
                       <View
                         key={slot.iso}
-                        className="bg-red-50 border border-red-200 px-3 py-2 rounded-md mx-1 mb-2"
+                        className="bg-[#8A00FA] border-[#8A00FA] px-3 py-2 rounded-md mx-1 mb-2"
                         style={{ minWidth: 90 }}
                       >
-                        <Text className="text-red-600 font-medium text-center text-sm">
-                          {`${slot.startTime} - ${slot.endTime}`}
+                        <Text className="text-white font-medium text-center text-sm">
+                          {`${localizeAMPM(slot.startTime)} - ${localizeAMPM(slot.endTime)}`}
                         </Text>
                       </View>
                     ))}
@@ -759,7 +770,7 @@ const InstantBookingContent = () => {
 
         {/* Fee Calculation */}
         {selectedSlots.length > 0 && (
-          <View className="bg-gray-400 p-4 rounded-lg">
+          <View className="bg-[#8A00FA] p-4 rounded-lg">
             <Text className="font-semibold text-lg mb-2 text-white">
               {t("Fee Calculation")}
             </Text>

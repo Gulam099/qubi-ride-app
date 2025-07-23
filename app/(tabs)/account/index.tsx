@@ -154,10 +154,10 @@ export default function AccountPage() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#005153"}}>
+    <View style={{ flex: 1, backgroundColor: "#000F8F"}}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor="#005153"
+        backgroundColor="#000F8F"
       />
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <ScrollView
@@ -167,7 +167,7 @@ export default function AccountPage() {
         >
           {/* Header Section */}
           <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8"
-          style={{ backgroundColor: "#005153" }}
+          style={{ backgroundColor: "#000F8F" }}
           >
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
@@ -186,7 +186,7 @@ export default function AccountPage() {
 
             <Button
               className="p-2 rounded-2xl aspect-square"
-              style={{ backgroundColor: "#005153" }}
+              style={{ backgroundColor: "#000F8F" }}
               onPress={() => router.push("/account/profile")}
             >
               <Edit size="24" color={colors.gray[100]} />

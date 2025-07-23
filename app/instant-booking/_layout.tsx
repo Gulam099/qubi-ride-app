@@ -12,20 +12,16 @@ export default function InstantBookingLayout() {
   return (
     <Stack
       screenOptions={{
-        headerBackVisible: true,
+        headerLeft: () => <BackButton className="mr-4" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: true,
-        headerTintColor: "white",
-        headerStyle: {
-          backgroundColor: "#666666",
-        },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">
+            <Text className="font-semibold text-lg">
               {t("Instant booking")}
             </Text>
           ),
@@ -35,7 +31,7 @@ export default function InstantBookingLayout() {
         name="i/[specialist_ID]/index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">
+            <Text className="font-semibold text-lg">
               {t("Specialist Details")}
             </Text>
           ),
@@ -45,7 +41,7 @@ export default function InstantBookingLayout() {
         name="i/[specialist_ID]/session"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg text-white">
+            <Text className="font-semibold text-lg">
               {t("Instant Appointment")}
             </Text>
           ),

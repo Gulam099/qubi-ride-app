@@ -83,7 +83,7 @@ export default function SpecialistConsultantPage() {
         <View className="bg-white py-4 rounded-2xl flex items-center mt-2 relative overflow-hidden flex-col gap-2">
           <View
             className="absolute w-full h-24"
-            style={{ backgroundColor: "#005153" }}
+            style={{ backgroundColor: "#000F8F" }}
           ></View>
           <ProfileImage
             imageUrl={specialistData?.data?.profile_picture ?? ""}
