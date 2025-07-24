@@ -55,7 +55,7 @@ function ChatListPage() {
   const handleChatPress = (id: string, name: string, canChat: boolean) => {
     console.log("Navigating to doctor ID:", id);
     console.log("Navigating to doctor name:", name);
-    console.log("Navigating to:", `/tabs)/account/chat/c/${id}`);
+    console.log("Navigating to:>>>", `/tabs)/account/chat/c/${id}`,canChat);
     router.push(
       `/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(
         name

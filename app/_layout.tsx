@@ -94,7 +94,7 @@ if (!firebase.apps.length) {
     appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
   });
 }
-
+console.log("firebase.apps>>>>>>>>", firebase.apps)
 // Separate component that uses Clerk hooks - this will be INSIDE ClerkProvider
 const AppContent = () => {
   const router = useRouter();
@@ -182,7 +182,7 @@ const AppContent = () => {
         await sendTokenToBackend(currentToken);
       }
     } catch (error) {
-      logger.error("Notification setup error:", error);
+      logger.info("Notification setup error:", error);
     }
   };
 
@@ -237,16 +237,16 @@ const AppContent = () => {
               smallIcon: "ic_launcher",
               ...(deepLinkString &&
                 deepLinkString !== "{}" && {
-                  actions: [
-                    {
-                      title: "Join Room",
-                      pressAction: {
-                        id: "join-room",
-                        launchActivity: "default",
-                      },
+                actions: [
+                  {
+                    title: "Join Room",
+                    pressAction: {
+                      id: "join-room",
+                      launchActivity: "default",
                     },
-                  ],
-                }),
+                  },
+                ],
+              }),
             },
             data: {
               deepLink: deepLinkString,
@@ -254,7 +254,7 @@ const AppContent = () => {
           });
         });
       } catch (error) {
-        logger.error("FCM initialization failed:", error);
+        logger.info("FCM initialization failed:", error);
       }
     };
 

@@ -6,7 +6,7 @@ import React, {
   useLayoutEffect,
 } from "react";
 import { io } from "socket.io-client";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, router } from "expo-router";
 import axios from "axios";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
@@ -38,15 +38,60 @@ function ChatScreen() {
   const [inputText, setInputText] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = id as string;
   const navigation = useNavigation();
-
   const { t } = useTranslation();
 
-  const isChatAllowed = canChat === "true";
+  // Parse canChat more safely
+  const isChatAllowed = canChat === "true" || canChat === true;
 
-  console.log("canChat", canChat);
+  console.log("canChat value:", canChat, "Type:", typeof canChat);
+  console.log("isChatAllowed:", isChatAllowed);
+
+  // Early validation to prevent crashes
+  useEffect(() => {
+    if (!userId || !doctorId) {
+      console.error("Missing required IDs:", { userId, doctorId });
+      setError("Missing user or doctor information");
+      // Navigate back if critical data is missing
+      setTimeout(() => {
+        if (router.canGoBack()) {
+          router.back();
+        }
+      }, 2000);
+      return;
+    }
+    setIsLoading(false);
+  }, [userId, doctorId]);
+
+  // Show message when chat is disabled
+  useEffect(() => {
+    if (!isLoading && !isChatAllowed) {
+      Alert.alert(
+        "Chat Disabled",
+        "Chat functionality is currently disabled for this conversation.",
+        [
+          {
+            text: "Go Back",
+            onPress: () => {
+              if (router.canGoBack()) {
+                router.back();
+              }
+            },
+          },
+          {
+            text: "Stay",
+            style: "cancel",
+          },
+        ]
+      );
+    }
+  }, [isChatAllowed, isLoading]);
+
   useLayoutEffect(() => {
     if (name) {
       navigation.setOptions({
@@ -55,7 +100,7 @@ function ChatScreen() {
         ),
       });
     }
-  }, [name]);
+  }, [name, navigation]);
 
   const currentUser = {
     _id: userId,
@@ -64,79 +109,100 @@ function ChatScreen() {
 
   // Helper function to get date string for grouping
   const getDateString = (date) => {
-    const messageDate = new Date(date);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    try {
+      const messageDate = new Date(date);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    if (messageDate.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
-    } else {
-      return messageDate.toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year:
-          messageDate.getFullYear() !== today.getFullYear()
-            ? "numeric"
-            : undefined,
-      });
+      if (messageDate.toDateString() === today.toDateString()) {
+        return "Today";
+      } else if (messageDate.toDateString() === yesterday.toDateString()) {
+        return "Yesterday";
+      } else {
+        return messageDate.toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "long",
+          year:
+            messageDate.getFullYear() !== today.getFullYear()
+              ? "numeric"
+              : undefined,
+        });
+      }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Unknown";
     }
   };
 
   // Helper function to format time only
   const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      return new Date(date).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return "";
+    }
   };
 
   // Function to add date dividers to messages
   const addDateDividers = (messages) => {
-    const messagesWithDividers = [];
-    let currentDate = null;
+    try {
+      const messagesWithDividers = [];
+      let currentDate = null;
 
-    messages.forEach((message, index) => {
-      const messageDate = getDateString(message.createdAt);
+      messages.forEach((message, index) => {
+        const messageDate = getDateString(message.createdAt);
 
-      // Add date divider if date changed
-      if (currentDate !== messageDate) {
-        messagesWithDividers.push({
-          _id: `date-${messageDate}-${index}`,
-          type: "date-divider",
-          date: messageDate,
-        });
-        currentDate = messageDate;
-      }
+        // Add date divider if date changed
+        if (currentDate !== messageDate) {
+          messagesWithDividers.push({
+            _id: `date-${messageDate}-${index}`,
+            type: "date-divider",
+            date: messageDate,
+          });
+          currentDate = messageDate;
+        }
 
-      messagesWithDividers.push(message);
-    });
+        messagesWithDividers.push(message);
+      });
 
-    return messagesWithDividers;
+      return messagesWithDividers;
+    } catch (error) {
+      console.error("Error adding date dividers:", error);
+      return messages;
+    }
   };
 
   // Load existing chat history
   const fetchChats = async () => {
     try {
-      if (!userId) {
+      if (!userId || !doctorId) {
+        console.warn("Cannot fetch chats: missing userId or doctorId");
         return;
       }
+
       const res = await axios.post(
         `${apiNewUrl}/api/doctor/chat/getUserChats`,
         {
-          userId: userId, // Send the patient's own ID
+          userId: userId,
+        },
+        {
+          timeout: 10000, // 10 seconds timeout
         }
       );
 
-      console.log("res", res);
+      console.log("Chat fetch response:", res.data);
+      
       // Find the chat between this patient and the specific doctor
       const chat = res?.data?.chats?.find(
         (c) => c?.doctorId?._id === doctorId || c?.doctorId === doctorId
       );
 
-      if (chat && chat.messages) {
+      if (chat && chat.messages && Array.isArray(chat.messages)) {
         const formatted = chat.messages
           .map((msg: any, index: number) => ({
             _id: `${msg?._id || index}`,
@@ -156,125 +222,160 @@ function ChatScreen() {
 
         const messagesWithDividers = addDateDividers(formatted);
         setMessages(messagesWithDividers);
+      } else {
+        setMessages([]);
       }
     } catch (error) {
       console.error("Error fetching chats:", error);
+      setError("Failed to load chat history");
+      // Don't crash the app, just show empty messages
+      setMessages([]);
     }
   };
 
-  // Receive messages
-  const roomId = [userId, doctorId].sort().join("_");
+  // Socket connection and room management
+  const roomId = userId && doctorId ? [userId, doctorId].sort().join("_") : null;
 
   useEffect(() => {
-    // Register patient with server
-    socket.emit("register_user", userId);
-
-    // Join the room immediately if socket is already connected
-    if (socket.connected) {
-      socket.emit("join_room", { roomId });
-    } else {
-      socket.on("connect", () => {
-        socket.emit("register_user", userId);
-        socket.emit("join_room", { roomId });
-      });
+    if (!roomId || !userId || !doctorId) {
+      console.warn("Cannot setup socket: missing required data");
+      return;
     }
 
-    // Listen for new messages
-    socket.on("new_message", (msg) => {
-      console.log("NEW MESSAGE", msg);
-      if (
-        (msg.userId === userId && msg.doctorId === doctorId) ||
-        (msg.userId === doctorId && msg.doctorId === userId)
-      ) {
-        // Don't add message if it's from the current user (avoid duplicates)
-        if (msg.senderId !== userId) {
-          const formatted = {
-            _id: `${Date.now()}-${Math.random()}`,
-            text: msg.text,
-            createdAt: new Date(),
-            user: {
-              _id: msg.senderId,
-              name: msg.role === "doctor" ? "Doctor" : "Patient",
-              avatar: msg.imageUrl || undefined,
-            },
-          };
+    const handleConnect = () => {
+      console.log("Socket connected");
+      socket.emit("register_user", userId);
+      socket.emit("join_room", { roomId });
+    };
 
-          setMessages((prev) => {
-            const messagesOnly = prev.filter(
-              (item) => item.type !== "date-divider"
-            );
-            const newMessages = [...messagesOnly, formatted];
-            return addDateDividers(newMessages);
-          });
+    const handleDisconnect = () => {
+      console.log("Socket disconnected");
+    };
+
+    const handleNewMessage = (msg) => {
+      console.log("NEW MESSAGE received:", msg);
+      try {
+        if (
+          (msg.userId === userId && msg.doctorId === doctorId) ||
+          (msg.userId === doctorId && msg.doctorId === userId)
+        ) {
+          // Don't add message if it's from the current user (avoid duplicates)
+          if (msg.senderId !== userId) {
+            const formatted = {
+              _id: `${Date.now()}-${Math.random()}`,
+              text: msg.text || "",
+              createdAt: new Date(),
+              user: {
+                _id: msg.senderId,
+                name: msg.role === "doctor" ? "Doctor" : "Patient",
+                avatar: msg.imageUrl || undefined,
+              },
+              image: msg.imageUrl || undefined,
+            };
+
+            setMessages((prev) => {
+              const messagesOnly = prev.filter(
+                (item) => item.type !== "date-divider"
+              );
+              const newMessages = [...messagesOnly, formatted];
+              return addDateDividers(newMessages);
+            });
+          }
         }
+      } catch (error) {
+        console.error("Error handling new message:", error);
       }
-    });
+    };
+
+    // Register event listeners
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("new_message", handleNewMessage);
+
+    // Register user and join room if already connected
+    if (socket.connected) {
+      handleConnect();
+    }
 
     // Cleanup
     return () => {
+      console.log("Cleaning up socket listeners");
       socket.emit("leave_room", { roomId });
-      socket.off("connect");
-      socket.off("new_message");
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("new_message", handleNewMessage);
     };
   }, [roomId, userId, doctorId]);
 
   useEffect(() => {
-    fetchChats();
-  }, [userId]);
+    if (!isLoading && userId && doctorId) {
+      fetchChats();
+    }
+  }, [userId, doctorId, isLoading]);
 
   // Send messages - Modified to work with input text
   const onSend = useCallback(
     (messageText?: string) => {
-      const textToSend = messageText || inputText.trim();
+      try {
+        const textToSend = messageText || inputText.trim();
 
-      if (!textToSend || !isChatAllowed) {
-        console.warn("No text to send");
-        return;
-      }
+        if (!textToSend || !isChatAllowed || !userId || !doctorId) {
+          console.warn("Cannot send message:", { 
+            textToSend: !!textToSend, 
+            isChatAllowed, 
+            userId: !!userId, 
+            doctorId: !!doctorId 
+          });
+          return;
+        }
 
-      // Create message object
-      const message = {
-        _id: `${Date.now()}-${Math.random()}`,
-        text: textToSend,
-        createdAt: new Date(),
-        user: {
-          _id: userId,
-          name: "You",
-        },
-      };
-
-      setMessages((prev) => {
-        const messagesOnly = prev.filter(
-          (item) => item.type !== "date-divider"
-        );
-        const newMessages = [...messagesOnly, message];
-        return addDateDividers(newMessages);
-      });
-
-      setInputText(""); // Clear input after sending
-
-      // Send via socket
-      socket.emit("new_message", {
-        userId: userId, // Patient ID
-        doctorId: doctorId, // Doctor ID
-        senderId: userId, // Patient is sending
-        text: textToSend,
-        role: "patient",
-      });
-
-      // Save to database
-      axios
-        .post(`${apiNewUrl}/api/doctor/chat/addChat`, {
-          userId: userId, // Patient ID
-          doctorId: doctorId, // Doctor ID
-          senderId: userId, // Patient is sending
+        // Create message object
+        const message = {
+          _id: `${Date.now()}-${Math.random()}`,
           text: textToSend,
-        })
-        .catch((error) => {
-          console.error("Error saving message:", error);
+          createdAt: new Date(),
+          user: {
+            _id: userId,
+            name: "You",
+          },
+        };
+
+        setMessages((prev) => {
+          const messagesOnly = prev.filter(
+            (item) => item.type !== "date-divider"
+          );
+          const newMessages = [...messagesOnly, message];
+          return addDateDividers(newMessages);
         });
+
+        setInputText(""); // Clear input after sending
+
+        // Send via socket
+        socket.emit("new_message", {
+          userId: userId,
+          doctorId: doctorId,
+          senderId: userId,
+          text: textToSend,
+          role: "patient",
+        });
+
+        // Save to database
+        axios
+          .post(`${apiNewUrl}/api/doctor/chat/addChat`, {
+            userId: userId,
+            doctorId: doctorId,
+            senderId: userId,
+            text: textToSend,
+          })
+          .catch((error) => {
+            console.error("Error saving message:", error);
+            // Could show a retry option here
+          });
+      } catch (error) {
+        console.error("Error in onSend:", error);
+      }
     },
-    [userId, doctorId, inputText]
+    [userId, doctorId, inputText, isChatAllowed]
   );
 
   // Handle send button press
@@ -285,59 +386,74 @@ function ChatScreen() {
   const flatListRef = useRef(null);
 
   const renderItem = ({ item }) => {
-    // Render date divider
-    if (item.type === "date-divider") {
+    try {
+      // Render date divider
+      if (item.type === "date-divider") {
+        return (
+          <View style={styles.dateDividerContainer}>
+            <View style={styles.dateDividerLine} />
+            <Text style={styles.dateDividerText}>{item.date}</Text>
+            <View style={styles.dateDividerLine} />
+          </View>
+        );
+      }
+
+      const isMyMessage = item.user._id === userId;
+      const hasImageOnly = item.image && !item.text;
+
+      // Render message
       return (
-        <View style={styles.dateDividerContainer}>
-          <View style={styles.dateDividerLine} />
-          <Text style={styles.dateDividerText}>{item.date}</Text>
-          <View style={styles.dateDividerLine} />
-        </View>
-      );
-    }
-    const isMyMessage = item.user._id === userId;
-    const hasImageOnly = item.image && !item.text;
-    // Render message
-    return (
-      <View
-        style={[
-          styles.messageBubble,
-          isMyMessage ? styles.myMessage : styles.otherMessage,
-          hasImageOnly && styles.imageOnlyBubble,
-        ]}
-      >
-        {item.image && (
-          <Image
-            source={{ uri: item.image }}
-            style={styles.messageImage}
-            resizeMode="cover"
-          />
-        )}
-        {item.text && (
-          <Text
-            style={[
-              styles.messageText,
-              isMyMessage ? styles.myMessageText : styles.otherMessageText,
-            ]}
-          >
-            {item.text}
-          </Text>
-        )}
-        <Text
+        <View
           style={[
-            styles.timestamp,
-            isMyMessage ? styles.myTimestamp : styles.otherTimestamp,
+            styles.messageBubble,
+            isMyMessage ? styles.myMessage : styles.otherMessage,
+            hasImageOnly && styles.imageOnlyBubble,
           ]}
         >
-          {formatTime(item.createdAt)}
-        </Text>
-      </View>
-    );
+          {item.image && (
+            <Image
+              source={{ uri: item.image }}
+              style={styles.messageImage}
+              resizeMode="cover"
+              onError={(error) => {
+                console.log("Image load error:", error);
+              }}
+            />
+          )}
+          {item.text && (
+            <Text
+              style={[
+                styles.messageText,
+                isMyMessage ? styles.myMessageText : styles.otherMessageText,
+              ]}
+            >
+              {item.text}
+            </Text>
+          )}
+          <Text
+            style={[
+              styles.timestamp,
+              isMyMessage ? styles.myTimestamp : styles.otherTimestamp,
+            ]}
+          >
+            {formatTime(item.createdAt)}
+          </Text>
+        </View>
+      );
+    } catch (error) {
+      console.error("Error rendering message item:", error);
+      return null;
+    }
   };
 
   const handlePickImage = async () => {
     if (!isChatAllowed) {
       Alert.alert("Chat Disabled", "You cannot send images in this chat.");
+      return;
+    }
+
+    if (!userId || !doctorId) {
+      Alert.alert("Error", "Cannot send image: missing user information.");
       return;
     }
 
@@ -442,6 +558,33 @@ function ChatScreen() {
     }
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text>Loading chat...</Text>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            fetchChats();
+          }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -460,23 +603,38 @@ function ChatScreen() {
         onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
       />
 
+      {!isChatAllowed && (
+        <View style={styles.disabledChatBanner}>
+          <Text style={styles.disabledChatText}>
+            Chat is currently disabled for this conversation
+          </Text>
+        </View>
+      )}
+
       <View style={styles.inputContainer}>
         <TouchableOpacity
           onPress={handlePickImage}
-          style={styles.iconButton}
+          style={[
+            styles.iconButton,
+            (!isChatAllowed || isUploading) && styles.disabledButton,
+          ]}
           disabled={isUploading || !isChatAllowed}
         >
-          <Ionicons name="add" size={24} color="#666" />
+          <Ionicons name="add" size={24} color={!isChatAllowed ? "#ccc" : "#666"} />
         </TouchableOpacity>
         <TextInput
-          style={styles.textInput}
+          style={[
+            styles.textInput,
+            !isChatAllowed && styles.disabledTextInput,
+          ]}
           value={inputText}
           onChangeText={setInputText}
-          placeholder={t("typeMessage")}
-          placeholderTextColor="#000" 
+          placeholder={isChatAllowed ? t("typeMessage") : "Chat disabled"}
+          placeholderTextColor={!isChatAllowed ? "#ccc" : "#000"}
           multiline
           onSubmitEditing={handleSend}
-          returnKeyType={t("send")}
+          returnKeyType="send"
+          editable={isChatAllowed}
         />
         <TouchableOpacity
           onPress={handleSend}
@@ -497,6 +655,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
   chatContainer: {
     padding: 10,
@@ -569,6 +748,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     textAlign: "center",
   },
+  disabledChatBanner: {
+    backgroundColor: "#FFF3CD",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  disabledChatText: {
+    color: "#856404",
+    fontSize: 14,
+    textAlign: "center",
+  },
   inputContainer: {
     flexDirection: "row",
     padding: 10,
@@ -584,6 +775,10 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     fontSize: 16,
   },
+  disabledTextInput: {
+    backgroundColor: "#f5f5f5",
+    color: "#ccc",
+  },
   iconButton: {
     justifyContent: "center",
     alignItems: "center",
@@ -591,8 +786,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
   },
+  disabledButton: {
+    opacity: 0.5,
+  },
   sendIconWrapper: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#007AFF",
     borderRadius: 20,
     padding: 10,
     justifyContent: "center",
@@ -600,7 +798,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sendIconDisabled: {
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backgroundColor: "#ccc",
   },
   messageImage: {
     width: 200,
