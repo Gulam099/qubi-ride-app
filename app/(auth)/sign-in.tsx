@@ -26,7 +26,40 @@ export default function Page() {
     null
   );
   const [verifying, setVerifying] = React.useState(false);
+  const [timer, setTimer] = React.useState(60);
+  const [isResendDisabled, setIsResendDisabled] = React.useState(true);
+  const [phoneNumberId, setPhoneNumberId] = React.useState<string | null>(null);
   const { t } = useTranslation();
+
+  // Timer effect for resend functionality
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (verifying && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prevTimer) => {
+          if (prevTimer <= 1) {
+            setIsResendDisabled(false);
+            return 0;
+          }
+          return prevTimer - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [verifying, timer]);
+
+  // Format timer to MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
@@ -53,10 +86,31 @@ export default function Page() {
           strategy: "phone_code",
           phoneNumberId,
         });
+        setPhoneNumberId(phoneNumberId); // Store phoneNumberId for resend
         setVerifying(true);
+        setTimer(60); // Reset timer
+        setIsResendDisabled(true); // Disable resend button
       }
     } catch (err: any) {
-      // console.error("Error:", JSON.stringify(err, null, 2));
+      toast.error(err.message || t("failedToSendOtp"));
+      console.log(err.message);
+    }
+  };
+
+  // Handle resend OTP
+  const handleResendOtp = async () => {
+    if (!isLoaded && !signIn && !phoneNumberId) return null;
+
+    try {
+      await signIn.prepareFirstFactor({
+        strategy: "phone_code",
+        phoneNumberId,
+      });
+      setTimer(60); // Reset timer
+      setIsResendDisabled(true); // Disable resend button
+      setCode(""); // Clear current code
+      toast.success(t("otpSentSuccessfully") || "OTP sent successfully");
+    } catch (err: any) {
       toast.error(err.message || t("failedToSendOtp"));
       console.log(err.message);
     }
@@ -114,7 +168,6 @@ export default function Page() {
                   input: {
                     direction: "ltr",
                     writingDirection: "ltr",
-                    // textAlign: 'left',
                     fontSize: 16,
                     color: "#000",
                   },
@@ -158,7 +211,6 @@ export default function Page() {
                     fontSize: 20,
                     color: "#000",
                   },
-                  // Optional: to help see where RTL might still apply
                   containerStyle: {
                     flexDirection: "row",
                     direction: "ltr",
@@ -175,13 +227,29 @@ export default function Page() {
                   {t("verifyOtp")}
                 </Text>
               </Button>
-              {/* <Button
-            variant="outline"
-            disabled={isDisabled}
-            onPress={handleResendOtp}
-          >
-            <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
-          </Button> */}
+
+              {/* Resend OTP Section */}
+              <View className="flex flex-row justify-center items-center gap-2">
+                <Text className="text-neutral-600">
+                  {t("didntReceiveCode") || "Didn't receive the code?"}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleResendOtp}
+                  disabled={isResendDisabled}
+                  className={`${isResendDisabled ? 'opacity-50' : ''}`}
+                >
+                  <Text className={`font-semibold ${
+                    isResendDisabled 
+                      ? 'text-neutral-400' 
+                      : 'text-primary-500 underline'
+                  }`}>
+                    {isResendDisabled 
+                      ? `${t("resendWithin") || "Resend within"} ${formatTime(timer)}`
+                      : t("resend") || "Resend"
+                    }
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">

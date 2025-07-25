@@ -18,6 +18,7 @@ import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
+import { apiNewUrl } from "@/const";
 
 type RecordType = {
   _id: string;
@@ -46,7 +47,7 @@ export default function DepressionScaleRecord() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${apiBaseUrl}/api/depression-scale/user/${userId}?page=${page}`
+        `${apiNewUrl}/api/depression-scale/user/${userId}?page=${page}`
       );
       const result = await response.json();
 

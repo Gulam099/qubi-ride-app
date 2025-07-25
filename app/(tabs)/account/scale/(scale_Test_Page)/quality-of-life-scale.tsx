@@ -178,7 +178,7 @@ export default function QualityOfLifeScale() {
 
     try {
       const response = await fetch(
-        `${apiNewUrl}/life_scale/scale/quality-life`,
+        `${apiNewUrl}/api/life_scale/submit`,
         {
           method: "POST",
           headers: {

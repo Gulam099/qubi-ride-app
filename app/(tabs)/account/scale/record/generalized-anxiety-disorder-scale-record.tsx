@@ -17,6 +17,7 @@ import { ArrowRight } from "iconsax-react-native";
 import { useUser } from "@clerk/clerk-expo";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { apiNewUrl } from "@/const";
 
 type RecordType = {
   _id: string;
@@ -36,7 +37,7 @@ export default function GeneralizedAnxietyDisorderScale() {
   const fetchRecords = async ({ pageParam = 1 }) => {
     try {
       const response = await fetch(
-        `${apiBaseUrl}/api/gad-scale/user/${userId}?page=${pageParam}`
+        `${apiNewUrl}/api/gad-scale/user/${userId}?page=${pageParam}`
       );
       const result = await response.json();
 
@@ -93,6 +94,8 @@ export default function GeneralizedAnxietyDisorderScale() {
   }
 
   const RecordList = data?.pages?.flatMap((page) => page.responses) ?? []; // ✅ Avoids undefined issues
+
+  console.log('RecordList',RecordList)
 
   const handleRecordActive = (recordId: string) => {
     const record = RecordList.find((item) => item._id === recordId);
