@@ -6,25 +6,25 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner-native";
 import { apiBaseUrl } from "@/features/Home/constHome";
+import { apiNewUrl } from "@/const";
 
 export default function SupportPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   useEffect(() => {
     const fetchGroups = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiBaseUrl}/group/list`);
+        const response = await fetch(`${apiNewUrl}/api/group/fetch-group`);
         const result = await response.json();
 
-        if (response.ok && result.success) {
-          // Filter only "Approved" status groups
-          const approvedGroups = result.data.filter(
-            (group: any) => group.status === "Approved"
-          );
-          setGroups(approvedGroups);
+        console.log('result',result)
+        if (response.ok) {
+         
+
+          setGroups(result?.data);
         } else {
           toast.error("Failed to fetch support groups.");
         }
@@ -39,13 +39,16 @@ export default function SupportPage() {
     fetchGroups();
   }, []);
 
+  console.log('groups',groups)
   // Filter groups based on the active tab
-  const filteredGroups =
-    activeTab === "All"
-      ? groups
-      : groups.filter(
-          (group) => group.category?.toLowerCase() === activeTab.toLowerCase()
-        );
+ const filteredGroups =
+  activeTab === "All"
+    ? groups
+    : groups.filter(
+        (group) =>
+          group.group_type?.toLowerCase() === activeTab.toLowerCase()
+      );
+
 
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-2">
@@ -56,7 +59,7 @@ export default function SupportPage() {
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-4 py-2"
       >
-        {["All",  "Family", "Health" , "Psychological"].map((category) => {
+        {["All", "Family", "Health", "Psychological"].map((category) => {
           const isActive = category === activeTab;
           return (
             <Button
@@ -68,12 +71,7 @@ export default function SupportPage() {
                 "w-36 h-9 rounded-xl"
               )}
             >
-              <Text
-                className={cn(
-                  isActive ? "text-white" : "",
-                  "font-medium"
-                )}
-              >
+              <Text className={cn(isActive ? "text-white" : "", "font-medium")}>
                 {category}
               </Text>
             </Button>
@@ -92,8 +90,8 @@ export default function SupportPage() {
           contentContainerClassName=""
           renderItem={({ item }) => (
             <SupportGroupCard
-              title={item.title}
-              category={item.category}
+              title={item.group_title}
+              category={item.group_type}
               price={item.price}
               recorded={item.recordedCount || 0}
               rating={item.rating || 0}
