@@ -109,7 +109,7 @@ export default function Page() {
       setTimer(60); // Reset timer
       setIsResendDisabled(true); // Disable resend button
       setCode(""); // Clear current code
-      toast.success(t("otpSentSuccessfully") || "OTP sent successfully");
+      toast.success(t("otpSentSuccess") || "OTP sent successfully");
     } catch (err: any) {
       toast.error(err.message || t("failedToSendOtp"));
       console.log(err.message);
