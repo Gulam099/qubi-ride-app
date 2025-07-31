@@ -18,7 +18,7 @@ import {
 import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { useTranslation } from "react-i18next";
 
-type TabType = "scheduled" | "instant" | "calendar";
+type TabType = "scheduled" | "instant";
 
 export default function AppointmentUpcomingList() {
   const { user } = useUser();
@@ -253,7 +253,7 @@ export default function AppointmentUpcomingList() {
     <View className="bg-blue-50/20 flex-1">
       {/* Tab Header */}
       <View className="flex-row bg-white mx-4 mt-4 rounded-lg p-1 shadow-sm">
-        {["scheduled", "instant", "calendar"].map((tab) => (
+        {["scheduled", "instant",].map((tab) => (
           <TouchableOpacity
             key={tab}
             className={`flex-1 py-3 rounded-md ${

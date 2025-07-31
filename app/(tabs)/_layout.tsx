@@ -48,6 +48,12 @@ const PatientLayout = () => {
         backgroundColor: "#00000056",
       },
     },
+     {
+      name: "group",
+      title: t("Group"),
+      icon: Profile2User,
+      headerShown: false,
+    },
     {
       name: "program",
       title: t("Program"),

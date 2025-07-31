@@ -15,7 +15,6 @@ import { H3 } from "@/components/ui/Typography";
 import { OtpInput } from "react-native-otp-entry";
 import colors from "@/utils/colors";
 import { UserType } from "@/features/user/types/user.type";
-import { updateUserState } from "@/store/user/user";
 import { AppStateType } from "@/features/setting/types/setting.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { toast } from "sonner-native";
@@ -25,7 +24,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { t } = useTranslation(); 
+  const { t, i18n } = useTranslation(); // Make sure i18n is imported
   const dispatch = useDispatch();
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
@@ -48,30 +47,43 @@ export default function SettingsPage() {
     dispatch(updateAppState({ [key]: value }));
   };
 
-  function onLabelPress(label: "en" | "ar") {
-    return () => {
-      if (language === label) {
-        toast(
-          label === "ar"
-            ? t("alreadyArabic") 
-            :  t("alreadyEnglish")
-        );
-        return;
-      }
-      try {
-        dispatch(updateAppState({ language: label }));
-        i18n.changeLanguage(label);
-        setLayoutDirection(label);
-        toast.success(
-          label === "ar"
-            ? t("languageChangedToArabic")
-            : t("languageChangedToEnglish")
-        );
-      } catch (error) {
-        toast.error(t("languageChangeError"));
-      }
-    };
-  }
+  // Fixed language change handler
+  const handleLanguageChange = (selectedLanguage: string) => {
+    const langCode = selectedLanguage === "Arabic" ? "ar" : "en";
+    
+    if (language === langCode) {
+      toast(
+        langCode === "ar"
+          ? t("alreadyArabic") 
+          : t("alreadyEnglish")
+      );
+      return;
+    }
+    
+    try {
+      // Update local state
+      setLanguage(langCode);
+      
+      // Update Redux store
+      dispatch(updateAppState({ language: langCode }));
+      
+      // Change i18n language
+      i18n.changeLanguage(langCode);
+      
+      // Set layout direction for RTL/LTR
+      setLayoutDirection(langCode);
+      
+      // Show success toast
+      toast.success(
+        langCode === "ar"
+          ? t("languageChangedToArabic")
+          : t("languageChangedToEnglish")
+      );
+    } catch (error) {
+      console.error("Language change error:", error);
+      toast.error(t("languageChangeError"));
+    }
+  };
 
   function PassCodeToggle(value: boolean) {
     if (value) {
@@ -120,22 +132,22 @@ export default function SettingsPage() {
 
           <RadioGroup
             value={language === "ar" ? "Arabic" : "English"}
-            onValueChange={() => setLanguage}
+            onValueChange={handleLanguageChange}
             className="gap-2"
           >
             <RadioGroupItemWithLabel
-              value={t("Arabic")}
-              onLabelPress={onLabelPress("ar")}
+              value="Arabic"
+              label={t("Arabic")}
             />
             <RadioGroupItemWithLabel
-              value={t("English")}
-              onLabelPress={onLabelPress("en")}
+              value="English" 
+              label={t("English")}
             />
           </RadioGroup>
         </View>
 
         {/* Accessibility Settings */}
-        <View className="bg-white rounded-2xl p-4 ">
+        {/* <View className="bg-white rounded-2xl p-4 ">
           <Text className="text-lg font-semibold mb-3">{t("accessibility")}</Text>
           <RadioGroup
             value={accessibility}
@@ -180,7 +192,7 @@ export default function SettingsPage() {
               }}
             />
           </RadioGroup>
-        </View>
+        </View> */}
 
         {/* Permissions Settings */}
         <View className="bg-white rounded-2xl p-4 ">
@@ -217,30 +229,30 @@ export default function SettingsPage() {
         </View>
 
         {/* Profile Passcode */}
-        <View className="bg-white rounded-2xl p-4 ">
+        {/* <View className="bg-white rounded-2xl p-4 ">
           <Text className="text-lg font-semibold mb-3">{t("profilePasscode")} </Text>
           <SwitchWithLabel
             label={t("enablePasscode")}
             value={profilePasscode !== null}
             onValueChange={(value: boolean) => PassCodeToggle(value)}
           />
-        </View>
+        </View> */}
 
         {/* Additional Options */}
-        <Button
+        {/* <Button
           onPress={() => router.push("/")}
           variant={"secondary"}
           className="bg-white"
         >
           <Text className="text-neutral-700  font-semibold ">{t("rateApp")}</Text>
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           onPress={() => router.push("/(stacks)/help")}
           variant={"secondary"}
           className="bg-white"
         >
           <Text className="text-neutral-700  font-semibold ">{t("helpCenter")}</Text>
-        </Button>
+        </Button> */}
       </View>
       <BottomSheet
         ref={showPassCodeBottomSheetRef}
@@ -291,12 +303,13 @@ export default function SettingsPage() {
   );
 }
 
-function RadioGroupItemWithLabel({ value, onLabelPress }: any) {
+// Updated RadioGroupItemWithLabel component
+function RadioGroupItemWithLabel({ value, label }: { value: string; label: string }) {
   return (
     <View className="flex-row gap-2 items-center">
       <RadioGroupItem aria-labelledby={`label-for-${value}`} value={value} />
-      <Label nativeID={`label-for-${value}`} onPress={onLabelPress}>
-        {value}
+      <Label nativeID={`label-for-${value}`}>
+        {label}
       </Label>
     </View>
   );

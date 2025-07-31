@@ -1,5 +1,5 @@
 import { View, Text, Dimensions, ScrollView, FlatList } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
 import colors from "@/utils/colors";
 import { LineChart, ProgressChart } from "react-native-chart-kit";
@@ -9,10 +9,32 @@ import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { H3 } from "@/components/ui/Typography";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/clerk-expo";
+import { apiBaseUrl } from "@/features/Home/constHome";
+import { apiNewUrl } from "@/const";
 
 export default function QualityOfLifeScaleRecord() {
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const [lifeScaleData, setLifeScaleData] = useState([]);
+
+  console.log('lifeScaleData',lifeScaleData)
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchLifeScale = async () => {
+      try {
+        const res = await fetch(`${apiNewUrl}/api/life_scale/get/${userId}`);
+        const data = await res.json();
+        setLifeScaleData(data); // Assuming array of mood scale entries
+      } catch (err) {
+        console.error("Error fetching life scale data", err);
+      }
+    };
+
+    fetchLifeScale();
+  }, [userId]);
+
+
   const chartConfig1 = {
     backgroundColor: "#fff",
     backgroundGradientFrom: "#fff",
@@ -44,48 +66,41 @@ export default function QualityOfLifeScaleRecord() {
 
   const data1 = {
     labels: ["Swim"], // optional
-    data: [0.15],
+    data: [lifeScaleData[0]?.activity?.[0]?.score / 100 || 0],
   };
 
-  const data2 = [
-    {
-      labels: ["January", "February", "March"],
-      datasets: [
-        {
-          data: [20, 45, 28, 80, 99, 43],
-          color: (opacity = 1) => "#000", // optional
-          strokeWidth: 2, // optional
-          withDots: true,
-        },
-      ],
-    },
-    {
-      labels: ["January", "February", "March"],
-      datasets: [
-        {
-          data: [20, 45, 28, 80, 99, 43],
-          color: (opacity = 1) => "#000", // optional
-          strokeWidth: 2, // optional
-          withDots: true,
-        },
-      ],
-    },
-  ];
+// Step 1: Format DB data to chart format
+const chartDataFromDB = lifeScaleData.slice(-6).map(record => {
+  const label = new Date(record.createdAt).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+  });
 
-  const feelingData = [
-    {
-      felling: "good",
-      date: "2022-01-01",
-      positive_feeling: ["happy", "joyful"],
-      negative_feeling: ["sad", "angry"],
-    },
-    {
-      felling: "bad",
-      date: "2022-01-01",
-      positive_feeling: ["happy", "joyful"],
-      negative_feeling: ["sad", "angry"],
-    },
-  ];
+  const activityScores = record.activity.map(item => item.score || 0);
+  const averageScore =
+    activityScores.reduce((sum, val) => sum + val, 0) / activityScores.length || 0;
+
+  return {
+    label,
+    score: averageScore,
+  };
+});
+
+// Step 2: Wrap in format similar to your old `data2`
+const formattedChartData = [
+  {
+    labels: chartDataFromDB.map(item => item.label),
+    datasets: [
+      {
+        data: chartDataFromDB.map(item => item.score),
+        color: (opacity = 1) => `rgba(34,197,94,${opacity})`, // green
+        strokeWidth: 2,
+        withDots: true,
+      },
+    ],
+  },
+];
+
 
   return (
     <ScrollView
@@ -114,7 +129,7 @@ export default function QualityOfLifeScaleRecord() {
       </View>
 
       <FlatList
-        data={data2}
+        data={formattedChartData}
         horizontal
         contentContainerClassName="gap-2"
         showsHorizontalScrollIndicator={false}
@@ -143,12 +158,13 @@ export default function QualityOfLifeScaleRecord() {
         )}
       />
 
-      <View className="rounded-xl bg-background p-4">
-        <Text className="text-lg font-semibold">Feeling Details</Text>
-        {feelingData.map((item, index) => {
-          const Mood = moodOptions.find((mood) => mood.label === item.felling);
+       <View className="rounded-xl bg-background p-4">
+        <Text className="text-lg font-semibold mb-2">Feeling Details</Text>
 
+        {lifeScaleData.map((item, index) => {
+          const Mood = moodOptions.find((mood) => mood.label === item.mood);
           if (!Mood) return null;
+
           return (
             <View
               key={index}
@@ -159,33 +175,36 @@ export default function QualityOfLifeScaleRecord() {
                 className={cn("text-lg font-semibold")}
                 style={{ color: Mood?.color }}
               >
-                {toCapitalizeFirstLetter(item.felling)}
+                {toCapitalizeFirstLetter(item.mood)}
                 <Text className="text-sm font-normal text-neutral-700">
                   {"    ( " +
-                    format(item.date, "EEE , dd-mm-yy , hh:mm a") +
+                    format(new Date(item.createdAt), "EEE , dd-MM-yy , hh:mm a") +
                     " )    "}
                 </Text>
               </Text>
 
-              <Text className=" font-semibold">Positive Feeling</Text>
-
+              <Text className=" font-semibold">Best Activities</Text>
               <Text className="text-sm font-medium text-neutral-700">
-                {item.positive_feeling.map((item2, index) => (
-                  <React.Fragment key={index}>
-                    {toCapitalizeFirstLetter(item2)}
-                    {index !== item.positive_feeling.length - 1 ? ", " : ""}
-                  </React.Fragment>
-                ))}
+                {item.activity
+                  .filter((a) => a.type === "bestForMe")
+                  .map((a, i, arr) => (
+                    <React.Fragment key={i}>
+                      {toCapitalizeFirstLetter(a.reason)}
+                      {i !== arr.length - 1 ? ", " : ""}
+                    </React.Fragment>
+                  ))}
               </Text>
 
-              <Text className=" font-semibold">Negative Feeling</Text>
+              <Text className=" font-semibold">Worst Activities</Text>
               <Text className="text-sm font-medium text-neutral-700">
-                {item.negative_feeling.map((item2, index) => (
-                  <React.Fragment key={index}>
-                    {toCapitalizeFirstLetter(item2)}
-                    {index !== item.positive_feeling.length - 1 ? ", " : ""}
-                  </React.Fragment>
-                ))}
+                {item.activity
+                  .filter((a) => a.type === "worstForMe")
+                  .map((a, i, arr) => (
+                    <React.Fragment key={i}>
+                      {toCapitalizeFirstLetter(a.reason)}
+                      {i !== arr.length - 1 ? ", " : ""}
+                    </React.Fragment>
+                  ))}
               </Text>
             </View>
           );
