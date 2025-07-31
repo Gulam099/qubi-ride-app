@@ -17,6 +17,7 @@ import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { moodOptions } from "@/features/scale/constScale";
 import { useUser } from "@clerk/clerk-expo";
+import { apiNewUrl } from "@/const";
 
 export default function MoodScaleRecord() {
   const [LastMoodOption, setLastMoodOption] = useState(null);
@@ -50,7 +51,7 @@ export default function MoodScaleRecord() {
   const fetchMoodScaleData = async () => {
     try {
       const response = await fetch(
-        `${apiBaseUrl}/api/mood-scale/${userId}?page=1`
+        `${apiNewUrl}/api/mood-scale/${userId}?page=1`
       );
       const data = await response.json();
 

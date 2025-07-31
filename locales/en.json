@@ -393,9 +393,9 @@
   "familyAdded": "Family member added successfully",
   "familySaveError": "Error saving family member",
   "familyDeleted": "Deleted family member",
-  "familyDeleteError": "Failed to delete family member"
-
-  
+  "familyDeleteError": "Failed to delete family member",
+  "didntReceiveCode": "Didn't Receive Code?",
+  "resendWithin": "Resend Within"
 
 
 }

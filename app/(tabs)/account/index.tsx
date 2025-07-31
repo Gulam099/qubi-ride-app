@@ -97,7 +97,7 @@ export default function AccountPage() {
           icon: ClipboardText,
         },
         // { link: "/account/report", label: "My reports", icon: Book },
-        // { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
+        { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
         { link: "/account/scale", label: t("Mymetrics"), icon: Clipboard },
       ],
     },

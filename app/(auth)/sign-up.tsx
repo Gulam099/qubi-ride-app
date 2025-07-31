@@ -30,7 +30,39 @@ export default function Page() {
   );
   const [fcmTokenFirebase, setfcmTokenFirebase] = useState("this is");
   const [verifying, setVerifying] = React.useState(false);
+  const [timer, setTimer] = React.useState(60);
+  const [isResendDisabled, setIsResendDisabled] = React.useState(true);
   const { t } = useTranslation();
+
+  // Timer effect for resend functionality
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (verifying && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prevTimer) => {
+          if (prevTimer <= 1) {
+            setIsResendDisabled(false);
+            return 0;
+          }
+          return prevTimer - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [verifying, timer]);
+
+  // Format timer to MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // useEffect(() => {
   //   const getFcmToken = async () => {
@@ -67,7 +99,7 @@ export default function Page() {
   //   return unsubscribe;
   // }, []);
 
-  // Handle the submission of the sign-in form
+  // Handle the submission of the sign-up form
   const onSignUpPress = async () => {
     if (!isLoaded && !signUp) return null;
 
@@ -86,9 +118,27 @@ export default function Page() {
       toast.success(t("otpSentSuccess"));
 
       setVerifying(true);
+      setTimer(60); // Reset timer
+      setIsResendDisabled(true); // Disable resend button
     } catch (err: any) {
       // console.error("Error:", JSON.stringify(err, null, 2));
       toast.error(err.message || t("failedToSendOtp"));
+    }
+  };
+
+  // Handle resend OTP
+  const handleResendOtp = async () => {
+    if (!isLoaded && !signUp) return null;
+
+    try {
+      await signUp.preparePhoneNumberVerification();
+      setTimer(60); // Reset timer
+      setIsResendDisabled(true); // Disable resend button
+      setCode(""); // Clear current code
+      toast.success(t("otpSentSuccess") || "OTP sent successfully");
+    } catch (err: any) {
+      toast.error(err.message || t("failedToSendOtp"));
+      console.log(err.message);
     }
   };
 
@@ -217,13 +267,28 @@ export default function Page() {
                 </Text>
               </Button>
 
-              {/* <Button
-            variant="outline"
-            disabled={isDisabled}
-            onPress={handleResendOtp}
-          >
-            <Text>{isDisabled ? `Resend in ${timer}s` : "Resend OTP"}</Text>
-          </Button> */}
+              {/* Resend OTP Section */}
+              <View className="flex flex-row justify-center items-center gap-2">
+                <Text className="text-neutral-600">
+                  {t("didntReceiveCode") || "Didn't receive the code?"}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleResendOtp}
+                  disabled={isResendDisabled}
+                  className={`${isResendDisabled ? 'opacity-50' : ''}`}
+                >
+                  <Text className={`font-semibold ${
+                    isResendDisabled 
+                      ? 'text-neutral-400' 
+                      : 'text-primary-500 underline'
+                  }`}>
+                    {isResendDisabled 
+                      ? `${t("resendWithin") || "Resend within"} ${formatTime(timer)}`
+                      : t("resend") || "Resend"
+                    }
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">

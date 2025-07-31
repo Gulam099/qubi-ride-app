@@ -392,8 +392,9 @@
   "familyAdded": "تمت إضافة فرد العائلة بنجاح",
   "familySaveError": "حدث خطأ أثناء حفظ فرد العائلة",
   "familyDeleted": "تم حذف فرد العائلة",
-  "familyDeleteError": "فشل في حذف فرد العائلة"
-
+  "familyDeleteError": "فشل في حذف فرد العائلة",
+  "didntReceiveCode": "لم تستلم الرمز؟",
+  "resendWithin": "إعادة الإرسال خلال"
 
 
 
