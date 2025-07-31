@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, Touchable } from "react-native";
-import { Share, Clock, Share2 } from "lucide-react-native"; // Replace with your icons library
+import { View, Text, Image, TouchableOpacity, Touchable, Share, Alert } from "react-native";
+import { Share2, Clock } from "lucide-react-native"; // Replace with your icons library
 import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { Heart } from "iconsax-react-native";
 
@@ -19,6 +19,7 @@ type SpecialistCardProps = {
   onPress: () => void;
   isFavorited?: boolean;
   onToggleFavorite?: () => void;
+  itemo?: any; // Added proper typing for itemo
 };
 
 export default function SpecialistCard({
@@ -29,9 +30,45 @@ export default function SpecialistCard({
   imageUrl,
   isFavorited,
   shareLink,
+  itemo,
   onToggleFavorite,
   onPress,
 }: SpecialistCardProps) {
+  console.log("itemooo>>", itemo);
+
+  const handleShare = async () => {
+    try {
+      // Create a formatted message with doctor information
+      const doctorInfo = `
+🩺 *Doctor Information*
+
+👨‍⚕️ *Name:* ${name || "Not specified"}
+🎯 *Specialization:* ${title || "Not specified"}
+🎯 *Specialist:* ${itemo.specialist || "Not specified"}
+🎯 *Sub-specialization:* ${itemo.sub_specialization || "Not specified"}
+
+💰 *Consultation Fee:* ${price == 0 ? "Free" : currencyFormatter(price)}
+
+${itemo?.experience ? `📅 *Experience:* ${itemo.experience}` : ''}
+${itemo?.language ? `🗣️ *Languages:* ${itemo?.language[0]} ${itemo.language[1] ? itemo.language[1] : " "}` : ''}
+
+
+      `.trim();
+
+      const result = await Share.share({
+        message: doctorInfo,
+        title: `Doctor ${name} - ${title}`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('Doctor information shared successfully');
+      }
+    } catch (error) {
+      console.error('Error sharing doctor information:', error);
+      Alert.alert('Error', 'Unable to share doctor information. Please try again.');
+    }
+  };
+
   return (
     <View className="flex-row items-center bg-white  rounded-lg overflow-hidden relative w-full h-36">
       {/* Specialist Image */}
@@ -76,7 +113,7 @@ export default function SpecialistCard({
 
       {/* Actions */}
       <View className="flex-row gap-3 absolute top-2 right-2">
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleShare}>
           <Share2 size={20} color="#6b7280" />
         </TouchableOpacity>
       </View>

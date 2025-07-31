@@ -248,6 +248,7 @@ export default function ConsultPage() {
                 likes={item.likes}
                 imageUrl={item.profile_picture}
                 shareLink={`${item._id}`}
+                itemo={item}
                 onPress={() =>
                   router.push(`/consult/s/${item._id}` as RelativePathString)
                 }
