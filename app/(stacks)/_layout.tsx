@@ -53,6 +53,36 @@ export default function StacksLayout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="find-consultant/index"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Help me find the right consultant")}
+            </Text>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="find-consultant/step1"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Help me find the right consultant")}
+            </Text>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="find-consultant/step2"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Help me find the right consultant")}
+            </Text>
+          ),
+        }}
+      />
     </Stack>
   );
 }

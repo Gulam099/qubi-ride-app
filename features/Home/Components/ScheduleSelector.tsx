@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Calendar } from "@/components/ui/Calendar";
-import { format } from "date-fns";
+import { addDays, format, setHours, setMinutes } from "date-fns";
 
 interface ScheduleSelectorProps {
   selectedDateTime: string;
@@ -22,18 +22,50 @@ export default function ScheduleSelector({
     selectedDateTime
   );
 
+   const defaultTimes = useMemo(() => {
+    const times: string[] = [];
+    const today = new Date();
+    
+    // Generate times for next 7 days
+    for (let day = 0; day < 7; day++) {
+      const currentDate = addDays(today, day);
+      
+      // Generate time slots: 9 AM, 11 AM, 2 PM, 4 PM, 6 PM for each day
+      const timeSlots = [9, 11, 14, 16, 18]; // Hours in 24-hour format
+      
+      timeSlots.forEach(hour => {
+        const dateTime = setMinutes(setHours(currentDate, hour), 0);
+        times.push(dateTime.toISOString());
+      });
+    }
+    
+    return times;
+  }, []);
+
+  const timesToUse = availableTimes && availableTimes.length > 0 ? availableTimes : defaultTimes;
+
   // Extract unique dates from availableTimes
+  // const uniqueDates = Array.from(
+  //   new Set(availableTimes.map((iso) => format(new Date(iso), "yyyy-MM-dd")))
+  // );
+
   const uniqueDates = Array.from(
-    new Set(availableTimes.map((iso) => format(new Date(iso), "yyyy-MM-dd")))
+    new Set(timesToUse.map((iso) => format(new Date(iso), "yyyy-MM-dd")))
   );
 
+
   // Filter times based on the selected date
-  const timesForSelectedDate = selectedDate
-    ? availableTimes.filter(
+  // const timesForSelectedDate = selectedDate
+  //   ? availableTimes.filter(
+  //       (iso) => format(new Date(iso), "yyyy-MM-dd") === selectedDate
+  //     )
+  //   : [];
+
+   const timesForSelectedDate = selectedDate
+    ? timesToUse.filter(
         (iso) => format(new Date(iso), "yyyy-MM-dd") === selectedDate
       )
     : [];
-
   // Mark available dates on the calendar
   const markedDates = uniqueDates.reduce((acc, date) => {
     acc[date] = { marked: true, dotColor: "purple" };
@@ -49,6 +81,7 @@ export default function ScheduleSelector({
     ? format(new Date(selectedDateTime), "d MMMM yyyy | h:mm a") // 1 January 2025 | 11:34 PM
     : "";
 
+    
   return (
     <View className=" gap-4">
       <Text className="text-lg font-medium">

@@ -1,4 +1,4 @@
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { H3 } from "@/components/ui/Typography";
@@ -33,7 +33,7 @@ const PatientPage = () => {
   }, [params.refresh]);
 
   return (
-    <View className="flex-1 flex gap-6 flex-col h-full">
+    <ScrollView className="flex-1">
       <Image
         source={PatientHomeImage}
         className={cn("w-full h-[undefined] aspect-[375/295]")}
@@ -75,16 +75,16 @@ const PatientPage = () => {
           </View>
         </TouchableOpacity>
 
-        {/* <Button
+        <Button
           className="bg-blue-50/30 backdrop-blur-md "
-          onPress={() => router.push("/account/consult/help")}
+          onPress={() => router.push("/(stacks)/find-consultant")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">
             Help me find the right consultant{" "}
           </Text>
-        </Button> */}
+        </Button>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

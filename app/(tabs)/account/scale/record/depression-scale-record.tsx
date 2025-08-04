@@ -11,19 +11,78 @@ import React, { useEffect, useState } from "react";
 import Drawer from "@/components/ui/Drawer";
 import { H3 } from "@/components/ui/Typography";
 import { format } from "date-fns";
-import { ProgressChart } from "react-native-chart-kit";
 import colors from "@/utils/colors";
 import { ArrowRight } from "iconsax-react-native";
-import { useSelector } from "react-redux";
-import { UserType } from "@/features/user/types/user.type";
-import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
 import { apiNewUrl } from "@/const";
+import Svg, { Circle, G, Text as SvgText } from "react-native-svg";
 
 type RecordType = {
   _id: string;
   score: number;
   createdAt: string;
+};
+
+const getAnxietyLevel = (score: number) => {
+  if (score < 5) return "Minimal Anxiety";
+  if (score < 10) return "Mild Anxiety";
+  if (score < 15) return "Moderate Anxiety";
+  return "Severe Anxiety";
+};
+
+const CircularProgress = ({ score }: { score: number }) => {
+  const size = 160;
+  const strokeWidth = 15;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = score / 100;
+  const strokeDashoffset = circumference * (1 - progress);
+
+  return (
+    <Svg width={size} height={size}>
+      <G rotation="-90" origin={`${size / 2}, ${size / 2}`}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#eee"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#1f3c88"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="none"
+        />
+      </G>
+      <SvgText
+        x="50%"
+        y="45%"
+        textAnchor="middle"
+        fontSize="14"
+        fill="#1f3c88"
+        fontWeight="bold"
+      >
+        {getAnxietyLevel(score)}
+      </SvgText>
+      <SvgText
+        x="50%"
+        y="62%"
+        textAnchor="middle"
+        fontSize="28"
+        fill="#1f3c88"
+        fontWeight="bold"
+      >
+        {score}
+      </SvgText>
+    </Svg>
+  );
 };
 
 export default function DepressionScaleRecord() {
@@ -79,23 +138,6 @@ export default function DepressionScaleRecord() {
     setIsDrawerVisible(true);
   };
 
-  const data = {
-    labels: ["Anxiety"], // optional
-    data: [RecordList[0]?.score / 100 || 0],
-  };
-
-  const chartConfig = {
-    backgroundColor: "#fff",
-    backgroundGradientFrom: "#fff",
-    backgroundGradientFromOpacity: 0,
-    backgroundGradientTo: "#fff",
-    backgroundGradientToOpacity: 0,
-    color: (opacity = 1) => `rgba(1, 40, 150, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
-    useShadowColorFromDataset: false,
-  };
-
   return (
     <>
       {!isListActive ? (
@@ -106,26 +148,10 @@ export default function DepressionScaleRecord() {
         >
           <View className="bg-white p-4 rounded-2xl relative h-[400]">
             <H3 className="text-xl">Last Result</H3>
-            <View className="absolute top-[140] left-[155] z-10">
-              <Text className=" text-blue-600 font-semibold  w-20 text-center leading-5">
-                {RecordList.length > 0 ? "Moderate Anxiety" : "No Data"}
-              </Text>
-              <Text className="text-3xl font-semibold text-blue-600 text-center leading-10">
-                {RecordList.length > 0 ? `${RecordList[0]?.score}` : "N/A"}
-              </Text>
+            <View className="flex items-center justify-center mt-4">
+              <CircularProgress score={RecordList[0]?.score || 0} />
             </View>
-            <View className=" rotate-[180deg] ">
-              <ProgressChart
-                data={data}
-                width={Dimensions.get("window").width - 60}
-                height={250}
-                strokeWidth={18}
-                radius={60}
-                chartConfig={chartConfig}
-                hideLegend={true}
-              />
-            </View>
-            <Text className="text-sm text-neutral-500">
+            <Text className="text-sm text-neutral-500 mt-4">
               We encourage you to take care of your mental health and seek a
               session as soon as possible for meditation to help alleviate
               anxiety and achieve mental relaxation. Remember that you are not
@@ -136,17 +162,17 @@ export default function DepressionScaleRecord() {
           <View className="flex-col rounded-xl bg-background py-4 px-4 ">
             <View className="flex-row">
               <Text className="text-lg font-semibold flex-1 ">Record</Text>
-              <View className="flex-row items-center justify-center gap-1">
-                <Text
-                  onPress={() => {
-                    setIsListActive(!isListActive);
-                  }}
-                  className="text-sm font-semibold  text-end text-primary-500 "
-                >
+              <TouchableOpacity
+                onPress={() => {
+                  setIsListActive(!isListActive);
+                }}
+                className="flex-row items-center justify-center gap-1"
+              >
+                <Text className="text-sm font-semibold text-primary-500">
                   View all
                 </Text>
                 <ArrowRight size="20" color={colors.primary[500]} />
-              </View>
+              </TouchableOpacity>
             </View>
             <View className="flex-col h-full gap-2">
               {RecordList.slice(0, 4).map((record, index) => (
@@ -155,7 +181,9 @@ export default function DepressionScaleRecord() {
                     <Text className="text-base font-semibold leading-8">
                       Anxiety Score: {record.score}
                     </Text>
-                    <Text className="text-xs">Moderate Anxiety</Text>
+                    <Text className="text-xs">
+                      {getAnxietyLevel(record.score)}
+                    </Text>
                   </View>
                   <View className=" w-1/4">
                     <Text className="text-xs">
@@ -195,7 +223,7 @@ export default function DepressionScaleRecord() {
                   <Text className="text-lg font-medium leading-6">
                     Anxiety Score: {item.score}
                   </Text>
-                  <Text className="text-xs">Moderate Anxiety</Text>
+                  <Text className="text-xs">{getAnxietyLevel(item.score)}</Text>
                 </View>
                 <View className=" px-4">
                   <Text className="text-sm">
@@ -226,9 +254,6 @@ export default function DepressionScaleRecord() {
                     {RecordActive?.score}
                   </Text>
                 </View>
-                {/* <Text className="text-xs">
-                  {format(new Date(RecordActive?.createdAt as string), "dd-MM-yyyy")}
-                </Text> */}
               </View>
             </Drawer>
           </View>
