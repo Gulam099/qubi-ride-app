@@ -246,13 +246,13 @@ export default function SettingsPage() {
         >
           <Text className="text-neutral-700  font-semibold ">{t("rateApp")}</Text>
         </Button> */}
-        {/* <Button
+        <Button
           onPress={() => router.push("/(stacks)/help")}
           variant={"secondary"}
           className="bg-white"
         >
           <Text className="text-neutral-700  font-semibold ">{t("helpCenter")}</Text>
-        </Button> */}
+        </Button>
       </View>
       <BottomSheet
         ref={showPassCodeBottomSheetRef}

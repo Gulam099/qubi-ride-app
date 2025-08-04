@@ -4,9 +4,7 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
-import { Calendar } from "react-native-calendars";
 import { Text } from "@/components/ui/Text";
 import { useSelector } from "react-redux";
 import { AppStateType } from "@/features/setting/types/setting.type";
@@ -14,11 +12,12 @@ import { useUser } from "@clerk/clerk-expo";
 import {
   fetchAppointments,
   fetchInstantAppointments,
+  fetchGroupAppointments,
 } from "@/features/util/constHome";
 import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { useTranslation } from "react-i18next";
 
-type TabType = "scheduled" | "instant";
+type TabType = "session" | "group";
 
 export default function AppointmentUpcomingList() {
   const { user } = useUser();
@@ -27,39 +26,38 @@ export default function AppointmentUpcomingList() {
   const appState: AppStateType = useSelector((state: any) => state.appState);
   const { t } = useTranslation();
 
-  const [activeTab, setActiveTab] = useState<TabType>("scheduled");
+  const [activeTab, setActiveTab] = useState<TabType>("session");
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [errors, setErrors] = useState({ scheduled: "", instant: "" });
-
-  // Store all appointments in a single state
+  const [errors, setErrors] = useState({
+    session: "",
+    group: "",
+  });
   const [appointments, setAppointments] = useState<{
     scheduled: any[];
     instant: any[];
+    group: any[];
   }>({
     scheduled: [],
     instant: [],
+    group: [],
   });
 
-  console.log("appointments", appointments);
-
-  // Fetch appointments data
   const loadAppointments = useCallback(async () => {
     if (!userId) return;
 
     setLoading(true);
-    setErrors({ scheduled: "", instant: "" });
+    setErrors({ session: "", group: "" });
 
     try {
-      const [scheduledRes, instantRes] = await Promise.all([
+      const [scheduledRes, instantRes, groupRes] = await Promise.all([
         fetchAppointments({ userId }),
         fetchInstantAppointments({ userId }),
+        fetchGroupAppointments(userId),
       ]);
 
       let scheduledData = [];
       let instantData = [];
+      let groupData = [];
 
       if (scheduledRes.success) {
         scheduledData = scheduledRes.data.filter(
@@ -70,36 +68,41 @@ export default function AppointmentUpcomingList() {
             (!appointment.type && !appointment.appointmentType)
         );
       } else {
-        setErrors((prev) => ({ ...prev, scheduled: scheduledRes.message }));
+        setErrors((prev) => ({ ...prev, session: scheduledRes.message }));
       }
 
       if (instantRes.success) {
         instantData = instantRes.data;
       } else {
-        setErrors((prev) => ({ ...prev, instant: instantRes.message }));
+        setErrors((prev) => ({ ...prev, session: instantRes.message }));
+      }
+
+      if (groupRes.success) {
+        groupData = groupRes.data;
+      } else {
+        setErrors((prev) => ({ ...prev, group: groupRes.message }));
       }
 
       setAppointments({
         scheduled: scheduledData,
         instant: instantData,
+        group: groupData,
       });
     } catch (error) {
       console.error("Error loading appointments:", error);
       setErrors({
-        scheduled: "Failed to load scheduled appointments",
-        instant: "Failed to load instant appointments",
+        session: "Failed to load session appointments",
+        group: "Failed to load group appointments",
       });
     } finally {
       setLoading(false);
     }
   }, [userId]);
 
-  // Load appointments when component mounts or userId changes
   useEffect(() => {
     loadAppointments();
   }, [loadAppointments]);
 
-  // Apply filters to appointments
   const filteredAppointments = useMemo(() => {
     const applyFilters = (appointmentList: any[]) => {
       if (!appState.filter) return appointmentList;
@@ -139,121 +142,69 @@ export default function AppointmentUpcomingList() {
     return {
       scheduled: applyFilters(appointments.scheduled),
       instant: applyFilters(appointments.instant),
+      group: applyFilters(appointments.group),
     };
   }, [appointments, appState.filter]);
 
-  // Get appointments for calendar view
-  const calendarAppointments = useMemo(() => {
-    const allAppointments = [
-      ...filteredAppointments.scheduled,
-      ...filteredAppointments.instant,
-    ];
-
-    // Group by date
-    const appointmentsByDate: { [key: string]: any[] } = {};
-    allAppointments.forEach((appointment) => {
-      const date = (appointment.appointmentDate || appointment.createdAt)
-        .split("T")[0];
-      if (!appointmentsByDate[date]) {
-        appointmentsByDate[date] = [];
-      }
-      appointmentsByDate[date].push(appointment);
-    });
-
-    return appointmentsByDate;
-  }, [filteredAppointments]);
-
-  // Get marked dates for calendar
-  const markedDates = useMemo(() => {
-    const marked: { [key: string]: any } = {};
-    
-    Object.keys(calendarAppointments).forEach((date) => {
-      marked[date] = {
-        marked: true,
-        dotColor: "#000F8F",
-        selectedColor: date === selectedDate ? "#000F8F" : undefined,
-      };
-    });
-
-    // Mark selected date
-    if (!marked[selectedDate]) {
-      marked[selectedDate] = {};
-    }
-    marked[selectedDate].selected = true;
-    marked[selectedDate].selectedColor = "#000F8F";
-
-    return marked;
-  }, [calendarAppointments, selectedDate]);
-
-  // Get appointments for selected date
-  const selectedDateAppointments = useMemo(() => {
-    return calendarAppointments[selectedDate] || [];
-  }, [calendarAppointments, selectedDate]);
-
-  // Current appointments based on active tab
   const currentAppointments = useMemo(() => {
-    return activeTab === "scheduled" 
-      ? filteredAppointments.scheduled 
-      : filteredAppointments.instant;
+    if (activeTab === "session") {
+      return [...filteredAppointments.scheduled, ...filteredAppointments.instant];
+    } else {
+      return filteredAppointments.group || [];
+    }
   }, [activeTab, filteredAppointments]);
 
-  // Handle tab change
   const handleTabPress = useCallback((tab: TabType) => {
     setActiveTab(tab);
   }, []);
 
-  // Handle date selection
-  const handleDateSelect = useCallback((date: any) => {
-    setSelectedDate(date.dateString);
-  }, []);
-
-  // Render appointment item
   const renderAppointmentItem = useCallback(
-    ({ item }: { item: any }) => (
-      <AppointmentCard
-        appointment={item}
-        type={
-          (item.status?.toLowerCase?.() || "upcoming") as
-            | "completed"
-            | "delayed"
-            | "ongoing"
-            | "urgent"
-            | "upcoming"
-        }
-      />
-    ),
-    []
-  );
+    ({ item }: { item: any }) => {
+      if (activeTab === "group") {
+        return (
+          <View className="bg-white p-4 rounded-lg shadow-sm">
+            <Text className="font-bold text-base text-gray-800">
+              Group ID: {item.groupId}
+            </Text>
+            <Text className="text-gray-600 mt-1">
+              Amount: {item.amount} | Status: {item.paymentStatus}
+            </Text>
+            <Text className="text-gray-500 text-sm mt-1">
+              {new Date(item.dateTime).toLocaleString()}
+            </Text>
+          </View>
+        );
+      }
 
-  // Calendar theme
-  const calendarTheme = useMemo(
-    () => ({
-      selectedDayBackgroundColor: "#000F8F",
-      selectedDayTextColor: "#ffffff",
-      todayTextColor: "#000F8F",
-      dayTextColor: "#2d4150",
-      textDisabledColor: "#d9e1e8",
-      dotColor: "#000F8F",
-      selectedDotColor: "#ffffff",
-      arrowColor: "#000F8F",
-      disabledArrowColor: "#d9e1e8",
-      monthTextColor: "#2d4150",
-      indicatorColor: "#000F8F",
-      textDayFontFamily: "System",
-      textMonthFontFamily: "System",
-      textDayHeaderFontFamily: "System",
-      textDayFontSize: 16,
-      textMonthFontSize: 16,
-      textDayHeaderFontSize: 13,
-    }),
-    []
+      // Label if it's instant or scheduled
+      const sessionType =
+        item.type || item.appointmentType || (item.isInstant ? "Instant" : "Scheduled");
+
+      return (
+        <View>
+          <Text className="text-xs text-gray-500 ml-1 mb-1">{sessionType}</Text>
+          <AppointmentCard
+            appointment={item}
+            type={
+              (item.status?.toLowerCase?.() || "upcoming") as
+                | "completed"
+                | "delayed"
+                | "ongoing"
+                | "urgent"
+                | "upcoming"
+            }
+          />
+        </View>
+      );
+    },
+    [activeTab]
   );
 
   return (
     <View className="bg-blue-50/20 flex-1">
-      {/* Tab Header */}
+      {/* Tabs */}
       <View className="flex-row bg-white mx-4 mt-4 rounded-lg p-1 shadow-sm">
-        {["scheduled", "instant",].map((tab) => (
+        {["session", "group"].map((tab) => (
           <TouchableOpacity
             key={tab}
             className={`flex-1 py-3 rounded-md ${
@@ -266,73 +217,24 @@ export default function AppointmentUpcomingList() {
                 activeTab === tab ? "text-white" : "text-[#000F8F]"
               }`}
             >
-              {t(tab)}
+              {tab === "session" ? t("My Sessions") : t("My Group")}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Content */}
+      {/* List */}
       <View className="flex-1 p-4">
         {loading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#007BFF" />
           </View>
-        ) : activeTab === "calendar" ? (
-          <View className="flex-1">
-            {/* Calendar Component */}
-            <Calendar
-              onDayPress={handleDateSelect}
-              markedDates={markedDates}
-              theme={calendarTheme}
-              enableSwipeMonths
-              hideExtraDays
-              firstDay={1}
-              showWeekNumbers={false}
-              onPressArrowLeft={(subtractMonth) => subtractMonth()}
-              onPressArrowRight={(addMonth) => addMonth()}
-            />
-            
-            {/* Selected Date Appointments */}
-            <View className="flex-1 mt-4">
-              <Text className="text-lg font-semibold mb-2">
-                {t("appointmentsFor")} {selectedDate}
-              </Text>
-              
-              {selectedDateAppointments.length === 0 ? (
-                <View className="flex-1 justify-center items-center">
-                  <Text className="text-gray-500 text-center">
-                    {t("noAppointmentsForDate")}
-                  </Text>
-                </View>
-              ) : (
-                <FlatList
-                  data={selectedDateAppointments}
-                  keyExtractor={(item, index) => `${item._id}-${index}`}
-                  renderItem={({ item }) => (
-                    <View className="mb-2">
-                      <AppointmentCard
-                        appointment={item}
-                        type={
-                          (item.status?.toLowerCase?.() || "upcoming") as
-                            | "completed"
-                            | "delayed"
-                            | "ongoing"
-                            | "urgent"
-                            | "upcoming"
-                        }
-                      />
-                    </View>
-                  )}
-                  showsVerticalScrollIndicator={false}
-                />
-              )}
-            </View>
-          </View>
         ) : currentAppointments.length === 0 ? (
           <View className="flex-1 justify-center items-center">
             <Text className="text-center text-gray-500">
-              {t("noAppointmentsAvailable", { type: t(activeTab) })}
+              {t("noAppointmentsAvailable", {
+                type: activeTab === "session" ? t("mySessions") : t("group"),
+              })}
             </Text>
           </View>
         ) : (
@@ -345,15 +247,10 @@ export default function AppointmentUpcomingList() {
           />
         )}
 
-        {/* Error Messages */}
-        {activeTab === "scheduled" && errors.scheduled && (
+        {/* Error message */}
+        {errors[activeTab] && (
           <Text className="text-red-500 text-center mt-4">
-            {t("loadingFailedScheduled")}
-          </Text>
-        )}
-        {activeTab === "instant" && errors.instant && (
-          <Text className="text-red-500 text-center mt-4">
-            {t("loadingFailedInstant")}
+            {t("loadingFailed")}
           </Text>
         )}
       </View>

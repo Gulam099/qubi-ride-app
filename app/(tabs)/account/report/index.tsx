@@ -11,6 +11,8 @@ import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { AppStateType } from "@/features/setting/types/setting.type";
 import { useUser } from "@clerk/clerk-expo";
+import axios from "axios";
+import { ApiUrl } from "@/const";
 
 type ReportProps = {
   _id: string;
@@ -22,8 +24,30 @@ type ReportProps = {
   category: "plan" | "prescription";
 };
 
-// Mock Data
-const mockReportData = {
+type TreatmentItem = {
+  name: string;
+  description: string;
+  quantity: string;
+  frequency: string;
+  duration: string;
+};
+
+type Treatment = {
+  _id: string;
+  diagnosis: string;
+  status: string;
+  createdAt: string;
+  doctorId: {
+    _id: string;
+    full_name: string;
+    specialization: string;
+  };
+  treatmentItems: TreatmentItem[];
+  isEmptyStomach: boolean;
+};
+
+// Mock Data for Medical Plan (keeping existing structure)
+const mockMedicalPlanData = {
   "Medical Plan": {
     Current: [
       {
@@ -48,40 +72,19 @@ const mockReportData = {
       },
     ],
   },
-  "My Prescriptions": {
-    Current: [
-      {
-        _id: "3",
-        title: "Prescription 1",
-        doctorName: "Dr. Yusuf",
-        date: "2024 / 02 / 01",
-        number: "56789012",
-        type: "current",
-        category: "prescription",
-      },
-    ],
-    Previous: [
-      {
-        _id: "4",
-        title: "Prescription 2",
-        doctorName: "Dr. Adam",
-        date: "2023 / 11 / 15",
-        number: "34567890",
-        type: "previous",
-        category: "prescription",
-      },
-    ],
-  },
 };
 
 export default function AccountReportPage() {
   const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
   const [showReports, setShowReports] = useState<boolean>(
     (user?.unsafeMetadata.passcode as string) === null ? true : false
   );
   const [activeTab, setActiveTab] = useState("My Prescriptions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [reports, setReports] = useState<ReportProps[]>([]);
+  const [treatments, setTreatments] = useState<Treatment[]>([]);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(text: string): Promise<void> {
     try {
@@ -90,7 +93,7 @@ export default function AccountReportPage() {
 
       if (isPassCodeVerified) {
         toast.success("Passcode verified successfully!");
-        setShowReports(true); // Show reports or proceed with the next step
+        setShowReports(true);
       } else {
         toast.error("Invalid passcode. Please try again.");
         setShowReports(false);
@@ -102,15 +105,91 @@ export default function AccountReportPage() {
     }
   }
 
-  // Fetch reports dynamically based on tab and category
+  // Fetch treatments from API
+  const fetchTreatments = async () => {
+    if (!userId) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${ApiUrl}/api/treatments/user/${userId}`
+      );
+      setTreatments(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch treatments:", error);
+      toast.error("Failed to fetch treatments");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Convert treatments to report format
+  const convertTreatmentsToReports = (
+    treatments: Treatment[],
+    category: string
+  ): ReportProps[] => {
+    const currentDate = new Date();
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+
+    return treatments
+      .filter((treatment) => {
+        const treatmentDate = new Date(treatment.createdAt);
+        if (category === "Current") {
+          return treatmentDate >= sixMonthsAgo;
+        } else {
+          return treatmentDate < sixMonthsAgo;
+        }
+      })
+      .map((treatment) => ({
+        _id: treatment._id,
+        title: treatment.diagnosis || "Treatment Prescription",
+        doctorName: treatment.doctorId?.full_name || "Unknown Doctor",
+        date: new Date(treatment.createdAt)
+          .toLocaleDateString("en-GB")
+          .replace(/\//g, " / "),
+        number: treatment._id.slice(-8), // Use last 8 characters of ID as number
+        type: category === "Current" ? "current" : "previous",
+        category: "prescription",
+      }));
+  };
+
+  // Fetch reports based on tab and category
   useEffect(() => {
     const fetchReports = async () => {
-      const data = mockReportData[activeTab][activeCategory] || [];
-      setReports(data);
+      if (activeTab === "Medical Plan") {
+        // Use mock data for Medical Plan
+        const data = mockMedicalPlanData[activeTab][activeCategory] || [];
+        setReports(data);
+      } else if (activeTab === "My Prescriptions") {
+        // Fetch treatments for prescriptions
+        if (treatments.length === 0) {
+          await fetchTreatments();
+        } else {
+          const convertedReports = convertTreatmentsToReports(
+            treatments,
+            activeCategory
+          );
+          setReports(convertedReports);
+        }
+      }
     };
 
-    fetchReports();
-  }, [activeTab, activeCategory]);
+    if (showReports) {
+      fetchReports();
+    }
+  }, [activeTab, activeCategory, showReports, treatments]);
+
+  // Convert treatments when they are fetched
+  useEffect(() => {
+    if (treatments.length > 0 && activeTab === "My Prescriptions") {
+      const convertedReports = convertTreatmentsToReports(
+        treatments,
+        activeCategory
+      );
+      setReports(convertedReports);
+    }
+  }, [treatments, activeCategory, activeTab]);
 
   const handleOtpSubmit = async (otp: string) => {
     // Simulated verification
@@ -134,7 +213,6 @@ export default function AccountReportPage() {
             focusColor={colors.primary[500]}
             focusStickBlinkingDuration={500}
             secureTextEntry={true}
-            // onTextChange={onChange}
             onFilled={(text: string) => handleSubmit(text)}
             textInputProps={{
               accessibilityLabel: "your secret code",
@@ -216,26 +294,43 @@ export default function AccountReportPage() {
               ))}
             </View>
           </View>
-          <FlatList
-            data={reports}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-              <ReportCard
-                type={item.type}
-                category={item.category}
-                title={item.title}
-                doctorName={item.doctorName}
-                date={item.date}
-                number={item.number}
-                _id={item._id}
-              />
-            )}
-            ListEmptyComponent={
-              <Text className="text-center text-gray-500 mt-4">
-                No reports available.
+
+          {loading ? (
+            <View className="flex-1 justify-center items-center">
+              <Text className="text-lg font-semibold text-gray-600">
+                Loading treatments...
               </Text>
-            }
-          />
+            </View>
+          ) : (
+            <FlatList
+              data={reports}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <View className="mb-4">
+                  <ReportCard
+                    type={item.type}
+                    category={item.category}
+                    title={item.title}
+                    doctorName={item.doctorName}
+                    date={item.date}
+                    number={item.number}
+                    _id={item._id}
+                  />
+                </View>
+              )}
+              ListEmptyComponent={
+                <Text className="text-center text-gray-500 mt-4">
+                  {activeTab === "My Prescriptions" &&
+                  activeCategory === "Current"
+                    ? "No current prescriptions available."
+                    : activeTab === "My Prescriptions" &&
+                      activeCategory === "Previous"
+                    ? "No previous prescriptions available."
+                    : "No reports available."}
+                </Text>
+              }
+            />
+          )}
         </View>
       )}
     </View>

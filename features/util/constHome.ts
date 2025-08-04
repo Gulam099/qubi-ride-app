@@ -53,3 +53,15 @@ export const fetchInstantAppointments = async ({
   }
 };
 
+export const fetchGroupAppointments = async (userId: string) => {
+  try {
+    const res = await fetch(
+      `${ApiUrl}/api/groups-booking/fetch-group/${userId}`
+    );
+    const data = await res.json();
+    console.log("data",data)
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return { success: false, message: "Failed to fetch group appointments" };
+  }
+};

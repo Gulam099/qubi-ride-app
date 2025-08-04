@@ -7,23 +7,27 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner-native";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { apiNewUrl } from "@/const";
+import { RelativePathString, router } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function SupportPage() {
+  const { user } = useUser();
+  const userId = user?.publicMetadata.dbPatientId as string;
+  const [favoriteGroups, setFavoriteGroups] = useState<string[]>([]);
+
   const [activeTab, setActiveTab] = useState("All");
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchGroups = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiNewUrl}/api/group/fetch-group`);
+        const response = await fetch(`${apiNewUrl}/api/support-groups/all`);
         const result = await response.json();
 
-        console.log('result',result)
+        console.log("result", result);
         if (response.ok) {
-         
-
           setGroups(result?.data);
         } else {
           toast.error("Failed to fetch support groups.");
@@ -39,16 +43,69 @@ export default function SupportPage() {
     fetchGroups();
   }, []);
 
-  console.log('groups',groups)
-  // Filter groups based on the active tab
- const filteredGroups =
-  activeTab === "All"
-    ? groups
-    : groups.filter(
-        (group) =>
-          group.group_type?.toLowerCase() === activeTab.toLowerCase()
+  const handleToggleFavorite = async (group_Id: string) => {
+    try {
+      const isAlreadyFav = favoriteGroups.includes(group_Id);
+
+      const url = `${apiNewUrl}/api/favorites/${
+        isAlreadyFav ? "remove" : "add"
+      }`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          itemId: group_Id,
+          type: "groups",
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to update");
+
+      toast.success(
+        isAlreadyFav
+          ? "Group removed from favorites!"
+          : "Group added to favorites!"
       );
 
+      setFavoriteGroups((prev) =>
+        isAlreadyFav
+          ? prev.filter((id) => id !== group_Id)
+          : [...prev, group_Id]
+      );
+    } catch (err) {
+      toast.error(err.message || "Something went wrong");
+    }
+  };
+
+  // Fetch favorites on mount
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch(`${apiNewUrl}/api/favorites/${userId}`);
+        const data = await res.json();
+        if (res.ok && data?.favorites?.supportGroups) {
+          const groupIds = data.favorites.supportGroups.map((doc) => doc._id);
+          setFavoriteGroups(groupIds);
+        }
+      } catch (e) {
+        console.error("Error fetching favorites:", e);
+      }
+    };
+
+    if (userId) {
+      fetchFavorites(); // 🔁 call it on page mount
+    }
+  }, [userId]);
+
+  // Filter groups based on the active tab
+  const filteredGroups =
+    activeTab === "All"
+      ? groups
+      : groups.filter(
+          (group) => group.group_type?.toLowerCase() === activeTab.toLowerCase()
+        );
 
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-2">
@@ -90,14 +147,18 @@ export default function SupportPage() {
           contentContainerClassName=""
           renderItem={({ item }) => (
             <SupportGroupCard
-              title={item.group_title}
-              category={item.group_type}
-              price={item.price}
+              title={item.title}
+              category={item.type}
+              price={item.cost}
               recorded={item.recordedCount || 0}
               rating={item.rating || 0}
-              image={item.image || "https://via.placeholder.com/150"}
-              onPress={() => console.log("Group Selected:", item._id)}
-              link={`/p/support/${item._id}`}
+              image={item.imageUrl}
+              onPress={() =>
+                router.push(`/group/s/${item._id}` as RelativePathString)
+              }
+              link={`/s/${item._id}`}
+              isFavorited={favoriteGroups.includes(item._id)}
+              onToggleFavorite={() => handleToggleFavorite(item._id)}
             />
           )}
           contentContainerStyle={{ gap: 16, paddingVertical: 10 }}

@@ -30,6 +30,8 @@ type SupportGroupCardProps = {
   image: string;
   onPress: () => void; // Custom handler for "Join"
   link: string; // Route to navigate to
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
 };
 
 export default function SupportGroupCard({
@@ -39,6 +41,8 @@ export default function SupportGroupCard({
   recorded,
   rating,
   image,
+  isFavorited,
+  onToggleFavorite,
   onPress,
   link,
 }: SupportGroupCardProps) {
@@ -55,8 +59,15 @@ export default function SupportGroupCard({
           </View>
 
           <View className="w-1/3 flex justify-end items-end">
-            <Button className="aspect-square bg-primary-50/40 p-0 rounded-full">
-              <Heart size="24" color={colors.primary[500]} />
+            <Button
+              className="aspect-square bg-primary-50/40 p-0 rounded-full"
+              onPress={onToggleFavorite}
+            >
+              <Heart
+                size="24"
+                color={isFavorited ? "red" : colors.primary[500]}
+                variant={isFavorited ? "Bold" : "Linear"}
+              />
             </Button>
           </View>
         </CardHeader>
@@ -66,7 +77,7 @@ export default function SupportGroupCard({
       <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
         <CardContent className="px-0 rounded-none">
           <Image
-            source={image as ImageSourcePropType}
+            source={{ uri: image }}
             className="w-full h-[undefined] aspect-video "
             resizeMode="cover"
           />

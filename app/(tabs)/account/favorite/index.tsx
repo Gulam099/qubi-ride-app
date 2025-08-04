@@ -27,12 +27,8 @@ export default function AccountFavoritePage() {
   const tabs = [
     // { type: "program", name: "Programs", api: "/api/favorites/programs/" },
     { type: "consult", name: t("consultants"), api: "/api/favorites/doctors/" },
-    // { type: "group", name: "Groups", api: "/api/favorites/groups/" },
-    {
-      type: "culturalContent",
-      name: t("libraries"),
-      api: "/api/favorites/culturalContent/",
-    },
+    { type: "group", name: "Groups", api: "/api/favorites/groups/" },
+    {type: "culturalContent", name: t("libraries"),api: "/api/favorites/culturalContent/"},
   ];
 
   const { user } = useUser();

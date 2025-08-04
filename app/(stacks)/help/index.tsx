@@ -13,11 +13,11 @@ export default function HelpCenterPage() {
   const Data = [
     {
       title: "Frequently Asked Questions (FAQ)",
-      link: "/(Routes)/(patient)/help/faqs",
+      link: "/help/faqs",
     },
     {
       title: "Numbers that concern you",
-      link: "/(Routes)/(patient)/help/numbers",
+      link: "/help/numbers",
     },
   ];
   return (
