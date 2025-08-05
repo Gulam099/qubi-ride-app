@@ -85,8 +85,8 @@ export default function SupportPage() {
       try {
         const res = await fetch(`${apiNewUrl}/api/favorites/${userId}`);
         const data = await res.json();
-        if (res.ok && data?.favorites?.supportGroups) {
-          const groupIds = data.favorites.supportGroups.map((doc) => doc._id);
+        if (res.ok && data?.favorites?.groups) {
+          const groupIds = data.favorites.groups.map((doc) => doc._id);
           setFavoriteGroups(groupIds);
         }
       } catch (e) {

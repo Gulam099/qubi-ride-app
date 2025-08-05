@@ -83,6 +83,37 @@ export default function StacksLayout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="help/index"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Help Center")}
+            </Text>
+          ),
+        }}
+      />
+      
+      <Stack.Screen
+        name="help/faqs"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Frequently Asked Questions (FAQ)")}
+            </Text>
+          ),
+        }}
+      />
+       <Stack.Screen
+        name="help/numbers"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Numbers that concern you")}
+            </Text>
+          ),
+        }}
+      />
     </Stack>
   );
 }
