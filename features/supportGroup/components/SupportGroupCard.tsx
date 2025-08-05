@@ -51,7 +51,6 @@ export default function SupportGroupCard({
   return (
     <Card className="w-full px-0">
       {/* Header with clickable title */}
-      <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
         <CardHeader className="flex flex-row">
           <View className="w-2/3">
             <CardTitle className="text-xl">{title}</CardTitle>
@@ -71,7 +70,6 @@ export default function SupportGroupCard({
             </Button>
           </View>
         </CardHeader>
-      </TouchableOpacity>
 
       {/* Content with clickable image */}
       <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
