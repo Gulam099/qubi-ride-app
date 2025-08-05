@@ -206,17 +206,12 @@ export default function ConsultPage() {
   }
 
   return (
-    <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
+    <View className="px-4 py-6 bg-blue-50/20 h-full w-full">
       <View className="flex-col gap-3">
         {/* Applied Filters Display */}
-        {appliedFilters.length > 0 && (
-          <View className="bg-blue-50 p-3 rounded-lg mb-2">
-            <Text className="font-semibold text-blue-800 mb-1">{t("Applied Filters")}:</Text>
-            {appliedFilters.map((filter, index) => (
-              <Text key={index} className="text-blue-600 text-sm">• {filter}</Text>
-            ))}
-          </View>
-        )}
+        <Text className="text-lg">
+          Based on your condition, we suggest that you book a session with any of the following specialists
+        </Text>
 
         {/* Results Count */}
         <Text className="text-gray-600 text-sm">
