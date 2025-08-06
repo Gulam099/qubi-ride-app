@@ -78,8 +78,9 @@ export default function SupportDetailPage() {
 
       // 1. Create Group Booking
       const bookingPayload = {
-        groupId: groupDetails._id,
         userId: userId,
+        doctorId: groupDetails.doctor._id,
+        groupId: id,
         dateTime: selectedDateTime,
         amount: groupDetails.cost,
         paymentStatus: "pending",
@@ -96,7 +97,9 @@ export default function SupportDetailPage() {
         }
       );
 
+      console.log("bookingResponse",bookingResponse)
       const bookingResult = await bookingResponse.json();
+      console.log("bookingResult",bookingResult)
       if (!bookingResponse.ok) {
         throw new Error(bookingResult?.message || "Group booking failed.");
       }
@@ -106,7 +109,7 @@ export default function SupportDetailPage() {
         userId: userId,
         doctorId: groupDetails.doctor._id,
         groupId: groupDetails._id,
-        groupbookingId: bookingResult?.booking?._id,
+        groupbookingId: bookingResult?.data?._id,
         amount: groupDetails.cost,
         currency: "SAR",
         description: "support_group_session ",

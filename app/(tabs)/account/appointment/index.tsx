@@ -117,14 +117,16 @@ export default function AppointmentUpcomingList() {
       }
 
       if (startDate) {
-        filtered = filtered.filter((appointment: any) =>
-          new Date(appointment.createdAt) >= new Date(startDate)
+        filtered = filtered.filter(
+          (appointment: any) =>
+            new Date(appointment.createdAt) >= new Date(startDate)
         );
       }
 
       if (endDate) {
-        filtered = filtered.filter((appointment: any) =>
-          new Date(appointment.createdAt) <= new Date(endDate)
+        filtered = filtered.filter(
+          (appointment: any) =>
+            new Date(appointment.createdAt) <= new Date(endDate)
         );
       }
 
@@ -148,7 +150,10 @@ export default function AppointmentUpcomingList() {
 
   const currentAppointments = useMemo(() => {
     if (activeTab === "session") {
-      return [...filteredAppointments.scheduled, ...filteredAppointments.instant];
+      return [
+        ...filteredAppointments.scheduled,
+        ...filteredAppointments.instant,
+      ];
     } else {
       return filteredAppointments.group || [];
     }
@@ -158,47 +163,23 @@ export default function AppointmentUpcomingList() {
     setActiveTab(tab);
   }, []);
 
-  const renderAppointmentItem = useCallback(
-    ({ item }: { item: any }) => {
-      if (activeTab === "group") {
-        return (
-          <View className="bg-white p-4 rounded-lg shadow-sm">
-            <Text className="font-bold text-base text-gray-800">
-              Group ID: {item.groupId}
-            </Text>
-            <Text className="text-gray-600 mt-1">
-              Amount: {item.amount} | Status: {item.paymentStatus}
-            </Text>
-            <Text className="text-gray-500 text-sm mt-1">
-              {new Date(item.dateTime).toLocaleString()}
-            </Text>
-          </View>
-        );
-      }
-
-      // Label if it's instant or scheduled
-      const sessionType =
-        item.type || item.appointmentType || (item.isInstant ? "Instant" : "Scheduled");
-
-      return (
-        <View>
-          <Text className="text-xs text-gray-500 ml-1 mb-1">{sessionType}</Text>
-          <AppointmentCard
-            appointment={item}
-            type={
-              (item.status?.toLowerCase?.() || "upcoming") as
-                | "completed"
-                | "delayed"
-                | "ongoing"
-                | "urgent"
-                | "upcoming"
-            }
-          />
-        </View>
-      );
-    },
-    [activeTab]
-  );
+  const renderAppointmentItem = useCallback(({ item }: { item: any }) => {
+    return (
+      <View>
+        <AppointmentCard
+          appointment={item}
+          type={
+            (item.status?.toLowerCase?.() || "upcoming") as
+              | "completed"
+              | "delayed"
+              | "ongoing"
+              | "urgent"
+              | "upcoming"
+          }
+        />
+      </View>
+    );
+  }, []);
 
   return (
     <View className="bg-blue-50/20 flex-1">
