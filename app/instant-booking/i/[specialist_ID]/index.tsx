@@ -30,16 +30,16 @@ import { Value } from "@rn-primitives/select";
 export default function SpecialistConsultantPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { specialist_ID, todaySchedule } = params;
+  const { specialist_Id, todaySchedule } = params;
   const { t } = useTranslation();
 
   const fetchSpecialistData = async () => {
-    if (!specialist_ID) {
+    if (!specialist_Id) {
       throw new Error(t("missingSpecialistId"));
     }
 
     const response = await fetch(
-      `${ApiUrl}/api/doctors/doctor/${specialist_ID}`
+      `${ApiUrl}/api/doctors/doctor/${specialist_Id}`
     );
 
     if (!response.ok) throw new Error(t("fetchSpecialistFailed"));
@@ -53,9 +53,9 @@ export default function SpecialistConsultantPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["doctor", specialist_ID],
+    queryKey: ["doctor", specialist_Id],
     queryFn: fetchSpecialistData,
-    enabled: !!specialist_ID, // Ensure specialist_ID exists before fetching
+    enabled: !!specialist_Id, // Ensure specialist_Id exists before fetching
   });
 
   if (isLoading) {
@@ -228,7 +228,7 @@ export default function SpecialistConsultantPage() {
           className="mt-4 mb-6"
           onPress={() =>
             router.push({
-              pathname: `/instant-booking/i/${specialist_ID}/session`as RelativePathString,
+              pathname: `/instant-booking/i/${specialist_Id}/session`as RelativePathString,
               params: {
                 todaySchedule: JSON.stringify(todaySchedule), 
                 doctorFees: specialistData?.data?.fees?.toString() || "0",

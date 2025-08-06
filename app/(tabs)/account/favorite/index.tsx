@@ -137,7 +137,7 @@ export default function AccountFavoritePage() {
           <FavGroupCard
             key={item._id}
             title={item.title}
-            date={item.date} //missing in return Data
+            date={item.createdAt} //missing in return Data
             price={item.cost}
             image={item.image} //missing in return Data
           />

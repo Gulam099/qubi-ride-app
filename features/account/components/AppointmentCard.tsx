@@ -42,7 +42,7 @@ const getAppointmentDate = (appointment) => {
   // Check for multiple possible date field names
   return (
     appointment.appointmentDate ||
-    appointment.date ||
+    appointment.dateTime ||
     appointment.scheduledDate ||
     appointment.appointmentTime
   );
@@ -54,7 +54,7 @@ const getBookingDate = (appointment) => {
     appointment.date ||
     appointment.scheduledDate ||
     appointment.appointmentTime ||
-    appointment.selectedDateTime
+    appointment.dateTime
   );
 };
 
