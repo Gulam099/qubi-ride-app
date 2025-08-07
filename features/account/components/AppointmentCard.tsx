@@ -142,7 +142,7 @@ const SingleAppointmentCard = ({
 
       {/* Action Buttons */}
       <View className="flex-row justify-between gap-3 mt-4">
-        {/* <TouchableOpacity
+        <TouchableOpacity
           className="flex-1 bg-red-100 py-2.5 rounded-full items-center flex-row justify-center"
           onPress={() => onCancel && onCancel(appointment, slot)}
         >
@@ -150,8 +150,8 @@ const SingleAppointmentCard = ({
           <Text className="text-red-600 font-semibold ml-1 text-base">
             {t("cancel")}
           </Text>
-        </TouchableOpacity> */}
-        {/* <TouchableOpacity
+        </TouchableOpacity>
+        <TouchableOpacity
           className="flex-1 bg-yellow-100 py-2.5 rounded-full items-center flex-row justify-center"
           onPress={() => onReschedule && onReschedule(appointment, slot)}
         >
@@ -159,7 +159,7 @@ const SingleAppointmentCard = ({
           <Text className="text-yellow-700 font-semibold ml-1 text-base">
             {t("reschedule")}
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
         <TouchableOpacity
           className="flex-1 bg-purple-100 py-2.5 rounded-full items-center flex-row justify-center"
           onPress={() => router.push("/(tabs)/account/chat/chatlist")}

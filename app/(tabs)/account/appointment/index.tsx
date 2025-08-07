@@ -13,15 +13,18 @@ import {
   fetchAppointments,
   fetchInstantAppointments,
   fetchGroupAppointments,
+  fetchPrograms
 } from "@/features/util/constHome";
 import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { useTranslation } from "react-i18next";
 
-type TabType = "session" | "group";
+type TabType = "session" | "group" | "program";
 
 export default function AppointmentUpcomingList() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
+
+  console.log("user", user?.phoneNumbers[0].phoneNumber)
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
   const { t } = useTranslation();
@@ -31,33 +34,38 @@ export default function AppointmentUpcomingList() {
   const [errors, setErrors] = useState({
     session: "",
     group: "",
+    program: "",
   });
   const [appointments, setAppointments] = useState<{
     scheduled: any[];
     instant: any[];
     group: any[];
+    program: any[];
   }>({
     scheduled: [],
     instant: [],
     group: [],
+    program: [],
   });
 
   const loadAppointments = useCallback(async () => {
     if (!userId) return;
 
     setLoading(true);
-    setErrors({ session: "", group: "" });
+    setErrors({ session: "", group: "", program: "" });
 
     try {
-      const [scheduledRes, instantRes, groupRes] = await Promise.all([
+      const [scheduledRes, instantRes, groupRes, programRes] = await Promise.all([
         fetchAppointments({ userId }),
         fetchInstantAppointments({ userId }),
         fetchGroupAppointments(userId),
+        fetchPrograms(userId),
       ]);
 
       let scheduledData = [];
       let instantData = [];
       let groupData = [];
+      let programData = [];
 
       if (scheduledRes.success) {
         scheduledData = scheduledRes.data.filter(
@@ -83,16 +91,24 @@ export default function AppointmentUpcomingList() {
         setErrors((prev) => ({ ...prev, group: groupRes.message }));
       }
 
+      if (programRes.success) {
+        programData = programRes.data;
+      } else {
+        setErrors((prev) => ({ ...prev, program: programRes.message }));
+      }
+
       setAppointments({
         scheduled: scheduledData,
         instant: instantData,
         group: groupData,
+        program: programData,
       });
     } catch (error) {
       console.error("Error loading appointments:", error);
       setErrors({
         session: "Failed to load session appointments",
         group: "Failed to load group appointments",
+        program: "Failed to load program appointments",
       });
     } finally {
       setLoading(false);
@@ -145,6 +161,7 @@ export default function AppointmentUpcomingList() {
       scheduled: applyFilters(appointments.scheduled),
       instant: applyFilters(appointments.instant),
       group: applyFilters(appointments.group),
+      program: applyFilters(appointments.program),
     };
   }, [appointments, appState.filter]);
 
@@ -154,8 +171,10 @@ export default function AppointmentUpcomingList() {
         ...filteredAppointments.scheduled,
         ...filteredAppointments.instant,
       ];
-    } else {
+    } else if (activeTab === "group") {
       return filteredAppointments.group || [];
+    } else {
+      return filteredAppointments.program || [];
     }
   }, [activeTab, filteredAppointments]);
 
@@ -181,24 +200,49 @@ export default function AppointmentUpcomingList() {
     );
   }, []);
 
+  const getTabDisplayName = (tab: string) => {
+    switch (tab) {
+      case "session":
+        return t("My Sessions");
+      case "group":
+        return t("My Group");
+      case "program":
+        return t("My Program");
+      default:
+        return tab;
+    }
+  };
+
+  const getEmptyMessage = () => {
+    const typeMap = {
+      session: t("mySessions"),
+      group: t("group"),
+      program: t("program"),
+    };
+    
+    return t("noAppointmentsAvailable", {
+      type: typeMap[activeTab] || activeTab,
+    });
+  };
+
   return (
     <View className="bg-blue-50/20 flex-1">
       {/* Tabs */}
       <View className="flex-row bg-white mx-4 mt-4 rounded-lg p-1 shadow-sm">
-        {["session", "group"].map((tab) => (
+        {(["session", "group", "program"] as TabType[]).map((tab) => (
           <TouchableOpacity
             key={tab}
             className={`flex-1 py-3 rounded-md ${
               activeTab === tab ? "bg-[#000F8F]" : "bg-transparent"
             }`}
-            onPress={() => handleTabPress(tab as TabType)}
+            onPress={() => handleTabPress(tab)}
           >
             <Text
-              className={`text-center font-medium ${
+              className={`text-center font-medium text-xs ${
                 activeTab === tab ? "text-white" : "text-[#000F8F]"
               }`}
             >
-              {tab === "session" ? t("My Sessions") : t("My Group")}
+              {getTabDisplayName(tab)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -213,9 +257,7 @@ export default function AppointmentUpcomingList() {
         ) : currentAppointments.length === 0 ? (
           <View className="flex-1 justify-center items-center">
             <Text className="text-center text-gray-500">
-              {t("noAppointmentsAvailable", {
-                type: activeTab === "session" ? t("mySessions") : t("group"),
-              })}
+              {getEmptyMessage()}
             </Text>
           </View>
         ) : (

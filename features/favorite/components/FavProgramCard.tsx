@@ -33,7 +33,6 @@ const FavProgramCard: React.FC<FavProgramCardProps> = ({
       </Avatar>
       <View className="flex-1">
         <Text className="font-semibold text-lg">{title}</Text>
-        <Text>{subtitle}</Text>
       </View>
       <View>
         <Text>{currencyFormatter(price)}</Text>

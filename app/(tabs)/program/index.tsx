@@ -25,8 +25,6 @@ export default function SupportPage() {
         setLoading(true);
         const response = await fetch(`${apiNewUrl}/api/support-groups/all`);
         const result = await response.json();
-
-        console.log("result", result);
         if (response.ok) {
           setGroups(result?.data);
         } else {
@@ -56,7 +54,7 @@ export default function SupportPage() {
         body: JSON.stringify({
           userId,
           itemId: group_Id,
-          type: "groups",
+          type: "programs",
         }),
       });
 
@@ -65,8 +63,8 @@ export default function SupportPage() {
 
       toast.success(
         isAlreadyFav
-          ? "Group removed from favorites!"
-          : "Group added to favorites!"
+          ? "Program removed from favorites!"
+          : "Program added to favorites!"
       );
 
       setFavoriteGroups((prev) =>
@@ -85,8 +83,8 @@ export default function SupportPage() {
       try {
         const res = await fetch(`${apiNewUrl}/api/favorites/${userId}`);
         const data = await res.json();
-        if (res.ok && data?.favorites?.groups) {
-          const groupIds = data.favorites.groups.map((doc) => doc._id);
+        if (res.ok && data?.favorites?.programs) {
+          const groupIds = data.favorites.programs.map((doc) => doc._id);
           setFavoriteGroups(groupIds);
         }
       } catch (e) {
@@ -103,22 +101,22 @@ export default function SupportPage() {
   const filteredGroups = groups.filter((group) => {
     // Filter by status: only approved groups
     const statusFilter = group.status?.toLowerCase() === "current";
-
+    
     // Filter by module: only program module
-    const moduleFilter = group.module?.toLowerCase() === "support";
-
+    const moduleFilter = group.module?.toLowerCase() === "program";
+    
     // Filter by category tab
-    const categoryFilter =
-      activeTab === "All" ||
+    const categoryFilter = activeTab === "All" || 
       group.group_type?.toLowerCase() === activeTab.toLowerCase();
-
+    
     // Return groups that match all filters
     return statusFilter && moduleFilter && categoryFilter;
   });
 
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-2">
-      <H3>Support Group</H3>
+      <H3>Programs</H3>
+
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
@@ -162,7 +160,7 @@ export default function SupportPage() {
               rating={item.rating || 0}
               image={item.imageUrl}
               onPress={() =>
-                router.push(`/group/s/${item._id}` as RelativePathString)
+                router.push(`/program/p/${item._id}` as RelativePathString)
               }
               link={`/s/${item._id}`}
               isFavorited={favoriteGroups.includes(item._id)}
@@ -174,7 +172,7 @@ export default function SupportPage() {
       ) : (
         <View className="flex-1">
           <Text className="text-center text-gray-500 mt-4">
-            No Support Groups Available
+            No Programs Available
           </Text>
         </View>
       )}
