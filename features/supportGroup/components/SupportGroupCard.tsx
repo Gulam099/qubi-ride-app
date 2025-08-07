@@ -51,36 +51,34 @@ export default function SupportGroupCard({
   return (
     <Card className="w-full px-0">
       {/* Header with clickable title */}
-        <CardHeader className="flex flex-row">
-          <View className="w-2/3">
-            <CardTitle className="text-xl">{title}</CardTitle>
-            <CardDescription>{category}</CardDescription>
-          </View>
+      <CardHeader className="flex flex-row">
+        <View className="w-2/3">
+          <CardTitle className="text-xl">{title}</CardTitle>
+          <CardDescription>{category}</CardDescription>
+        </View>
 
-          <View className="w-1/3 flex justify-end items-end">
-            <Button
-              className="aspect-square bg-primary-50/40 p-0 rounded-full"
-              onPress={onToggleFavorite}
-            >
-              <Heart
-                size="24"
-                color={isFavorited ? "red" : colors.primary[500]}
-                variant={isFavorited ? "Bold" : "Linear"}
-              />
-            </Button>
-          </View>
-        </CardHeader>
+        <View className="w-1/3 flex justify-end items-end">
+          <Button
+            className="aspect-square bg-primary-50/40 p-0 rounded-full"
+            onPress={onToggleFavorite}
+          >
+            <Heart
+              size="24"
+              color={isFavorited ? "red" : colors.primary[500]}
+              variant={isFavorited ? "Bold" : "Linear"}
+            />
+          </Button>
+        </View>
+      </CardHeader>
 
       {/* Content with clickable image */}
-      <TouchableOpacity onPress={() => router.push(link as RelativePathString)}>
-        <CardContent className="px-0 rounded-none">
-          <Image
-            source={{ uri: image }}
-            className="w-full h-[undefined] aspect-video "
-            resizeMode="cover"
-          />
-        </CardContent>
-      </TouchableOpacity>
+      <CardContent className="px-0 rounded-none">
+        <Image
+          source={{ uri: image }}
+          className="w-full h-[undefined] aspect-video "
+          resizeMode="cover"
+        />
+      </CardContent>
 
       {/* Footer with "Join" button */}
       <CardFooter className="flex flex-row justify-between items-center">

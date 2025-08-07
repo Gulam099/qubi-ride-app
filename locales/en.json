@@ -51,7 +51,8 @@
   "Scheduledbooking": "Scheduled booking",
 
   "Home": "Home",
-  "Program": "Program",
+  "Group": "Group",
+  "Programs": "Programs",
   "Library": "Library",
   "File": "File",
   "Medicalfile": "Medical file",
@@ -129,7 +130,6 @@
   "No treatment items available": "No treatment items available",
   "Loading treatment details...": "Loading treatment details...",
   "Close": "Close",
-  "Programs": "Programs",
   "Cultural Library": "Cultural Library",
   "All": "All",
   "Video": "Video",

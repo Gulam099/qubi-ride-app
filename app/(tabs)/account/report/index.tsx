@@ -1,5 +1,5 @@
 import { View, Text, FlatList } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { OtpInput } from "react-native-otp-entry";
 import { cn } from "@/lib/utils";
@@ -47,55 +47,80 @@ type Treatment = {
 };
 
 // Mock Data for Medical Plan (keeping existing structure)
-const mockMedicalPlanData = {
-  "Medical Plan": {
-    Current: [
-      {
-        _id: "1",
-        title: "Plan Report 1",
-        doctorName: "Dr. Ahmad",
-        date: "2024 / 01 / 01",
-        number: "12345678",
-        type: "current",
-        category: "plan",
-      },
-    ],
-    Previous: [
-      {
-        _id: "2",
-        title: "Plan Report 2",
-        doctorName: "Dr. Sarah",
-        date: "2023 / 12 / 20",
-        number: "98765432",
-        type: "previous",
-        category: "plan",
-      },
-    ],
-  },
-};
+// const mockMedicalPlanData = {
+//   "Medical Plan": {
+//     Current: [
+//       {
+//         _id: "1",
+//         title: "Plan Report 1",
+//         doctorName: "Dr. Ahmad",
+//         date: "2024 / 01 / 01",
+//         number: "12345678",
+//         type: "current",
+//         category: "plan",
+//       },
+//     ],
+//     Previous: [
+//       {
+//         _id: "2",
+//         title: "Plan Report 2",
+//         doctorName: "Dr. Sarah",
+//         date: "2023 / 12 / 20",
+//         number: "98765432",
+//         type: "previous",
+//         category: "plan",
+//       },
+//     ],
+//   },
+// };
 
 export default function AccountReportPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
-  const [showReports, setShowReports] = useState<boolean>(
-    (user?.unsafeMetadata.passcode as string) === null ? true : false
-  );
+
+  // Get phone number - try multiple possible paths
+  const phoneNumber =
+    user?.user?.phoneNumbers?.[0]?.phoneNumber ||
+    user?.phoneNumbers?.[0]?.phoneNumber ||
+    user?.user?.primaryPhoneNumber?.phoneNumber ||
+    user?.primaryPhoneNumber?.phoneNumber ||
+    user?.user?.phone ||
+    user?.phone;
+  const userPasscode = phoneNumber ? phoneNumber.slice(-4) : null;
+  const hasPasscode =
+    userPasscode !== null && userPasscode !== undefined && userPasscode !== "";
+
+  const [showReports, setShowReports] = useState<boolean>(false); // Always start with password field
   const [activeTab, setActiveTab] = useState("My Prescriptions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [reports, setReports] = useState<ReportProps[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Verify using last 4 digits of phone number
   async function handleSubmit(text: string): Promise<void> {
     try {
-      const passcode = user?.unsafeMetadata?.passcode as string;
-      const isPassCodeVerified = passcode.toString() === text;
+      // Check if phone number exists
+      if (!phoneNumber) {
+        toast.error("Phone number not found. Please contact support.");
+        return;
+      }
+
+      // Check if passcode exists (last 4 digits)
+      if (!hasPasscode) {
+        toast.error("Unable to generate passcode from phone number.");
+        return;
+      }
+
+      const isPassCodeVerified = userPasscode === text;
 
       if (isPassCodeVerified) {
         toast.success("Passcode verified successfully!");
         setShowReports(true);
       } else {
-        toast.error("Invalid passcode. Please try again.");
+        toast.error(
+          "Invalid passcode. Please enter the last 4 digits of your phone number."
+        );
         setShowReports(false);
       }
     } catch (error) {
@@ -106,7 +131,7 @@ export default function AccountReportPage() {
   }
 
   // Fetch treatments from API
-  const fetchTreatments = async () => {
+  const fetchTreatments = useCallback(async () => {
     if (!userId) return;
 
     setLoading(true);
@@ -121,7 +146,7 @@ export default function AccountReportPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // Convert treatments to report format
   const convertTreatmentsToReports = (
@@ -162,15 +187,9 @@ export default function AccountReportPage() {
         const data = mockMedicalPlanData[activeTab][activeCategory] || [];
         setReports(data);
       } else if (activeTab === "My Prescriptions") {
-        // Fetch treatments for prescriptions
+        // Fetch treatments for prescriptions only if we don't have them
         if (treatments.length === 0) {
           await fetchTreatments();
-        } else {
-          const convertedReports = convertTreatmentsToReports(
-            treatments,
-            activeCategory
-          );
-          setReports(convertedReports);
         }
       }
     };
@@ -178,9 +197,9 @@ export default function AccountReportPage() {
     if (showReports) {
       fetchReports();
     }
-  }, [activeTab, activeCategory, showReports, treatments]);
+  }, [activeTab, activeCategory, showReports]); // Removed 'treatments' from dependency array
 
-  // Convert treatments when they are fetched
+  // Convert treatments when they are fetched or category changes
   useEffect(() => {
     if (treatments.length > 0 && activeTab === "My Prescriptions") {
       const convertedReports = convertTreatmentsToReports(
@@ -189,25 +208,20 @@ export default function AccountReportPage() {
       );
       setReports(convertedReports);
     }
-  }, [treatments, activeCategory, activeTab]);
-
-  const handleOtpSubmit = async (otp: string) => {
-    // Simulated verification
-    if (otp === "1234") {
-      toast.success("Passcode verified successfully!");
-      setShowReports(true);
-    } else {
-      toast.error("Invalid passcode. Please try again.");
-    }
-  };
+  }, [treatments, activeCategory]); // Removed activeTab from dependency since we check it inside
 
   return (
     <View className="bg-blue-50/10 w-full h-full">
       {!showReports ? (
         <View className="px-6 py-20 flex flex-col gap-16">
-          <Text className="text-center text-2xl font-semibold text-gray-700">
-            Enter your secret code
-          </Text>
+          <View className="text-center">
+            <Text className="text-center text-2xl font-semibold text-gray-700">
+              Enter your secret code
+            </Text>
+            <Text className="text-center text-sm text-gray-500 mt-2">
+              Please enter the last 4 digits of your phone number
+            </Text>
+          </View>
           <OtpInput
             numberOfDigits={4}
             focusColor={colors.primary[500]}

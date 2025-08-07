@@ -54,12 +54,12 @@ const PatientLayout = () => {
       icon: Profile2User,
       headerShown: false,
     },
-    // {
-    //   name: "program",
-    //   title: t("Program"),
-    //   icon: ShieldTick,
-    //   headerShown: false,
-    // },
+    {
+      name: "program",
+      title: t("Programs"),
+      icon: ShieldTick,
+      headerShown: false,
+    },
     {
       name: "library",
       title: t("Library"),

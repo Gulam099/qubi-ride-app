@@ -281,7 +281,7 @@ export default function AccountPage() {
                 <Button
                   onPress={() => {
                     contactUsBottomSheetRef.current?.close();
-                    router.push("/help/ticket");
+                    router.push("https://baseerah.zohodesk.in/portal/en/newticket");
                   }}
                   className="w-full"
                 >

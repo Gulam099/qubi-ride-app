@@ -68,3 +68,17 @@ export const fetchGroupAppointments = async (userId: string) => {
   }
 };
 
+export const fetchPrograms = async (userId: string) => {
+  try {
+    const res = await fetch(`${ApiUrl}/api/programs-booking/fetch-program/${userId}`);
+    const json = await res.json();
+
+    console.log("Fetched group appointments:", json);
+
+    // Return only the actual array
+    return { success: true, data: json.data || [] };
+  } catch (err) {
+    console.error("Failed to fetch program:", err);
+    return { success: false, message: "Failed to fetch program" };
+  }
+};

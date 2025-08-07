@@ -25,7 +25,7 @@ export default function AccountFavoritePage() {
   const { t } = useTranslation();
 
   const tabs = [
-    // { type: "program", name: "Programs", api: "/api/favorites/programs/" },
+    { type: "program", name: "Programs", api: "/api/favorites/programs/" },
     { type: "consult", name: t("consultants"), api: "/api/favorites/doctors/" },
     { type: "group", name: "Groups", api: "/api/favorites/groups/" },
     {type: "culturalContent", name: t("libraries"),api: "/api/favorites/culturalContent/"},
@@ -65,24 +65,7 @@ export default function AccountFavoritePage() {
     }
   };
 
-  // const handleRemove = async (itemId: string, type: string) => {
-  //   try {
-  //     const response = await fetch(`${ApiUrl}/api/favorites/remove`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ userId, itemId, type }),
-  //     });
-
-  //     const result = await response.json();
-  //     if (!response.ok) throw new Error(result.message || "Failed to remove");
-
-  //     toast.success("Removed from favorites");
-  //     fetchData(type); // Refresh current tab
-  //   } catch (err) {
-  //     toast.error(err.message || "Something went wrong");
-  //   }
-  // };
-
+  console.log("data>>",data)
   const renderContent = () => {
     if (loading) {
       return <ActivityIndicator size="large" color="#0000ff" />;
@@ -97,17 +80,17 @@ export default function AccountFavoritePage() {
     }
 
     switch (activeTab) {
-      // case "program":
-      //   return data.map((item, index) => (
-      //     <FavProgramCard
-      //       key={item._id}
-      //       title={item.title}
-      //       price={item.cost}
-      //       image={item.image} //missing in return Data
-      //       subtitle={item.components}
-      //       date={item.date} //missing in return Data
-      //     />
-      //   ));
+      case "program":
+        return data.map((item, index) => (
+          <FavProgramCard
+            key={item._id}
+            title={item.title}
+            price={item.cost}
+            image={item.imageUrl} //missing in return Data
+            subtitle={item.components}
+            date={item.createdAt} //missing in return Data
+          />
+        ));
       case "consult":
         return data.map((item) => (
           <FavConsultantCard
@@ -139,7 +122,7 @@ export default function AccountFavoritePage() {
             title={item.title}
             date={item.createdAt} //missing in return Data
             price={item.cost}
-            image={item.image} //missing in return Data
+            image={item.imageUrl} //missing in return Data
           />
         ));
       default:
