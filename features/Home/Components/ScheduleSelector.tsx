@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Calendar } from "@/components/ui/Calendar";
 import { addDays, format, setHours, setMinutes } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface ScheduleSelectorProps {
   selectedDateTime: string;
@@ -21,6 +22,7 @@ export default function ScheduleSelector({
   const [selectedDate, setSelectedDate] = useState<string | null>(
     selectedDateTime
   );
+  const { t } = useTranslation();
 
    const defaultTimes = useMemo(() => {
     const times: string[] = [];
@@ -85,13 +87,13 @@ export default function ScheduleSelector({
   return (
     <View className=" gap-4">
       <Text className="text-lg font-medium">
-        {CalenderHeading ?? "Available Dates"}
+        {CalenderHeading ?? t("Available Dates")}
       </Text>
       <View className="bg-background rounded-lg px-4 py-2 flex justify-center items-start">
         {selectedDateTime ? (
           <Text className=" font-base text-blue-600">{formattedDateTime}</Text>
         ) : (
-          <Text className=" text-gray-600">Please select a date and time.</Text>
+          <Text className=" text-gray-600">{t("Please select a date and time")}.</Text>
         )}
       </View>
       {/* Calendar for Dates */}
@@ -104,7 +106,7 @@ export default function ScheduleSelector({
       {selectedDate && (
         <View>
           <Text className="font-semibold mb-2">
-            {TimeSliderHeading ?? "Available Times"}
+            {TimeSliderHeading ?? t("Available Times")}
           </Text>
           <ScrollView horizontal>
             {timesForSelectedDate.map((iso) => {

@@ -96,8 +96,8 @@ export default function AccountPage() {
           label: t("Mybooking"),
           icon: ClipboardText,
         },
-        { link: "/account/report", label: "My reports", icon: Book },
-        { link: "/account/calendar", label: "My calendar", icon: MenuBoard },
+        { link: "/account/report", label: t("My reports"), icon: Book },
+        { link: "/account/calendar", label: t("My calendar"), icon: MenuBoard },
         { link: "/account/scale", label: t("Mymetrics"), icon: Clipboard },
       ],
     },
@@ -154,11 +154,8 @@ export default function AccountPage() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000F8F"}}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#000F8F"
-      />
+    <View style={{ flex: 1, backgroundColor: "#000F8F" }}>
+      <StatusBar barStyle="light-content" backgroundColor="#000F8F" />
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <ScrollView
           style={{ flex: 1 }}
@@ -166,8 +163,9 @@ export default function AccountPage() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header Section */}
-          <View className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8"
-          style={{ backgroundColor: "#000F8F" }}
+          <View
+            className="flex-row justify-start items-center gap-5 bg-primary-800 w-full px-4 py-8"
+            style={{ backgroundColor: "#000F8F" }}
           >
             <ProfileImage imageUrl={user?.imageUrl!} name={user?.id!} />
             <View className="flex-1">
@@ -281,7 +279,9 @@ export default function AccountPage() {
                 <Button
                   onPress={() => {
                     contactUsBottomSheetRef.current?.close();
-                    router.push("https://baseerah.zohodesk.in/portal/en/newticket");
+                    router.push(
+                      "https://baseerah.zohodesk.in/portal/en/newticket"
+                    );
                   }}
                   className="w-full"
                 >

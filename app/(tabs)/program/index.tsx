@@ -9,36 +9,38 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import { apiNewUrl } from "@/const";
 import { RelativePathString, router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 export default function SupportPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
   const [favoriteGroups, setFavoriteGroups] = useState<string[]>([]);
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState("All");
-  const [groups, setGroups] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchGroups = async () => {
+    const fetchPrograms = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${apiNewUrl}/api/support-groups/all`);
         const result = await response.json();
         if (response.ok) {
-          setGroups(result?.data);
+          setPrograms(result?.data);
         } else {
-          toast.error("Failed to fetch support groups.");
+          toast.error("Failed to fetch program.");
         }
       } catch (error) {
-        console.error("Error fetching support groups:", error);
-        toast.error("An error occurred while fetching support groups.");
+        console.error("Error fetching program:", error);
+        toast.error("An error occurred while fetching program.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchGroups();
+    fetchPrograms();
   }, []);
 
   const handleToggleFavorite = async (group_Id: string) => {
@@ -59,12 +61,12 @@ export default function SupportPage() {
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "Failed to update");
+      if (!response.ok) throw new Error(result.message || t("FailedToUpdate"));
 
       toast.success(
         isAlreadyFav
-          ? "Program removed from favorites!"
-          : "Program added to favorites!"
+          ? t("ProgramRemovedFromFavorites")
+        : t("ProgramAddedToFavorites")
       );
 
       setFavoriteGroups((prev) =>
@@ -73,7 +75,7 @@ export default function SupportPage() {
           : [...prev, group_Id]
       );
     } catch (err) {
-      toast.error(err.message || "Something went wrong");
+      toast.error(err.message ||  t("SomethingWentWrong"));
     }
   };
 
@@ -98,24 +100,24 @@ export default function SupportPage() {
   }, [userId]);
 
   // Filter groups based on the active tab, status, and module
-  const filteredGroups = groups.filter((group) => {
+  const filteredGroups = programs.filter((group) => {
     // Filter by status: only approved groups
-    const statusFilter = group.status?.toLowerCase() === "current";
-    
+    const statusFilter = group.approval_status === true;
+
     // Filter by module: only program module
     const moduleFilter = group.module?.toLowerCase() === "program";
-    
+
     // Filter by category tab
-    const categoryFilter = activeTab === "All" || 
+    const categoryFilter =
+      activeTab === "All" ||
       group.group_type?.toLowerCase() === activeTab.toLowerCase();
-    
-    // Return groups that match all filters
+
     return statusFilter && moduleFilter && categoryFilter;
   });
 
   return (
     <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-2">
-      <H3>Programs</H3>
+      <H3>{t("Programs")}</H3>
 
       <ScrollView
         horizontal={true}
@@ -135,7 +137,7 @@ export default function SupportPage() {
               )}
             >
               <Text className={cn(isActive ? "text-white" : "", "font-medium")}>
-                {category}
+                {t(category)}
               </Text>
             </Button>
           );
@@ -144,7 +146,7 @@ export default function SupportPage() {
 
       {/* List of Support Groups */}
       {loading ? (
-        <Text className="text-center text-gray-500 mt-4">Loading...</Text>
+        <Text className="text-center text-gray-500 mt-4">{t("Loading...")}</Text>
       ) : filteredGroups.length > 0 ? (
         <FlatList
           data={filteredGroups}
@@ -172,7 +174,7 @@ export default function SupportPage() {
       ) : (
         <View className="flex-1">
           <Text className="text-center text-gray-500 mt-4">
-            No Programs Available
+           {t("NoProgramsAvailable")}
           </Text>
         </View>
       )}

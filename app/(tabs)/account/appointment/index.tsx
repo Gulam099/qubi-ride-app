@@ -17,6 +17,7 @@ import {
 } from "@/features/util/constHome";
 import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { useTranslation } from "react-i18next";
+import { apiNewUrl } from "@/const";
 
 type TabType = "session" | "group" | "program";
 
@@ -215,9 +216,9 @@ export default function AppointmentUpcomingList() {
 
   const getEmptyMessage = () => {
     const typeMap = {
-      session: t("mySessions"),
-      group: t("group"),
-      program: t("program"),
+      session: t("No Sessions"),
+      group: t(" No Group"),
+      program: t("No Program"),
     };
     
     return t("noAppointmentsAvailable", {

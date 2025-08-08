@@ -80,7 +80,7 @@ const PatientPage = () => {
           onPress={() => router.push("/(stacks)/find-consultant")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">
-            Help me find the right consultant{" "}
+            {t("Help me find the right consultant")}
           </Text>
         </Button>
       </View>

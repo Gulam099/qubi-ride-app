@@ -22,6 +22,7 @@ import { router, useRouter } from "expo-router";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 import { Image } from "react-native";
+import { apiNewUrl } from "@/const";
 
 // Helper function to safely format dates
 const formatDate = (dateValue, formatString = "dd MMM yyyy") => {
@@ -73,6 +74,36 @@ const SingleAppointmentCard = ({
   onChat,
 }) => {
   const { t } = useTranslation();
+
+  const cancelAppointment = async (bookingId: string) => {
+  try {
+    const response = await fetch(`${apiNewUrl}/api/bookings/update/${bookingId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add your authentication headers here if needed
+        // 'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        status: 'cancelled'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to cancel appointment');
+    }
+    
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Cancel appointment error:', error);
+    return { 
+      success: false, 
+      message: error.message || 'Failed to cancel appointment' 
+    };
+  }
+};
 
   // Function to get doctor's initials
   const getDoctorInitials = (fullName) => {
@@ -144,7 +175,7 @@ const SingleAppointmentCard = ({
       <View className="flex-row justify-between gap-3 mt-4">
         <TouchableOpacity
           className="flex-1 bg-red-100 py-2.5 rounded-full items-center flex-row justify-center"
-          onPress={() => onCancel && onCancel(appointment, slot)}
+          onPress={() => cancelAppointment(appointment?._id)}
         >
           <Trash size={18} color="#DC2626" />
           <Text className="text-red-600 font-semibold ml-1 text-base">

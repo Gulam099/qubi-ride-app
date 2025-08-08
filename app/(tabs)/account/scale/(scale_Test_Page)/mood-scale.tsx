@@ -15,11 +15,13 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
 import BottomSheet, { BottomSheetScrollView, BottomSheetView } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 export default function MoodScale() {
   const moodScaleBottomSheetRef = useRef<BottomSheet>(null);
   const handelOpenPress = () => moodScaleBottomSheetRef.current?.expand();
   const handelClosePress = () => moodScaleBottomSheetRef.current?.close();
+  const { t } = useTranslation();
 
   const [selectedMood, setSelectedMood] = useState("");
   const [selectedReason, setSelectedReason] = useState<string[]>([]);

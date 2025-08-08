@@ -10,102 +10,7 @@ import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { useUser } from "@clerk/clerk-expo";
-
-// Demo questions
-const defaultQuestions = [
-  {
-    id: 1,
-    question: "Feeling angry, anxious, or having strong emotions",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 2,
-    question: "Difficulty in stopping or controlling stress/worry",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 3,
-    question: "Feeling restless or on edge",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 4,
-    question: "Difficulty in concentrating or mind going blank",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 5,
-    question: "Feeling tired or having low energy",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 6,
-    question: "Difficulty in sleeping or staying asleep",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 7,
-    question: "Feeling irritable or easily annoyed",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 8,
-    question: "Difficulty in sleeping or staying asleep",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 9,
-    question: "Feeling irritable or easily annoyed",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-
-  // Add more questions as needed
-];
+import { useTranslation } from "react-i18next";
 
 export default function DepressionScale() {
   const [currentStep, setCurrentStep] = useState("start"); // "start", "quiz", "result"
@@ -115,9 +20,104 @@ export default function DepressionScale() {
   const [answers, setAnswers] = useState<any[]>([]);
   const [score, setScore] = useState(0);
   const router = useRouter();
-  const {user} = useUser();
+  const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
 
+  const defaultQuestions = [
+    {
+      id: 1,
+      question: t("Feeling angry, anxious, or having strong emotions"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 2,
+      question: t("Difficulty in stopping or controlling stress/worry"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 3,
+      question: t("Feeling restless or on edge"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 4,
+      question: t("Difficulty in concentrating or mind going blank"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 5,
+      question: t("Feeling tired or having low energy"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 6,
+      question: t("Difficulty in sleeping or staying asleep"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 7,
+      question: t("Feeling irritable or easily annoyed"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    // {
+    //   id: 8,
+    //   question: t("Difficulty in sleeping or staying asleep"),
+    //   options: [
+    //     { title: "Never", points: 0 },
+    //     { title: "Somedays", points: 1 },
+    //     { title: "More than half the days", points: 2 },
+    //     { title: "Nearly everyday", points: 3 },
+    //   ],
+    // },
+    // {
+    //   id: 9,
+    //   question: ("Feeling irritable or easily annoyed"),
+    //   options: [
+    //     { title: "Never", points: 0 },
+    //     { title: "Somedays", points: 1 },
+    //     { title: "More than half the days", points: 2 },
+    //     { title: "Nearly everyday", points: 3 },
+    //   ],
+    // },
+
+    // Add more questions as needed
+  ];
 
   const handleStartQuiz = () => {
     setCurrentStep("quiz");
@@ -153,25 +153,29 @@ export default function DepressionScale() {
         answers: finalAnswers,
       };
 
-      const response = await fetch(`${apiBaseUrl}/api/depression-scale/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${apiBaseUrl}/api/depression-scale/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const result = await response.json();
 
       if (response.ok) {
         console.log("Submission successful:", result);
         if (result.response) {
-          router.push(
-            "/account/scale/record/depression-scale-record"
-          );
+          router.push("/account/scale/record/depression-scale-record");
         }
       } else {
-        console.error("Error submitting data:", result.message || "Unknown error");
+        console.error(
+          "Error submitting data:",
+          result.message || "Unknown error"
+        );
       }
     } catch (error) {
       console.error("Error submitting data:", error);
@@ -181,27 +185,30 @@ export default function DepressionScale() {
   const renderStartScreen = () => (
     <View className="p-4 h-full flex flex-col justify-between gap-4 bg-blue-50/10">
       <View className="flex-1 gap-4 items-center justify-center bg-white rounded-2xl px-4 py-8">
-        <CustomIcons.Depressive.Icon className="w-24 h-24 mb-4" resizeMode="contain" />
+        <CustomIcons.Depressive.Icon
+          className="w-24 h-24 mb-4"
+          resizeMode="contain"
+        />
         <Text className="text-lg font-bold text-center mb-2">
-          Scale for Depressive Disorder
+          {t("Scale for Depressive Disorder")}
         </Text>
         <Text className="text-gray-600 text-center leading-6">
-          This simple test will help you assess and understand your level of
-          depression. Your answers will assist us in determining your mental
-          health level and guiding you towards a suitable session to support
-          your mental health.
+          {
+            "This simple test will help you assess and understand your level of depression. Your answers will assist us in determining your mental health level and guiding you towards a suitable session to support your mental health."
+          }
         </Text>
       </View>
 
       <View className="bg-blue-50/50 p-4 rounded-md mt-6">
         <Text className="text-xs text-gray-800 text-center">
-          Reference: Prepared by doctors Robert L. Spitzer, Janet B.W. Williams,
-          Kurt Kroenke, and colleagues, with an educational grant from Pfizer Inc.
+          {
+            " Reference: Prepared by doctors Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke, and colleagues, with an educational grant from Pfizer Inc."
+          }
         </Text>
       </View>
 
       <Button onPress={handleStartQuiz}>
-        <Text className="text-white font-semibold">Start Now</Text>
+        <Text className="text-white font-semibold">{"Start Now"}</Text>
       </Button>
     </View>
   );
@@ -218,8 +225,9 @@ export default function DepressionScale() {
           </Text>
           <Progress value={progressValue} />
           <Text className="text-gray-500 text-sm font-medium py-6">
-            During the past two weeks, how much have the following problems
-            bothered you:
+            {t(
+              "During the past two weeks, how much have the following problems bothered you:"
+            )}
           </Text>
           <Text className="text-gray-900 font-bold text-xl mb-6">
             {question.question}
@@ -248,7 +256,7 @@ export default function DepressionScale() {
         </View>
 
         <Button onPress={handleNextQuestion}>
-          <Text className="text-white font-semibold">Next</Text>
+          <Text className="text-white font-semibold">{t("Next")}</Text>
         </Button>
       </View>
     );
