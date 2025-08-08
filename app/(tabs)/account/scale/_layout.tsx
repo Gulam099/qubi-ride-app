@@ -4,8 +4,11 @@ import { Stack } from "expo-router";
 import colors from "@/utils/colors";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import BackButton from "@/features/Home/Components/BackButton";
+import { useTranslation } from "react-i18next";
 
 export default function ChatLayout() {
+    const { t } = useTranslation();
+  
   return (
     <Stack
       screenOptions={{
@@ -18,7 +21,7 @@ export default function ChatLayout() {
         name="index"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Scale</Text>
+            <Text className="font-semibold text-lg">{t("Scale")}</Text>
           ),
         }}
       />
@@ -26,7 +29,7 @@ export default function ChatLayout() {
         name="(scale_Test_Page)/depression-scale"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Scale</Text>
+            <Text className="font-semibold text-lg">{t("Depression scale")}</Text>
           ),
         }}
       />
@@ -35,7 +38,7 @@ export default function ChatLayout() {
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">
-              Generalized Anxiety Disorder scale
+              {t("Generalized Anxiety Disorder scale")}
             </Text>
           ),
         }}
@@ -44,7 +47,7 @@ export default function ChatLayout() {
         name="(scale_Test_Page)/mood-scale"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Mood</Text>
+            <Text className="font-semibold text-lg">{t("Mood scale")}</Text>
           ),
         }}
       />
@@ -52,7 +55,7 @@ export default function ChatLayout() {
         name="(scale_Test_Page)/quality-of-life-scale"
         options={{
           headerTitle: () => (
-            <Text className="font-semibold text-lg">Quality of Life scale</Text>
+            <Text className="font-semibold text-lg">{t("Quality of Life scale")}</Text>
           ),
         }}
       />

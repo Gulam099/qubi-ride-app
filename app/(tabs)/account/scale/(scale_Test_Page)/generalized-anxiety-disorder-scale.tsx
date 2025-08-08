@@ -10,82 +10,7 @@ import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
-
-// Demo questions
-const defaultQuestions = [
-  {
-    id: 1,
-    question: "Feeling angry, anxious, or having strong emotions",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 2,
-    question: "Difficulty in stopping or controlling stress/worry",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 3,
-    question: "Feeling restless or on edge",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 4,
-    question: "Difficulty in concentrating or mind going blank",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 5,
-    question: "Feeling tired or having low energy",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 6,
-    question: "Difficulty in sleeping or staying asleep",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-  {
-    id: 7,
-    question: "Feeling irritable or easily annoyed",
-    options: [
-      { title: "Never", points: 0 },
-      { title: "Somedays", points: 1 },
-      { title: "More than half the days", points: 2 },
-      { title: "Nearly everyday", points: 3 },
-    ],
-  },
-
-  // Add more questions as needed
-];
+import { useTranslation } from "react-i18next";
 
 export default function GeneralizedAnxietyDisorderScale() {
   const [currentStep, setCurrentStep] = useState("start"); // "start", "quiz", "result"
@@ -94,8 +19,84 @@ export default function GeneralizedAnxietyDisorderScale() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [answers, setAnswers] = useState<any[]>([]);
   const router = useRouter();
-  const {user} = useUser();
+  const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
+
+  const defaultQuestions = [
+    {
+      id: 1,
+      question: t("Feeling angry, anxious, or having strong emotions"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 2,
+      question: t("Difficulty in stopping or controlling stress/worry"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 3,
+      question: t("Feeling restless or on edge"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 4,
+      question: t("Difficulty in concentrating or mind going blank"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 5,
+      question: t("Feeling tired or having low energy"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 6,
+      question: t("Difficulty in sleeping or staying asleep"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+    {
+      id: 7,
+      question: t("Feeling irritable or easily annoyed"),
+      options: [
+        { title: t("Never"), points: 0 },
+        { title: t("Somedays"), points: 1 },
+        { title: t("More than half the days"), points: 2 },
+        { title: t("Nearly everyday"), points: 3 },
+      ],
+    },
+
+    // Add more questions as needed
+  ];
 
   const handleStartQuiz = () => {
     setCurrentStep("quiz");
@@ -170,26 +171,21 @@ export default function GeneralizedAnxietyDisorderScale() {
           resizeMode="contain"
         />
         <Text className="text-lg font-bold text-center mb-2">
-          Generalized Anxiety Disorder Scale
+          {t(" Generalized Anxiety Disorder Scale")}
         </Text>
         <Text className="text-gray-600 text-center leading-6">
-          This simple test will help you assess and understand your level of
-          anxiety. Your answers will assist us in determining your mental health
-          level and guiding you towards a suitable session to support your
-          mental health.
+          {t("GAD Description")}
         </Text>
       </View>
 
       <View className="bg-blue-50/50 p-4 rounded-md mt-6">
         <Text className="text-xs text-gray-800 text-center">
-          Reference: Prepared by doctors Robert L. Spitzer, Janet B.W. Williams,
-          Kurt Kroenke, and colleagues, with an educational grant from Pfizer
-          Inc.
+          {t("GAD Reference")}
         </Text>
       </View>
 
       <Button onPress={handleStartQuiz}>
-        <Text className="text-white font-semibold">Start Now</Text>
+        <Text className="text-white font-semibold">{t("Start Now")}</Text>
       </Button>
     </View>
   );
@@ -206,9 +202,10 @@ export default function GeneralizedAnxietyDisorderScale() {
             {` ${currentQuestionIndex + 1} from ${defaultQuestions.length}`}
           </Text>
           <Progress value={progressValue} />
-          <Text className="text-gray-500  text-sm font-medium py-6">
-            During the past two weeks, how much have the following problems
-            bothered you:
+          <Text className="text-gray-500 text-sm font-medium py-6">
+            {t(
+              "During the past two weeks, how much have the following problems bothered you:"
+            )}
           </Text>
           <Text className="text-gray-900 font-bold  text-xl mb-6">
             {question.question}
@@ -237,7 +234,7 @@ export default function GeneralizedAnxietyDisorderScale() {
         </View>
 
         <Button onPress={handleNextQuestion}>
-          <Text className="text-white font-semibold">Next</Text>
+          <Text className="text-white font-semibold">{t("Next")}</Text>
         </Button>
       </View>
     );
@@ -264,12 +261,12 @@ export default function GeneralizedAnxietyDisorderScale() {
               <CustomIcons.Caution.Icon height={80} width={80} />
             </View>
 
-            <H3 className="border-none ">You must make a choice</H3>
+            <H3 className="border-none ">{t("You must make a choice")}</H3>
             <Button
               onPress={() => setIsDrawerVisible(false)}
               className="w-full "
             >
-              <Text className="text-white font-medium">Ok</Text>
+              <Text className="text-white font-medium">{t("Ok")}</Text>
             </Button>
           </View>
         </Drawer>

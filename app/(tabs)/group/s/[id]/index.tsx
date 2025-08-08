@@ -30,11 +30,13 @@ import { currencyFormatter } from "@/utils/currencyFormatter.utils";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 export default function SupportDetailPage() {
   const { id } = useLocalSearchParams();
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
 
   const [groupDetails, setGroupDetails] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,11 +55,11 @@ export default function SupportDetailPage() {
         if (response.ok && result.success) {
           setGroupDetails(result.data);
         } else {
-          throw new Error(result.message || "Failed to fetch group details");
+          throw new Error(result.message || t("Failed to fetch group details"));
         }
       } catch (error) {
         console.error("Error fetching group details:", error);
-        toast.error("Error fetching support group details");
+        toast.error(t("Error fetching support group details"));
       } finally {
         setLoading(false);
       }
@@ -73,7 +75,7 @@ export default function SupportDetailPage() {
   const { mutate: bookGroup, isPending: isSubmitting } = useMutation({
     mutationFn: async () => {
       if (!selectedDateTime) {
-        throw new Error("Please select a date and time.");
+        throw new Error(t("Please select a date and time"));
       }
 
       // 1. Create Group Booking
@@ -97,11 +99,11 @@ export default function SupportDetailPage() {
         }
       );
 
-      console.log("bookingResponse",bookingResponse)
+      console.log("bookingResponse", bookingResponse);
       const bookingResult = await bookingResponse.json();
-      console.log("bookingResult",bookingResult)
+      console.log("bookingResult", bookingResult);
       if (!bookingResponse.ok) {
-        throw new Error(bookingResult?.message || "Group booking failed.");
+        throw new Error(bookingResult?.message || t("Group booking failed"));
       }
 
       // 2. Create Payment record
@@ -127,11 +129,11 @@ export default function SupportDetailPage() {
 
       const paymentResult = await paymentResponse.json();
       if (!paymentResponse.ok) {
-        throw new Error(paymentResult?.message || "Payment creation failed.");
+        throw new Error(paymentResult?.message || t("Payment creation failed"));
       }
 
       const paymentId = paymentResult?.payment?.internalPaymentId;
-      if (!paymentId) throw new Error("Payment ID missing.");
+      if (!paymentId) throw new Error(t("Payment ID missing"));
 
       // 3. Process Payment to get redirect URL
       const processResponse = await fetch(
@@ -146,7 +148,7 @@ export default function SupportDetailPage() {
 
       const processResult = await processResponse.json();
       if (!processResponse.ok) {
-        throw new Error(processResult?.error || "Payment processing failed.");
+        throw new Error(processResult?.error || t("Payment processing failed"));
       }
 
       return {
@@ -163,7 +165,7 @@ export default function SupportDetailPage() {
       };
     },
     onSuccess: ({ paymentId, bookingId, bookingData, redirectUrl }) => {
-      toast.success("Group booking created successfully!");
+      toast.success(t("Group booking created successfully"));
 
       if (redirectUrl) {
         const queryParams = new URLSearchParams({
@@ -179,11 +181,11 @@ export default function SupportDetailPage() {
 
         router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
       } else {
-        toast.error("Redirect URL not found.");
+        toast.error(t("Redirect URL not found"));
       }
     },
     onError: (err: any) => {
-      toast.error(err.message || "Something went wrong. Please try again.");
+      toast.error(err.message || t("Something went wrong. Please try again"));
       console.log("Error booking group:", err);
     },
   });
@@ -196,7 +198,7 @@ export default function SupportDetailPage() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">Loading...</Text>
+        <Text className="text-gray-500">{t("Loading...")}</Text>
       </View>
     );
   }
@@ -204,7 +206,7 @@ export default function SupportDetailPage() {
   if (!groupDetails) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Support Group Not Found</Text>
+        <Text className="text-red-500">{t("Support Group Not Found")}</Text>
       </View>
     );
   }
@@ -265,13 +267,14 @@ export default function SupportDetailPage() {
                     <People size="20" color="#000" />
                   </View>
                   <Text className="text-gray-500 leading-8">
-                    {groupDetails.recordedCount} Recorded
+                    {groupDetails.recordedCount} {t("Recorded")}
                   </Text>
                   <View className="p-2 bg-blue-50/20 aspect-square rounded-full items-center justify-center">
                     <Star1 size="20" color="#000" />
                   </View>
                   <Text className="text-gray-500 leading-8 ">
-                    {groupDetails.rating} Rate
+                    {groupDetails.rating}
+                    {t("Rate")}
                   </Text>
                 </View>
                 <Text className="text-gray-600 mt-4">
@@ -287,7 +290,7 @@ export default function SupportDetailPage() {
                   <ChartCircle size="24" color="#000" />
                 </View>
                 <Text className="font-semibold text-xl leading-10">
-                  Support Group Goals
+                  {t("Support Group Goals")}
                 </Text>
               </View>
               {/* {groupDetails.groupGoals.map((goal: string, index: number) => (
@@ -326,14 +329,14 @@ export default function SupportDetailPage() {
                   <Profile2User size="24" color="#000" />
                 </View>
                 <Text className="font-semibold text-xl leading-10">
-                  Consultants
+                  {t("Consultants")}
                 </Text>
               </View>
               <FlatList
                 data={groupDetails.specialist}
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item._id.toString()}
+                keyExtractor={(item) => item._id?.toString()}
                 renderItem={({ item }) => (
                   <View className="items-center bg-white flex-row gap-2 py-4 px-6 rounded-2xl">
                     <ProfileImage
@@ -362,7 +365,7 @@ export default function SupportDetailPage() {
                   <Messages1 size="24" color="#000" />
                 </View>
                 <Text className="font-semibold text-xl leading-10">
-                  Frequently Asked Questions(FAQ)
+                  {t("Frequently Asked Questions")}
                 </Text>
               </View>
               {/* <Accordion type="multiple" collapsible>
@@ -387,7 +390,7 @@ export default function SupportDetailPage() {
               onPress={handleBuy}
             >
               <Text className="text-white font-semibold">
-                Pay {currencyFormatter(groupDetails.cost)}
+                {t("Pay")} {currencyFormatter(groupDetails.cost)}
               </Text>
             </Button>
           </View>
@@ -400,7 +403,9 @@ export default function SupportDetailPage() {
               availableTimes={groupDetails.availableDates || []}
             />
             <Button className="w-full " onPress={finalSubmit}>
-              <Text className="text-white font-semibold">Confirm Schedule</Text>
+              <Text className="text-white font-semibold">
+                {t("Confirm Schedule")}
+              </Text>
             </Button>
             <Button
               className="w-full "
@@ -409,7 +414,9 @@ export default function SupportDetailPage() {
                 setShowScheduleSelector(false);
               }}
             >
-              <Text className="text-neutral-700 font-semibold">Back</Text>
+              <Text className="text-neutral-700 font-semibold">
+                {t("Back")}
+              </Text>
             </Button>
           </View>
         )}

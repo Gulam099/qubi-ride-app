@@ -1,4 +1,3 @@
-
 import { View, Text, FlatList } from "react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -26,39 +25,31 @@ type ConsultType = {
   sessionDurations?: string[];
 };
 
-
-
 export default function ConsultPage() {
   const router = useRouter();
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
-  
+
   // Get all parameters from the previous page
-  const {
-    budget,
-    consultantType,
-    language,
-    sessionDuration,
-    gender,
-   
-  } = useLocalSearchParams();
-  
+  const { budget, consultantType, language, sessionDuration, gender } =
+    useLocalSearchParams();
+
   const { t } = useTranslation();
   const [favoriteDoctors, setFavoriteDoctors] = useState<string[]>([]);
 
   // Helper function to parse budget range
   const parseBudgetRange = (budgetStr: string) => {
     if (!budgetStr) return { min: 0, max: Infinity };
-    
+
     if (budgetStr.includes("More than")) {
       return { min: 501, max: Infinity };
     }
-    
+
     const matches = budgetStr.match(/(\d+)\s*-\s*(\d+)/);
     if (matches) {
       return { min: parseInt(matches[1]), max: parseInt(matches[2]) };
     }
-    
+
     return { min: 0, max: Infinity };
   };
 
@@ -142,34 +133,40 @@ export default function ConsultPage() {
     if (budget) {
       const budgetRange = parseBudgetRange(budget as string);
       const doctorFees = consultant.fees || 0;
-      matchesUserRequirements = matchesUserRequirements && 
-        (doctorFees >= budgetRange.min && doctorFees <= budgetRange.max);
+      matchesUserRequirements =
+        matchesUserRequirements &&
+        doctorFees >= budgetRange.min &&
+        doctorFees <= budgetRange.max;
     }
 
     // Consultant type filter
     if (consultantType) {
       const requiredType = (consultantType as string).toLowerCase();
       const specialization = consultant.specialization?.toLowerCase() || "";
-      matchesUserRequirements = matchesUserRequirements && 
-        (specialization.includes(requiredType));
+      matchesUserRequirements =
+        matchesUserRequirements && specialization.includes(requiredType);
     }
 
     // Language filter (assuming doctor has languages array)
     if (language && consultant.languages) {
       const requiredLanguage = (language as string).toLowerCase();
-      matchesUserRequirements = matchesUserRequirements && 
-        consultant.languages.some(lang => lang.toLowerCase().includes(requiredLanguage));
+      matchesUserRequirements =
+        matchesUserRequirements &&
+        consultant.languages.some((lang) =>
+          lang.toLowerCase().includes(requiredLanguage)
+        );
     }
 
     // Gender filter (assuming doctor has gender field)
     if (gender && gender !== "Rather not say" && consultant.gender) {
-      matchesUserRequirements = matchesUserRequirements && 
+      matchesUserRequirements =
+        matchesUserRequirements &&
         consultant.gender.toLowerCase() === (gender as string).toLowerCase();
     }
 
     // // Session duration filter (assuming doctor has sessionDurations array)
     // if (sessionDuration && consultant.sessionDurations) {
-    //   matchesUserRequirements = matchesUserRequirements && 
+    //   matchesUserRequirements = matchesUserRequirements &&
     //     consultant.sessionDurations.includes(sessionDuration as string);
     // }
 
@@ -180,9 +177,11 @@ export default function ConsultPage() {
   const getAppliedFilters = () => {
     const filters = [];
     if (budget) filters.push(`${t("Budget")}: ${budget}`);
-    if (consultantType) filters.push(`${t("Type")}: ${t(consultantType as string)}`);
+    if (consultantType)
+      filters.push(`${t("Type")}: ${t(consultantType as string)}`);
     if (language) filters.push(`${t("Language")}: ${t(language as string)}`);
-    if (gender && gender !== "Rather not say") filters.push(`${t("Gender")}: ${t(gender as string)}`);
+    if (gender && gender !== "Rather not say")
+      filters.push(`${t("Gender")}: ${t(gender as string)}`);
     if (sessionDuration) filters.push(`${t("Duration")}: ${sessionDuration}`);
     return filters;
   };
@@ -210,7 +209,9 @@ export default function ConsultPage() {
       <View className="flex-col gap-3">
         {/* Applied Filters Display */}
         <Text className="text-lg">
-          Based on your condition, we suggest that you book a session with any of the following specialists
+          {t(
+            "Based on your condition, we suggest that you book a session with any of the following specialists"
+          )}
         </Text>
 
         {/* Results Count */}

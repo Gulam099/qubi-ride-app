@@ -25,20 +25,20 @@ export default function SessionConsultPage() {
     { label: `60 ${t("minutes")}`, value: "60 minutes" },
   ];
 
-  const budgetOptions = [
-    { label: "100 - 230 SR", value: "100-230 SR" },
-    { label: "231 - 400 SR", value: "231-400 SR" },
-    { label: "401 - 500 SR", value: "401-500 SR" },
-    { label: "More than 501 SR", value: "More than 501 SR" },
-  ];
+ const budgetOptions = [
+  { label: t("100 - 230 SR"), value: "100-230 SR" },
+  { label: t("231 - 400 SR"), value: "231-400 SR" },
+  { label: t("401 - 500 SR"), value: "401-500 SR" },
+  { label: t("More than 501 SR"), value: "More than 501 SR" },
+]
 
   const consultantTypes = [
-    { label: "Psychiatrist", value: "Psychiatrist" },
-    { label: "Psychologist", value: "Psychologist" },
-    { label: "Clinical Psychology", value: "Clinical Psychology" },
-    { label: "Marriage and Family therapist", value: "Marriage and Family therapist" },
-    { label: "Developmental Psychologist", value: "Developmental Psychologist" },
-  ];
+  { label: t("Psychiatrist"), value: "Psychiatrist" },
+  { label: t("Psychologist"), value: "Psychologist" },
+  { label: t("Clinical Psychology"), value: "Clinical Psychology" },
+  { label: t("Marriage and Family therapist"), value: "Marriage and Family therapist" },
+  { label: t("Developmental Psychologist"), value: "Developmental Psychologist" },
+];
 
   const {
     control,

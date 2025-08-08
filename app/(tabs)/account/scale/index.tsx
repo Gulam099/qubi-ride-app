@@ -4,36 +4,38 @@ import { RelativePathString, useRouter } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import { Chart21, Clock, Profile2User } from "iconsax-react-native";
 import colors from "@/utils/colors";
+import { useTranslation } from "react-i18next";
 
 export default function ScalePage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Demo data for scales
   const scales = [
     {
       id: "1",
-      title: "Generalized Anxiety Disorder scale",
+      title: t("Generalized Anxiety Disorder scale"),
       time: "3 min",
       users: "1.1M",
       link: "/account/scale/generalized-anxiety-disorder-scale",
     },
     {
       id: "2",
-      title: "Mood scale",
+      title: t("Mood scale"),
       time: "3 min",
       users: "1.1M",
       link: "/account/scale/mood-scale",
     },
     {
       id: "3",
-      title: "Quality of Life scale",
+      title: t("Quality of Life scale"),
       time: "3 min",
       users: "1.1M",
       link: "/account/scale/quality-of-life-scale",
     },
     {
       id: "4",
-      title: "Depression scale",
+      title: t("Depression scale"),
       time: "3 min",
       users: "1.1M",
       link: "/account/scale/depression-scale",
@@ -43,7 +45,7 @@ export default function ScalePage() {
   return (
     <View className="p-4 bg-blue-50/10 h-full">
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="font-bold text-xl">Scale</Text>
+        <Text className="font-bold text-xl">{t("Scale")}</Text>
         <Button
           className="h-11 max-h-11 py-0 px-0 flex-row bg-primary-50 gap-3"
           onPress={() =>
@@ -51,7 +53,7 @@ export default function ScalePage() {
           }
         >
           <Chart21 size="24" color={colors.primary[500]} />
-          <Text className="text-primary-500 font-semibold">Record</Text>
+          <Text className="text-primary-500 font-semibold">{t("Record")}</Text>
         </Button>
       </View>
 

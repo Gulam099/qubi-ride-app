@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { RelativePathString, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 type SupportGroupCardProps = {
   title: string;
@@ -47,6 +48,8 @@ export default function SupportGroupCard({
   link,
 }: SupportGroupCardProps) {
   const router = useRouter();
+
+  const { t } = useTranslation();
 
   return (
     <Card className="w-full px-0">
@@ -92,10 +95,10 @@ export default function SupportGroupCard({
           <View className="p-1 bg-blue-50/20 aspect-square rounded-full w-8 flex justify-center items-center">
             <People size="18" color={colors.primary[900]} />
           </View>
-          <Text className="font-medium">{recorded} Recorded</Text>
+          <Text className="font-medium">{recorded} {t("Recorded")}</Text>
         </View>
         <Button onPress={onPress}>
-          <Text className="text-white font-semibold">Join</Text>
+          <Text className="text-white font-semibold">{t("Join")}</Text>
         </Button>
       </CardFooter>
     </Card>
