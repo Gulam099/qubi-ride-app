@@ -1,5 +1,5 @@
 // export const apiBaseUrl = "http://localhost:5000";
-export const apiBaseUrl = "https://server.baserah.sa";
+export const apiBaseUrl = "http://192.168.1.23:4000";
 export const welcomeData = [
   {
     title: "Insight",
