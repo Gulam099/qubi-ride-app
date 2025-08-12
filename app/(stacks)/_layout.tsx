@@ -93,7 +93,7 @@ export default function StacksLayout() {
           ),
         }}
       />
-      
+
       <Stack.Screen
         name="help/faqs"
         options={{
@@ -104,12 +104,22 @@ export default function StacksLayout() {
           ),
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="help/numbers"
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">
               {t("Numbers that concern you")}
+            </Text>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="reshedule/[id]/index"
+        options={{
+          headerTitle: () => (
+            <Text className="font-semibold text-lg">
+              {t("Reschedule")}
             </Text>
           ),
         }}

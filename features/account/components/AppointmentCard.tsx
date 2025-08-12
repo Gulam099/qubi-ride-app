@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, TextInput, Modal } from "react-native";
 import { format } from "date-fns";
 import { Separator } from "@/components/ui/Separator";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
+import { Alert } from "react-native";
 import {
   CalendarAdd,
   Trash,
@@ -13,10 +14,11 @@ import {
   Message,
   Repeat,
   Warning2,
+  CloseCircle,
 } from "iconsax-react-native";
 import colors from "@/utils/colors";
 import { Button } from "@/components/ui/Button";
-import { Ellipsis, Headset } from "lucide-react-native";
+import { Ellipsis, Headset, X } from "lucide-react-native";
 import Drawer from "@/components/ui/Drawer";
 import { router, useRouter } from "expo-router";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
@@ -65,6 +67,138 @@ const isValidDate = (dateValue) => {
   return !isNaN(date.getTime());
 };
 
+const handleReschedule = (id: any) => {
+  router.push(`/(stacks)/reschedule/${id}`)
+};
+
+// Cancel Bottom Sheet Component
+const CancelBottomSheet = ({ isVisible, onClose, onConfirm, appointment }) => {
+  const { t } = useTranslation();
+  const [cancelReason, setCancelReason] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCancel = async () => {
+    if (!cancelReason.trim()) {
+      Alert.alert(t("error"), "Please provide a reason for cancellation");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${apiNewUrl}/api/bookings/update/${appointment._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'cancelled',
+          cancelReason: cancelReason.trim()
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to cancel appointment');
+      }
+
+      // Close the bottom sheet
+      onClose();
+      setCancelReason("");
+
+      // Show success alert
+      Alert.alert(
+        t("success"),
+        t("yourAppointmentSuccessfullyCancelled"),
+        [{ text: t("ok") }]
+      );
+
+      // Call the onConfirm callback if provided
+      if (onConfirm) onConfirm();
+
+    } catch (error) {
+      Alert.alert(
+        t("error"),
+        error.message || t("failedToCancelAppointment"),
+        [{ text: t("ok") }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setCancelReason("");
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={isVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={handleClose}
+    >
+      <View className="flex-1 bg-black/50 justify-end">
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <View className="flex-1" />
+        </TouchableWithoutFeedback>
+
+        <View className="bg-white rounded-t-3xl p-6 pb-8">
+          {/* Header */}
+          <View className="flex-row items-center justify-between mb-6">
+            <Text className="text-xl font-semibold text-gray-900">
+              Cancel Session
+            </Text>
+            <TouchableOpacity onPress={handleClose}>
+              <X size={24} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Reason Input */}
+          <View className="mb-6">
+            <Text className="text-base font-medium text-gray-700 mb-3">
+              Reason Cancel
+            </Text>
+            <TextInput
+              className="bg-gray-50 rounded-xl p-4 text-base text-gray-900 min-h-[100px]"
+              placeholder="Reason to cancel a session"
+              placeholderTextColor="#9CA3AF"
+              multiline={true}
+              textAlignVertical="top"
+              value={cancelReason}
+              onChangeText={setCancelReason}
+              maxLength={500}
+            />
+          </View>
+
+          {/* Action Buttons */}
+          <View className="gap-3">
+            <TouchableOpacity
+              className="bg-purple-600 py-4 rounded-full items-center"
+              onPress={handleCancel}
+              disabled={isLoading}
+            >
+              <Text className="text-white font-semibold text-base">
+                {isLoading ? "Cancelling..." : "Cancellation confirmation session"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="py-4 rounded-full items-center"
+              onPress={handleClose}
+            >
+              <Text className="text-gray-500 font-medium text-base">
+                Retreat
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 // Single appointment card component
 const SingleAppointmentCard = ({
   appointment,
@@ -74,36 +208,11 @@ const SingleAppointmentCard = ({
   onChat,
 }) => {
   const { t } = useTranslation();
+  const [isCancelSheetVisible, setIsCancelSheetVisible] = useState(false);
 
-  const cancelAppointment = async (bookingId: string) => {
-  try {
-    const response = await fetch(`${apiNewUrl}/api/bookings/update/${bookingId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add your authentication headers here if needed
-        // 'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        status: 'cancelled'
-      }),
-    });
-
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.message || 'Failed to cancel appointment');
-    }
-    
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Cancel appointment error:', error);
-    return { 
-      success: false, 
-      message: error.message || 'Failed to cancel appointment' 
-    };
-  }
-};
+  const isActionDisabled =
+    appointment?.status?.toLowerCase() === "cancelled" ||
+    appointment?.status?.toLowerCase() === "completed";
 
   // Function to get doctor's initials
   const getDoctorInitials = (fullName) => {
@@ -130,78 +239,109 @@ const SingleAppointmentCard = ({
   };
 
   return (
-    <View className="bg-white rounded-2xl p-6 mb-4 shadow-sm border border-gray-100">
-      {/* Doctor Info Row */}
-      <View className="flex-row items-center gap-3 mb-6">
-        {appointment?.doctorId?.profile_picture ? (
-          <Image
-            source={{ uri: appointment?.doctorId?.profile_picture }}
-            className="w-16 h-16 rounded-full bg-gray-200"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="w-16 h-16 rounded-full bg-blue-500 items-center justify-center">
-            <Text className="text-white text-xl font-bold">
-              {getDoctorInitials(appointment?.doctorId?.full_name)}
+    <>
+      <View className="bg-white rounded-2xl p-6 mb-4 shadow-sm border border-gray-100">
+        {/* Doctor Info Row */}
+        <View className="flex-row items-center gap-3 mb-6">
+          {appointment?.doctorId?.profile_picture ? (
+            <Image
+              source={{ uri: appointment?.doctorId?.profile_picture }}
+              className="w-16 h-16 rounded-full bg-gray-200"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-16 h-16 rounded-full bg-blue-500 items-center justify-center">
+              <Text className="text-white text-xl font-bold">
+                {getDoctorInitials(appointment?.doctorId?.full_name)}
+              </Text>
+            </View>
+          )}
+          <View className="flex-1">
+            <Text className="text-lg font-semibold text-gray-900 mb-1">
+              {appointment?.doctorId?.full_name ?? "N/A"}
             </Text>
+            <View className="flex-row items-center mb-1">
+              <Text className="text-sm text-gray-600 font-medium">
+                {t("sessionDay")} :
+              </Text>
+              <Text className="text-sm text-gray-900 ml-2 font-medium">
+                {getFormattedDate()}
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="text-sm text-gray-600 font-medium">
+                {t("sessionTime")} :
+              </Text>
+              <Text className="text-sm text-gray-900 ml-2 font-medium">
+                {getFormattedTime()}
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="text-sm text-gray-600 font-medium">
+                {t("Status")} :
+              </Text>
+              <Text className="text-sm text-gray-900 ml-2 font-medium">
+                {appointment.status}
+              </Text>
+            </View>
+            {appointment.cancelReason && <View className="flex-row items-center">
+              <Text className="text-sm text-gray-600 font-medium">
+                {t("Cancellation Reason")} :
+              </Text>
+              <Text className="text-sm text-gray-900 ml-2 font-medium">
+                {appointment.cancelReason}
+              </Text>
+            </View>}
           </View>
-        )}
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-900 mb-1">
-            {appointment?.doctorId?.full_name ?? "N/A"}
-          </Text>
-          <View className="flex-row items-center mb-1">
-            <Text className="text-sm text-gray-600 font-medium">
-              {t("sessionDay")} :
+        </View>
+
+        <Separator />
+
+        {/* Action Buttons */}
+        <View className="flex-row justify-between gap-3 mt-4">
+          <TouchableOpacity
+            className={`flex-1 ${isActionDisabled ? "bg-red-50" : "bg-red-100"} py-2.5 rounded-full items-center flex-row justify-center`}
+            onPress={() => setIsCancelSheetVisible(true)}
+            disabled={isActionDisabled}
+          >
+            <Trash size={18} color="#DC2626" />
+            <Text className={`${isActionDisabled ? "text-red-200" : "text-red-600"} font-semibold ml-1 text-base`}>
+              {t("cancel")}
             </Text>
-            <Text className="text-sm text-gray-900 ml-2 font-medium">
-              {getFormattedDate()}
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`flex-1 ${isActionDisabled ? "bg-yellow-50" : "bg-yellow-100"} py-2.5 rounded-full items-center flex-row justify-center`}
+            onPress={() => handleReschedule(appointment?._id)}
+            disabled={isActionDisabled}
+          >
+            <Repeat size={18} color="#B45309" />
+            <Text className={`${isActionDisabled ? "text-yellow-300" : "text-yellow-700"} font-semibold ml-1 text-base`}>
+              {t("reschedule")}
             </Text>
-          </View>
-          <View className="flex-row items-center">
-            <Text className="text-sm text-gray-600 font-medium">
-              {t("sessionTime")} :
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-purple-100 py-2.5 rounded-full items-center flex-row justify-center"
+            onPress={() => router.push("/(tabs)/account/chat/chatlist")}
+          >
+            <Message size={18} color="#7C3AED" />
+            <Text className="text-purple-700 font-semibold ml-1 text-base">
+              {t("chats")}
             </Text>
-            <Text className="text-sm text-gray-900 ml-2 font-medium">
-              {getFormattedTime()}
-            </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
-      <Separator />
-
-      {/* Action Buttons */}
-      <View className="flex-row justify-between gap-3 mt-4">
-        <TouchableOpacity
-          className="flex-1 bg-red-100 py-2.5 rounded-full items-center flex-row justify-center"
-          onPress={() => cancelAppointment(appointment?._id)}
-        >
-          <Trash size={18} color="#DC2626" />
-          <Text className="text-red-600 font-semibold ml-1 text-base">
-            {t("cancel")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="flex-1 bg-yellow-100 py-2.5 rounded-full items-center flex-row justify-center"
-          onPress={() => onReschedule && onReschedule(appointment, slot)}
-        >
-          <Repeat size={18} color="#B45309" />
-          <Text className="text-yellow-700 font-semibold ml-1 text-base">
-            {t("reschedule")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="flex-1 bg-purple-100 py-2.5 rounded-full items-center flex-row justify-center"
-          onPress={() => router.push("/(tabs)/account/chat/chatlist")}
-        >
-          <Message size={18} color="#7C3AED" />
-          <Text className="text-purple-700 font-semibold ml-1 text-base">
-            {t("chats")}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      {/* Cancel Bottom Sheet */}
+      <CancelBottomSheet
+        isVisible={isCancelSheetVisible}
+        onClose={() => setIsCancelSheetVisible(false)}
+        onConfirm={() => {
+          // Refresh the appointment list or perform any other action
+          if (onCancel) onCancel();
+        }}
+        appointment={appointment}
+      />
+    </>
   );
 };
 
@@ -210,7 +350,6 @@ export default function AppointmentCard({
   appointment,
   type,
   onCancel,
-  onReschedule,
   onChat,
 }: any) {
   const {
@@ -286,7 +425,7 @@ export default function AppointmentCard({
           appointment={appointment}
           slot={slot}
           onCancel={onCancel}
-          onReschedule={onReschedule}
+          onReschedule={handleReschedule}
           onChat={onChat}
         />
       ))}
