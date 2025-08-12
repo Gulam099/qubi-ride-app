@@ -1,4 +1,11 @@
-import { View, Text, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { OtpInput } from "react-native-otp-entry";
@@ -13,6 +20,7 @@ import { AppStateType } from "@/features/setting/types/setting.type";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { ApiUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 type ReportProps = {
   _id: string;
@@ -22,6 +30,8 @@ type ReportProps = {
   number: string;
   type: "previous" | "current";
   category: "plan" | "prescription";
+  // Add treatment data for prescriptions
+  treatmentData?: Treatment;
 };
 
 type TreatmentItem = {
@@ -46,91 +56,92 @@ type Treatment = {
   isEmptyStomach: boolean;
 };
 
-// Mock Data for Medical Plan (keeping existing structure)
-// const mockMedicalPlanData = {
-//   "Medical Plan": {
-//     Current: [
-//       {
-//         _id: "1",
-//         title: "Plan Report 1",
-//         doctorName: "Dr. Ahmad",
-//         date: "2024 / 01 / 01",
-//         number: "12345678",
-//         type: "current",
-//         category: "plan",
-//       },
-//     ],
-//     Previous: [
-//       {
-//         _id: "2",
-//         title: "Plan Report 2",
-//         doctorName: "Dr. Sarah",
-//         date: "2023 / 12 / 20",
-//         number: "98765432",
-//         type: "previous",
-//         category: "plan",
-//       },
-//     ],
-//   },
-// };
+// Mock data for Medical Plan (since treatments should only show in prescriptions)
+const mockMedicalPlanData = {
+  "Medical Plan": {
+    Current: [
+      {
+        _id: "plan_current_1",
+        title: "Diabetes Management Plan",
+        doctorName: "Dr. Sarah Johnson",
+        date: "15 / 01 / 2025",
+        number: "MP001234",
+        type: "current",
+        category: "plan",
+      },
+      {
+        _id: "plan_current_2",
+        title: "Hypertension Treatment Plan",
+        doctorName: "Dr. Michael Chen",
+        date: "10 / 01 / 2025",
+        number: "MP001235",
+        type: "current",
+        category: "plan",
+      },
+    ],
+    Previous: [
+      {
+        _id: "plan_previous_1",
+        title: "Post-Surgery Recovery Plan",
+        doctorName: "Dr. Emma Williams",
+        date: "20 / 08 / 2024",
+        number: "MP000987",
+        type: "previous",
+        category: "plan",
+      },
+    ],
+  },
+};
 
 export default function AccountReportPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
 
-  // Get phone number - try multiple possible paths
-  const phoneNumber =
-    user?.user?.phoneNumbers?.[0]?.phoneNumber ||
-    user?.phoneNumbers?.[0]?.phoneNumber ||
-    user?.user?.primaryPhoneNumber?.phoneNumber ||
-    user?.primaryPhoneNumber?.phoneNumber ||
-    user?.user?.phone ||
-    user?.phone;
-  const userPasscode = phoneNumber ? phoneNumber.slice(-4) : null;
+  const userPasscode = user?.unsafeMetadata?.passcode as string;
   const hasPasscode =
     userPasscode !== null && userPasscode !== undefined && userPasscode !== "";
 
-  const [showReports, setShowReports] = useState<boolean>(false); // Always start with password field
+  const [showReports, setShowReports] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState("My Prescriptions");
   const [activeCategory, setActiveCategory] = useState("Current");
   const [reports, setReports] = useState<ReportProps[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Verify using last 4 digits of phone number
+  // Modal state for showing treatment details
+  const [selectedTreatment, setSelectedTreatment] = useState<Treatment | null>(
+    null
+  );
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Verify using custom passcode
   async function handleSubmit(text: string): Promise<void> {
     try {
-      // Check if phone number exists
-      if (!phoneNumber) {
-        toast.error("Phone number not found. Please contact support.");
-        return;
-      }
-
-      // Check if passcode exists (last 4 digits)
       if (!hasPasscode) {
-        toast.error("Unable to generate passcode from phone number.");
+        toast.error(
+          t("No passcode found. Please set up a passcode in settings first.")
+        );
         return;
       }
 
       const isPassCodeVerified = userPasscode === text;
 
       if (isPassCodeVerified) {
-        toast.success("Passcode verified successfully!");
+        toast.success(t("Passcode verified successfully!"));
         setShowReports(true);
       } else {
-        toast.error(
-          "Invalid passcode. Please enter the last 4 digits of your phone number."
-        );
+        toast.error(t("Invalid passcode. Please enter your correct passcode."));
         setShowReports(false);
       }
     } catch (error) {
       console.error("Error verifying passcode:", error);
-      toast.error("Error verifying passcode. Please try again later.");
+      toast.error(t("Error verifying passcode. Please try again later."));
       setShowReports(false);
     }
   }
 
-  // Fetch treatments from API
+  // Fetch treatments from API (only for prescriptions)
   const fetchTreatments = useCallback(async () => {
     if (!userId) return;
 
@@ -141,14 +152,14 @@ export default function AccountReportPage() {
       );
       setTreatments(response.data.data || []);
     } catch (error) {
-      console.error("Failed to fetch treatments:", error);
-      toast.error("Failed to fetch treatments");
+      console.error(t("Failed to fetch treatments:"), error);
+      toast.error(t("Failed to fetch treatments"));
     } finally {
       setLoading(false);
     }
   }, [userId]);
 
-  // Convert treatments to report format
+  // Convert treatments to report format (only for prescriptions)
   const convertTreatmentsToReports = (
     treatments: Treatment[],
     category: string
@@ -168,26 +179,36 @@ export default function AccountReportPage() {
       })
       .map((treatment) => ({
         _id: treatment._id,
-        title: treatment.diagnosis || "Treatment Prescription",
-        doctorName: treatment.doctorId?.full_name || "Unknown Doctor",
+        title: treatment.diagnosis || t("Treatment Prescription"),
+        doctorName: treatment.doctorId?.full_name || t("Unknown Doctor"),
         date: new Date(treatment.createdAt)
           .toLocaleDateString("en-GB")
           .replace(/\//g, " / "),
-        number: treatment._id.slice(-8), // Use last 8 characters of ID as number
+        number: treatment._id.slice(-8),
         type: category === "Current" ? "current" : "previous",
         category: "prescription",
+        treatmentData: treatment, // Include full treatment data
       }));
+  };
+
+  // Handle card press to show treatment details
+  const handleCardPress = (report: ReportProps) => {
+    if (report.category === "prescription" && report.treatmentData) {
+      setSelectedTreatment(report.treatmentData);
+      setModalVisible(true);
+    }
+    // For medical plans, you can add different logic here in the future
   };
 
   // Fetch reports based on tab and category
   useEffect(() => {
     const fetchReports = async () => {
       if (activeTab === "Medical Plan") {
-        // Use mock data for Medical Plan
-        const data = mockMedicalPlanData[activeTab][activeCategory] || [];
+        // Use mock data for Medical Plan - treatments should NOT appear here
+        const data = mockMedicalPlanData["Medical Plan"][activeCategory] || [];
         setReports(data);
       } else if (activeTab === "My Prescriptions") {
-        // Fetch treatments for prescriptions only if we don't have them
+        // Fetch treatments ONLY for prescriptions tab
         if (treatments.length === 0) {
           await fetchTreatments();
         }
@@ -197,9 +218,9 @@ export default function AccountReportPage() {
     if (showReports) {
       fetchReports();
     }
-  }, [activeTab, activeCategory, showReports]); // Removed 'treatments' from dependency array
+  }, [activeTab, activeCategory, showReports]);
 
-  // Convert treatments when they are fetched or category changes
+  // Convert treatments when they are fetched or category changes (ONLY for prescriptions)
   useEffect(() => {
     if (treatments.length > 0 && activeTab === "My Prescriptions") {
       const convertedReports = convertTreatmentsToReports(
@@ -208,7 +229,124 @@ export default function AccountReportPage() {
       );
       setReports(convertedReports);
     }
-  }, [treatments, activeCategory]); // Removed activeTab from dependency since we check it inside
+  }, [treatments, activeCategory, activeTab]);
+
+  // Treatment Details Modal Component
+  const TreatmentModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+        <View className="bg-white rounded-lg p-6 m-4 max-h-4/5 w-11/12">
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View className="mb-4">
+              <Text className="text-xl font-bold text-gray-800 mb-2">
+                {t("Treatment Details")}
+              </Text>
+
+              {selectedTreatment && (
+                <>
+                  <View className="mb-4">
+                    <Text className="font-semibold text-gray-700 mb-1">
+                      {t("Diagnosis")}:
+                    </Text>
+                    <Text className="text-gray-600">
+                      {selectedTreatment.diagnosis || t("N/A")}
+                    </Text>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text className="font-semibold text-gray-700 mb-1">
+                      {t("Doctor")}:
+                    </Text>
+                    <Text className="text-gray-600">
+                      {selectedTreatment.doctorId?.full_name ||
+                        t("Unknown Doctor")}
+                    </Text>
+                    <Text className="text-gray-500 text-sm">
+                      {selectedTreatment.doctorId?.specialization || ""}
+                    </Text>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text className="font-semibold text-gray-700 mb-1">
+                      {t("Status")}:
+                    </Text>
+                    <Text className="text-gray-600">
+                      {selectedTreatment.status}
+                    </Text>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text className="font-semibold text-gray-700 mb-1">
+                      {t("Date")}:
+                    </Text>
+                    <Text className="text-gray-600">
+                      {new Date(selectedTreatment.createdAt).toLocaleDateString(
+                        "en-GB"
+                      )}
+                    </Text>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text className="font-semibold text-gray-700 mb-1">
+                      {t("Empty Stomach")}:
+                    </Text>
+                    <Text className="text-gray-600">
+                      {selectedTreatment.isEmptyStomach ? t("Yes") : t("No")}
+                    </Text>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text className="font-semibold text-gray-700 mb-2">
+                      {t("Medications")}:
+                    </Text>
+                    {selectedTreatment.treatmentItems?.length > 0 ? (
+                      selectedTreatment.treatmentItems.map((item, index) => (
+                        <View
+                          key={index}
+                          className="bg-gray-50 p-3 rounded-lg mb-2"
+                        >
+                          <Text className="font-medium text-gray-800 mb-1">
+                            {item.name}
+                          </Text>
+                          {item.description && (
+                            <Text className="text-gray-600 text-sm mb-1">
+                              {item.description}
+                            </Text>
+                          )}
+                          <Text className="text-gray-600 text-sm">
+                            {t("Quantity")}: {item.quantity} | {t("Frequency")}:{" "}
+                            {item.frequency} | {t("Duration")}: {item.duration}
+                          </Text>
+                        </View>
+                      ))
+                    ) : (
+                      <Text className="text-gray-500">
+                        {t("No medications prescribed")}
+                      </Text>
+                    )}
+                  </View>
+                </>
+              )}
+            </View>
+          </ScrollView>
+
+          <TouchableOpacity
+            className="bg-blue-900 p-3 rounded-lg mt-4"
+            onPress={() => setModalVisible(false)}
+          >
+            <Text className="text-white text-center font-semibold">
+              {t("Close")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <View className="bg-blue-50/10 w-full h-full">
@@ -216,10 +354,7 @@ export default function AccountReportPage() {
         <View className="px-6 py-20 flex flex-col gap-16">
           <View className="text-center">
             <Text className="text-center text-2xl font-semibold text-gray-700">
-              Enter your secret code
-            </Text>
-            <Text className="text-center text-sm text-gray-500 mt-2">
-              Please enter the last 4 digits of your phone number
+              {t("Enter your secret code")}
             </Text>
           </View>
           <OtpInput
@@ -253,13 +388,13 @@ export default function AccountReportPage() {
             }}
           />
           <Button>
-            <Text className="text-white font-semibold">Submit</Text>
+            <Text className="text-white font-semibold">{t("Log in")}</Text>
           </Button>
         </View>
       ) : (
         <View className="px-4 py-6">
           <View className="mb-6">
-            <Text className="font-semibold text-xl">My Reports</Text>
+            <Text className="font-semibold text-xl">{t("My Reports")}</Text>
             <View className="flex flex-row gap-2 mt-4">
               {["Medical Plan", "My Prescriptions"].map((tab) => (
                 <Button
@@ -276,14 +411,14 @@ export default function AccountReportPage() {
                       "font-medium"
                     )}
                   >
-                    {tab}
+                    {t(tab)}
                   </Text>
                 </Button>
               ))}
             </View>
           </View>
           <View className="mb-6">
-            <Text className="font-semibold text-xl">Report Type</Text>
+            <Text className="font-semibold text-xl">{t("Report Type")}</Text>
             <View className="flex flex-row gap-2 mt-4">
               {["Current", "Previous"].map((category) => (
                 <Button
@@ -302,7 +437,7 @@ export default function AccountReportPage() {
                       "font-medium"
                     )}
                   >
-                    {category}
+                    {t(category)}
                   </Text>
                 </Button>
               ))}
@@ -312,7 +447,7 @@ export default function AccountReportPage() {
           {loading ? (
             <View className="flex-1 justify-center items-center">
               <Text className="text-lg font-semibold text-gray-600">
-                Loading treatments...
+                {t("Loading treatments...")}
               </Text>
             </View>
           ) : (
@@ -320,31 +455,41 @@ export default function AccountReportPage() {
               data={reports}
               keyExtractor={(item) => item._id}
               renderItem={({ item }) => (
-                <View className="mb-4">
-                  <ReportCard
-                    type={item.type}
-                    category={item.category}
-                    title={item.title}
-                    doctorName={item.doctorName}
-                    date={item.date}
-                    number={item.number}
-                    _id={item._id}
-                  />
-                </View>
+                <TouchableOpacity onPress={() => handleCardPress(item)}>
+                  <View className="mb-4">
+                    <ReportCard
+                      type={item.type}
+                      category={item.category}
+                      title={item.title}
+                      doctorName={item.doctorName}
+                      date={item.date}
+                      number={item.number}
+                      _id={item._id}
+                    />
+                  </View>
+                </TouchableOpacity>
               )}
               ListEmptyComponent={
                 <Text className="text-center text-gray-500 mt-4">
                   {activeTab === "My Prescriptions" &&
                   activeCategory === "Current"
-                    ? "No current prescriptions available."
+                    ? t("No current prescriptions available.")
                     : activeTab === "My Prescriptions" &&
                       activeCategory === "Previous"
-                    ? "No previous prescriptions available."
-                    : "No reports available."}
+                    ? t("No previous prescriptions available.")
+                    : activeTab === "Medical Plan" &&
+                      activeCategory === "Current"
+                    ? t("No current medical plans available.")
+                    : activeTab === "Medical Plan" &&
+                      activeCategory === "Previous"
+                    ? t("No previous medical plans available.")
+                    : t("No reports available.")}
                 </Text>
               }
             />
           )}
+
+          <TreatmentModal />
         </View>
       )}
     </View>

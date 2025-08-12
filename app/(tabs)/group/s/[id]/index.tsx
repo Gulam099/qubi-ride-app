@@ -114,7 +114,7 @@ export default function SupportDetailPage() {
         groupbookingId: bookingResult?.data?._id,
         amount: groupDetails.cost,
         currency: "SAR",
-        description: "support_group_session ",
+        description: "Group",
         status: "initiated",
         bookingType: "Support Group",
       };

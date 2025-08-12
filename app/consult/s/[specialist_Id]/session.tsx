@@ -181,7 +181,7 @@ export default function SessionConsultPage() {
         bookingId: bookingResult?.booking?._id,
         amount: baseFee * data.numberOfSessions,
         currency: t("SAR"),
-        description: t("medical_consultation_session"), // Fixed: removed undefined reference
+        description: t("consultation"), // Fixed: removed undefined reference
         status: "initiated",
         bookingType: t("Scheduled"),
       };

@@ -25,8 +25,7 @@ import AudioPlayer from "@/features/Home/Components/AudioPlayer";
 import { apiNewUrl } from "@/const";
 import { useUser } from "@clerk/clerk-expo";
 import { t } from "i18next";
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
+import ImageViewer from "react-native-image-zoom-viewer";
 
 export default function LibraryPage() {
   const { library } = useLocalSearchParams();
@@ -36,25 +35,7 @@ export default function LibraryPage() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
   const [isImageModalVisible, setImageModalVisible] = useState(false);
-  const [imageScale, setImageScale] = useState(1);
-  const [translateX, setTranslateX] = useState(0);
-  const [translateY, setTranslateY] = useState(0);
 
-  const handleZoomIn = () => {
-    setImageScale((prev) => Math.min(prev + 0.5, 4)); // Max zoom 4x
-  };
-  const handleZoomOut = () => {
-    setImageScale((prev) => Math.max(prev - 0.5, 1)); // Min zoom 1x
-    if (imageScale - 0.5 <= 1) {
-      setTranslateX(0);
-      setTranslateY(0);
-    }
-  };
-  const resetZoom = () => {
-    setImageScale(1);
-    setTranslateX(0);
-    setTranslateY(0);
-  };
   useEffect(() => {
     const fetchLibraryContent = async () => {
       try {
@@ -123,7 +104,7 @@ export default function LibraryPage() {
       case "video":
         return (
           <View className="flex flex-col gap-4 py-4">
-            <VideoPlayer VideoUri={libraryItem.mediaUrl} />
+            <VideoPlayer VideoUri={libraryItem.videoLink} />
           </View>
         );
       case "audio":
@@ -155,231 +136,15 @@ export default function LibraryPage() {
             <Text className="text-gray-500">{libraryItem.publishedDate}</Text>
 
             {/* Zoom Image Modal */}
-            <Modal
-              visible={isImageModalVisible}
-              transparent={true}
-              animationType="fade"
-              onRequestClose={() => {
-                setImageModalVisible(false);
-                resetZoom();
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: "rgba(0,0,0,0.9)",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                {/* Top Controls */}
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 50,
-                    left: 30,
-                    right: 30,
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    zIndex: 10,
-                  }}
-                >
-                  {/* Zoom Level Indicator */}
-                  <Text style={{ color: "white", fontSize: 16 }}>
-                    {Math.round(imageScale * 100)}%
-                  </Text>
-
-                  {/* Close button */}
-                  <Pressable
-                    onPress={() => {
-                      setImageModalVisible(false);
-                      resetZoom();
-                    }}
-                    style={{
-                      padding: 10,
-                      backgroundColor: "rgba(255,255,255,0.3)",
-                      borderRadius: 20,
-                    }}
-                  >
-                    <Text style={{ color: "white", fontSize: 18 }}>✕</Text>
-                  </Pressable>
-                </View>
-
-                {/* Scrollable Image Container */}
-                <ScrollView
-                  style={{ flex: 1, width: screenWidth }}
-                  contentContainerStyle={{
-                    justifyContent: "center",
-                    alignItems: "center",
-                    minHeight: screenHeight,
-                  }}
-                  showsHorizontalScrollIndicator={false}
-                  showsVerticalScrollIndicator={false}
-                  scrollEnabled={imageScale > 1} // Only allow scrolling when zoomed
-                >
-                  <Image
-                    source={{ uri: libraryItem.thumbnail }}
-                    style={{
-                      width: screenWidth * imageScale,
-                      height: screenHeight * 0.7 * imageScale,
-                      transform: [
-                        { translateX: translateX },
-                        { translateY: translateY },
-                      ],
-                    }}
-                    resizeMode="contain"
-                  />
-                </ScrollView>
-
-                {/* Bottom Zoom Controls */}
-                <View
-                  style={{
-                    position: "absolute",
-                    bottom: 50,
-                    left: 30,
-                    right: 30,
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 20,
-                    zIndex: 10,
-                  }}
-                >
-                  {/* Zoom Out Button */}
-                  <Pressable
-                    onPress={handleZoomOut}
-                    disabled={imageScale <= 1}
-                    style={{
-                      padding: 15,
-                      backgroundColor:
-                        imageScale <= 1
-                          ? "rgba(255,255,255,0.2)"
-                          : "rgba(255,255,255,0.3)",
-                      borderRadius: 25,
-                      minWidth: 50,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          imageScale <= 1 ? "rgba(255,255,255,0.5)" : "white",
-                        fontSize: 20,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      −
-                    </Text>
-                  </Pressable>
-
-                  {/* Reset Button */}
-                  <Pressable
-                    onPress={resetZoom}
-                    style={{
-                      padding: 12,
-                      backgroundColor: "rgba(255,255,255,0.3)",
-                      borderRadius: 20,
-                    }}
-                  >
-                    <Text style={{ color: "white", fontSize: 14 }}>Reset</Text>
-                  </Pressable>
-
-                  {/* Zoom In Button */}
-                  <Pressable
-                    onPress={handleZoomIn}
-                    disabled={imageScale >= 4}
-                    style={{
-                      padding: 15,
-                      backgroundColor:
-                        imageScale >= 4
-                          ? "rgba(255,255,255,0.2)"
-                          : "rgba(255,255,255,0.3)",
-                      borderRadius: 25,
-                      minWidth: 50,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          imageScale >= 4 ? "rgba(255,255,255,0.5)" : "white",
-                        fontSize: 20,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      +
-                    </Text>
-                  </Pressable>
-                </View>
-
-                {/* Pan Controls (when zoomed in) */}
-                {imageScale > 1 && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      right: 30,
-                      top: "50%",
-                      transform: [{ translateY: -80 }],
-                      flexDirection: "column",
-                      gap: 15,
-                      zIndex: 10,
-                    }}
-                  >
-                    {/* Up */}
-                    {/* <Pressable
-                      onPress={() => setTranslateY((prev) => prev + 20)}
-                      style={{
-                        padding: 10,
-                        backgroundColor: "rgba(255,255,255,0.3)",
-                        borderRadius: 15,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: "white", fontSize: 16 }}>↑</Text>
-                    </Pressable>
-
-                    {/* Down */}
-                    {/* <Pressable
-                      onPress={() => setTranslateY((prev) => prev - 20)}
-                      style={{
-                        padding: 10,
-                        backgroundColor: "rgba(255,255,255,0.3)",
-                        borderRadius: 15,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: "white", fontSize: 16 }}>↓</Text>
-                    </Pressable> */}
-
-                    {/* Left */}
-                    <Pressable
-                      onPress={() => setTranslateX((prev) => prev + 20)}
-                      style={{
-                        padding: 10,
-                        backgroundColor: "rgba(255,255,255,0.3)",
-                        borderRadius: 15,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: "white", fontSize: 16 }}>←</Text>
-                    </Pressable>
-
-                    {/* Right */}
-                    <Pressable
-                      onPress={() => setTranslateX((prev) => prev - 20)}
-                      style={{
-                        padding: 10,
-                        backgroundColor: "rgba(255,255,255,0.3)",
-                        borderRadius: 15,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: "white", fontSize: 16 }}>→</Text>
-                    </Pressable>
-                  </View>
-                )}
-              </View>
+            <Modal visible={isImageModalVisible} transparent={true}>
+              <ImageViewer
+                imageUrls={[{ url: libraryItem.thumbnail }]} // array of images for zoom viewer
+                enableSwipeDown={true} // allow swipe down to close
+                onSwipeDown={() => setImageModalVisible(false)}
+                onCancel={() => setImageModalVisible(false)}
+                saveToLocalByLongPress={false}
+                renderIndicator={() => null} // hide image count indicator if only one image
+              />
             </Modal>
           </View>
         );

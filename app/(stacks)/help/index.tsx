@@ -6,17 +6,20 @@ import { Button } from "@/components/ui/Button";
 import Drawer from "@/components/ui/Drawer";
 import { H3 } from "@/components/ui/Typography";
 import { toSentenceCase } from "@/utils/string.utils";
+import { useTranslation } from "react-i18next";
 
 export default function HelpCenterPage() {
   const router = useRouter();
+    const { t } = useTranslation();
+  
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const Data = [
     {
-      title: "Frequently Asked Questions (FAQ)",
+      title: t("Frequently Asked Questions"),
       link: "/help/faqs",
     },
     {
-      title: "Numbers that concern you",
+      title: t("NumbersThatConcernYou"),
       link: "/help/numbers",
     },
   ];
@@ -37,7 +40,7 @@ export default function HelpCenterPage() {
         </TouchableOpacity>
       ))}
 
-      <View className="justify-center items-center">
+      {/* <View className="justify-center items-center">
         <TouchableOpacity
           onPress={() => setIsDrawerVisible(true)}
           className="w-full"
@@ -94,7 +97,7 @@ export default function HelpCenterPage() {
             </View>
           </View>
         </Drawer>
-      </View>
+      </View> */}
     </View>
   );
 }

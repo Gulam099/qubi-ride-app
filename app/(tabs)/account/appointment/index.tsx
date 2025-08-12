@@ -25,7 +25,6 @@ export default function AppointmentUpcomingList() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
 
-  console.log("user", user?.phoneNumbers[0].phoneNumber)
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
   const { t } = useTranslation();

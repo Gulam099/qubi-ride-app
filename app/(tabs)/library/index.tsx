@@ -102,6 +102,16 @@ export default function LibraryPage() {
     );
   }
 
+  const getYoutubeThumbnail = (url: string | undefined) => {
+    if (!url) return "https://placehold.co/300x200?text=No+Thumbnail";
+
+    const videoIdMatch = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([^?&"/]+)/
+    );
+    return videoIdMatch
+      ? `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`
+      : "https://placehold.co/300x200?text=No+Thumbnail";
+  };
   return (
     <>
       <View className="p-4 pb-0 bg-blue-50/10 h-full flex flex-col gap-4">
@@ -149,7 +159,11 @@ export default function LibraryPage() {
             <LibraryCard
               title={item.title}
               category={item.category}
-              image={item.thumbnail || "https://placehold.co/200"}
+              image={
+                item.type === "Video" || item.type === "فيديو"
+                  ? getYoutubeThumbnail(item.videoLink)
+                  : item.thumbnail || "https://placehold.co/200"
+              }
               link={`/library/${item._id}`}
               type={item.type}
               seenCount={item.seenCount || 0}

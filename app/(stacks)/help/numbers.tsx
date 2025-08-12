@@ -3,81 +3,86 @@ import React from "react";
 import { Text } from "@/components/ui/Text";
 import { Call, User } from "iconsax-react-native";
 import colors from "@/utils/colors";
+import { useTranslation } from "react-i18next";
 
-const numbersData = [
+
+export default function NumbersPage() {
+  const { t } = useTranslation();
+
+  const numbersData = [
   {
     id: "1",
-    name: "Center for receiving reports against violence and harm",
+    name: t("CenterForReceivingReportsAgainstViolenceAndHarm"),
     number: "1919",
   },
   {
     id: "2",
-    name: "Child Helpline",
+    name: t("ChildHelpline"),
     number: "116111",
   },
   {
     id: "3",
-    name: "Protection Committee in the Riyadh Region",
+    name: t("ProtectionCommitteeInRiyadhRegion"),
     number: "0112075242",
   },
   {
     id: "4",
-    name: "The Protection Committee in the Makkah Region",
+    name: t("ProtectionCommitteeInMakkahRegion"),
     number: "0126616688",
   },
   {
     id: "5",
-    name: "The Protection Committee in the Eastern Region",
+    name: t("ProtectionCommitteeInEasternRegion"),
     number: "0138394922",
   },
   {
     id: "6",
-    name: "The Protection Committee in Asir Region",
+    name: t("ProtectionCommitteeInAsirRegion"),
     number: "0172247087",
   },
   {
     id: "7",
-    name: "The Protection Committee in Hail Region",
+    name: t("ProtectionCommitteeInHailRegion"),
     number: "0165437944",
   },
   {
     id: "8",
-    name: "The Protection Committee in Al-Madinah Region",
+    name: t("ProtectionCommitteeInAlMadinahRegion"),
     number: "0148654117",
   },
   {
     id: "9",
-    name: "The Protection Committee in Al-Qassim Region",
+    name: t("ProtectionCommitteeInAlQassimRegion"),
     number: "163853730",
   },
   {
     id: "10",
-    name: "Protection Committee in Al-Jouf Region",
+    name: t("ProtectionCommitteeInAlJoufRegion"),
     number: "146250824",
   },
   {
     id: "11",
-    name: "Protection Committee in Najran Region",
+    name: t("ProtectionCommitteeInNajranRegion"),
     number: "175290386",
   },
   {
     id: "12",
-    name: "Protection Committee in Al-Baha Region",
+    name: t("ProtectionCommitteeInAlBahaRegion"),
     number: "177226932",
   },
   {
     id: "13",
-    name: "Protection Committee in Tabuk Region",
+    name: t("ProtectionCommitteeInTabukRegion"),
     number: "144235048",
   },
   {
     id: "14",
-    name: "Protection Committee in the Northern Borders Region",
+    name: t("ProtectionCommitteeInNorthernBordersRegion"),
     number: "146629932",
-  },
+  }
 ];
 
-export default function NumbersPage() {
+
   const handleCall = (number: string) => {
     Linking.openURL(`tel:${number}`).catch((err) =>
       console.error("Failed to make a call: ", err)

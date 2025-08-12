@@ -448,7 +448,6 @@ const InstantBookingContent = () => {
     },
     onSuccess: (data) => {
       console.log("Video call created successfully:", data);
-      toast.success("Video call scheduled successfully!");
     },
     onError: (error) => {
       console.error("Failed to create video call:", error);

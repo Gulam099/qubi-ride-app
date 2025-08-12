@@ -249,7 +249,7 @@ const JoinRoom = () => {
         doctorId: doctorId,
         amount: totalFee,
         currency: t("SAR"),
-        description: t("medical_consultation_session"),
+        description: t("consultation"),
         status: "initiated",
         bookingId: roomData?.bookingId,
         bookingType: t("Instant"),

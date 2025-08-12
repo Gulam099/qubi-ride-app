@@ -229,14 +229,14 @@ export default function SettingsPage() {
         </View>
 
         {/* Profile Passcode */}
-        {/* <View className="bg-white rounded-2xl p-4 ">
+        <View className="bg-white rounded-2xl p-4 ">
           <Text className="text-lg font-semibold mb-3">{t("profilePasscode")} </Text>
           <SwitchWithLabel
             label={t("enablePasscode")}
             value={profilePasscode !== null}
             onValueChange={(value: boolean) => PassCodeToggle(value)}
           />
-        </View> */}
+        </View>
 
         {/* Additional Options */}
         {/* <Button
