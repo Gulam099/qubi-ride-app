@@ -66,7 +66,7 @@ export default function ChatLayout() {
             <BackButton className="" customBackLink="/account/scale" />
           ),
           headerTitle: () => (
-            <Text className="font-semibold text-lg ">Scales Record</Text>
+            <Text className="font-semibold text-lg ">{t("ScalesRecord")}</Text>
           ),
         }}
       />

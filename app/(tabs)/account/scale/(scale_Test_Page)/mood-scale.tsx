@@ -13,9 +13,13 @@ import { useSelector } from "react-redux";
 import { UserType } from "@/features/user/types/user.type";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { useUser } from "@clerk/clerk-expo";
-import BottomSheet, { BottomSheetScrollView, BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetScrollView,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner-native";
 
 export default function MoodScale() {
   const moodScaleBottomSheetRef = useRef<BottomSheet>(null);
@@ -45,7 +49,7 @@ export default function MoodScale() {
 
   const handleSubmit = async () => {
     if (!selectedMood || selectedReason.length === 0 || !description) {
-      console.error("All fields are required.");
+      console.error(t("error_all_fields_required"));
       return;
     }
 
@@ -69,23 +73,28 @@ export default function MoodScale() {
       const result = await response.json();
       if (response.ok) {
         router.push("/account/scale/record/mood-scale-record");
+         toast.success(t("Data submitted successfully!"));
       } else {
         console.error(
-          "Error submitting mood scale:",
-          result.message || "Unknown error"
+          `${t("error_submitting_mood_scale")} ${
+            result.message || t("unknown_error")
+          }`
         );
+         toast.error("Failed to submit data. Please try again.");
       }
     } catch (error) {
-      console.error("Error submitting mood scale:", error);
+      console.error(`${t("error_submitting_mood_scale")} ${error}`);
     }
   };
 
   return (
     <View className="bg-blue-50/20 h-full w-full p-4 flex-col gap-2">
       <Text className="font-semibold text-lg text-gray-700">
-        How is your mood today
+        {t("how_is_your_mood_today")}
       </Text>
-      <Text className=" text-sm text-gray-700">Description of feelings</Text>
+      <Text className=" text-sm text-gray-700">
+        {t("description_of_feelings")}
+      </Text>
 
       <View className="flex-row gap-2 justify-center items-center relative overflow-visible p-2">
         {moodOptions.map(({ label, Icon }) => (
@@ -93,13 +102,13 @@ export default function MoodScale() {
             key={label}
             onPress={() => {
               setSelectedMood(label);
-              handelOpenPress()
+              handelOpenPress();
             }}
             className="flex-col items-center gap-3"
           >
             <Icon height={60} width={60} />
             <Text className="font-semibold text-sm text-neutral-600">
-              {toCapitalizeFirstLetter(label)}
+              {t(label)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -112,7 +121,7 @@ export default function MoodScale() {
       >
         <BottomSheetScrollView className="w-full flex-1 bg-white ">
           <View className="flex flex-col flex-1 justify-start items-center w-full gap-4 px-4 pt-12">
-          <Button
+            <Button
               size={"icon"}
               variant={"ghost"}
               className="absolute top-2 right-2 rounded-full p-0 text-neutral-800"
@@ -121,7 +130,7 @@ export default function MoodScale() {
               <X size={20} color={"#262626"} />
             </Button>
             <Text className="text-neutral-700 font-bold text-2xl text-center">
-              What are the reasons for the current feeling
+              {t("what_are_the_reasons")}
             </Text>
             <Text className="text-neutral-600 text-sm text-center">
               {format(
@@ -150,7 +159,7 @@ export default function MoodScale() {
                         }`
                       )}
                     >
-                      {label}
+                      {t(label)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -159,7 +168,7 @@ export default function MoodScale() {
 
             <TextInput
               className="border border-gray-300 rounded-lg p-4 w-full"
-              placeholder="Describe what happened"
+              placeholder={t("describe_what_happened")}
               value={description}
               onChangeText={setDescription}
             />
@@ -170,11 +179,10 @@ export default function MoodScale() {
                   nativeID="share-record"
                   onPress={() => setChecked((prev) => !prev)}
                 >
-                  Share the record with my specialist
+                  {t("share_with_specialist_label")}
                 </Label>
                 <Text className="text-sm text-neutral-500">
-                  Share the record with the specialists with whom you will book
-                  consultation sessions
+                  {t("share_with_specialist_desc")}
                 </Text>
               </View>
               <Switch
@@ -185,7 +193,9 @@ export default function MoodScale() {
             </View>
 
             <Button onPress={handleSubmit} className="w-full bg-purple-500">
-              <Text className="text-white font-medium">Save Feeling</Text>
+              <Text className="text-white font-medium">
+                {t("save_feeling")}
+              </Text>
             </Button>
           </View>
         </BottomSheetScrollView>

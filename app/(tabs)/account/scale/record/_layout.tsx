@@ -11,24 +11,26 @@ import {
   useRouter,
 } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 
 export default function HomeLayout() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const tab = [
-    { title: "All", link: "/account/scale/record" },
+    { title: t("All"), link: "/account/scale/record" },
     {
-      title: "Generalized Anxiety Disorder",
+      title: t("Generalized Anxiety Disorder"),
       link: "/account/scale/record/generalized-anxiety-disorder-scale-record",
     },
-    { title: "Mood", link: "/account/scale/record/mood-scale-record" },
+    { title: t("Mood"), link: "/account/scale/record/mood-scale-record" },
     {
-      title: "Quality of Life",
+      title: t("Quality of Life"),
       link: "/account/scale/record/quality-of-life-scale-record",
     },
     {
-      title: "Depression",
+      title: t("Depression"),
       link: "/account/scale/record/depression-scale-record",
     },
   ];
@@ -38,7 +40,7 @@ export default function HomeLayout() {
     <>
       <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
         <View className="flex flex-col gap-4">
-          <H3 className="text-xl">Record - {activeTab.title}</H3>
+          <H3 className="text-xl">{t("Record")}- {activeTab.title}</H3>
 
           <ScrollView
             horizontal={true}

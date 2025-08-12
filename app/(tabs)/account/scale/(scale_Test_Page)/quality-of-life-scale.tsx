@@ -10,6 +10,7 @@ import { toCapitalizeFirstLetter } from "@/utils/string.utils";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View, FlatList, TouchableOpacity, ScrollView } from "react-native";
 import { useSelector } from "react-redux";
 import { toast } from "sonner-native";
@@ -38,12 +39,13 @@ export default function QualityOfLifeScale() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [selectedReasons, setSelectedReasons] = useState<ReasonType[]>([]);
   const [selectedMoods, setSelectedMoods] = useState("");
+  const { t } = useTranslation();
 
   const options: OptionType[] = [
     {
       id: "feeling",
       title: "Feeling",
-      description: "Choose your mood for the day.",
+      description: "feeling_description",
       type: [
         CustomIcons.Tired,
         CustomIcons.Relaxed,
@@ -60,7 +62,7 @@ export default function QualityOfLifeScale() {
     {
       id: "sleep",
       title: "Sleep",
-      description: "Track your sleep pattern.",
+      description: "sleep_description",
       type: [
         CustomIcons.LateSleep,
         CustomIcons.EarlySleep,
@@ -72,7 +74,7 @@ export default function QualityOfLifeScale() {
     {
       id: "bestForMe",
       title: "Best for me",
-      description: "Make a gift, donate, or do something meaningful.",
+      description: "best_for_me_description",
       type: [
         CustomIcons.Meditation,
         CustomIcons.Sympathy,
@@ -84,7 +86,7 @@ export default function QualityOfLifeScale() {
     {
       id: "health",
       title: "Health",
-      description: "Track your health activities.",
+      description: "health_description",
       type: [
         CustomIcons.UnhealthyFood,
         CustomIcons.DrinkingWater,
@@ -95,7 +97,7 @@ export default function QualityOfLifeScale() {
     {
       id: "communicate",
       title: "Communicating with others",
-      description: "Engage with people in your community.",
+      description: "communicate_description",
       type: [
         CustomIcons.Study,
         CustomIcons.Work,
@@ -107,7 +109,7 @@ export default function QualityOfLifeScale() {
     {
       id: "homework",
       title: "Homeworks",
-      description: "Track your home-related activities.",
+      description: "homework_description",
       type: [
         CustomIcons.Shopping,
         CustomIcons.Cooking,
@@ -118,7 +120,7 @@ export default function QualityOfLifeScale() {
     {
       id: "hobbies",
       title: "Hobbies",
-      description: "Engage in activities you love.",
+      description: "hobbies_description",
       type: [
         CustomIcons.Sports,
         CustomIcons.Game,
@@ -129,7 +131,7 @@ export default function QualityOfLifeScale() {
     {
       id: "productivity",
       title: "Productivity",
-      description: "Track your productive activities.",
+      description: "productivity_description",
       type: [
         CustomIcons.StartedEarly,
         CustomIcons.Todo,
@@ -164,7 +166,7 @@ export default function QualityOfLifeScale() {
 
   const handleSubmit = () => {
     if (selectedOptions.length === 0) {
-      return toast.error("Please select at least one option.");
+      return toast.error(t("Please select at least one option."));
     }
     setCurrentScreen("DataCollectScreen");
   };
@@ -190,7 +192,7 @@ export default function QualityOfLifeScale() {
 
       if (response.ok) {
         console.log("Final Submission:", payload);
-        toast.success("Data submitted successfully!");
+        toast.success(t("Data submitted successfully!"));
         router.push("/account/scale/record/quality-of-life-scale-record"); // Navigate to the next page
       } else {
         const errorData = await response.json();
@@ -199,17 +201,17 @@ export default function QualityOfLifeScale() {
       }
     } catch (error) {
       console.error("Error during submission:", error);
-      toast.error("An error occurred while submitting data. Please try again.");
+      toast.error(t("toast_submit_error"));
     }
   };
 
   const OptionSelectorScreen = () => (
     <View className="p-4 bg-blue-50/20 h-full">
       <Text className="text-lg font-bold text-gray-700 mb-2">
-        Tracking activities and discovering lifestyle patterns
+        {t("tracking_title")}
       </Text>
       <Text className="text-sm text-gray-600 mb-6">
-        Choose the patterns in your day that affect your mood
+        {t("tracking_subtitle")}
       </Text>
       <FlatList
         data={options}
@@ -228,9 +230,9 @@ export default function QualityOfLifeScale() {
                 onCheckedChange={() => handleSelection(item.id)}
               />
               <Text className="text-base font-semibold text-gray-800">
-                {item.title}
+                {t(item.title)}
               </Text>
-              <Text className="text-sm text-gray-500">{item.description}</Text>
+              <Text className="text-sm text-gray-500">{t(item.description)}</Text>
             </Card>
           </TouchableOpacity>
         )}
@@ -240,7 +242,7 @@ export default function QualityOfLifeScale() {
         className="mt-6 w-full"
         disabled={selectedOptions.length === 0}
       >
-        <Text className="text-white font-semibold">Submit</Text>
+        <Text className="text-white font-semibold">{t("Submit")}</Text>
       </Button>
     </View>
   );
@@ -249,7 +251,7 @@ export default function QualityOfLifeScale() {
     <ScrollView>
       <View className="p-4 bg-blue-50/20 h-full">
         <Text className="text-lg font-bold text-gray-700 mb-2">
-          How are you today?
+          {t("how_are_you_today")}
         </Text>
         <View className="flex-row gap-2 justify-center items-center relative p-2">
           {moodOptions.map(({ label, Icon }) => (
@@ -266,14 +268,14 @@ export default function QualityOfLifeScale() {
                   selectedMoods === label ? "text-blue-500" : "text-neutral-600"
                 }`}
               >
-                {toCapitalizeFirstLetter(label)}
+                {t(label)}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
         <View className="mt-6">
           <Text className="text-lg font-bold text-gray-700 mb-2">
-            Selected Activities
+            {t("selected_activities_title")}
           </Text>
           {selectedOptions.map((optionId) => {
             const option = options.find((opt) => opt.id === optionId);
@@ -285,7 +287,7 @@ export default function QualityOfLifeScale() {
                 className="mb-4 bg-white p-4 rounded-xl shadow"
               >
                 <Text className="font-semibold text-lg mb-2">
-                  {option.title}
+                  {t(option.title)}
                 </Text>
                 <View className="flex-row gap-3 flex-wrap">
                   {option.type.map(({ label, Icon }, index) => {
@@ -311,7 +313,7 @@ export default function QualityOfLifeScale() {
                             isSelected ? "text-blue-500" : "text-gray-600"
                           )}
                         >
-                          {label}
+                          {t(label)}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -325,7 +327,7 @@ export default function QualityOfLifeScale() {
           onPress={handleFinalSubmit}
           className="mt-6 w-full py-3 bg-blue-600"
         >
-          <Text className="text-white font-semibold">Save Feeling</Text>
+          <Text className="text-white font-semibold">{t("Save Feeling")}</Text>
         </Button>
       </View>
     </ScrollView>

@@ -14,41 +14,41 @@ import { Button } from "@/components/ui/Button";
 import { H3 } from "@/components/ui/Typography";
 import { t } from "i18next";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 export default function FaqPage() {
+  const { t } = useTranslation();
+
   const faqData = [
     {
       id: "1",
-      question: "How long is the program valid for?",
-      answer: "The program is valid for one year from the date of enrollment.",
+      question: t("HowLongIsTheProgramValidForQ"),
+      answer: t("HowLongIsTheProgramValidForA"),
     },
     {
       id: "2",
-      question: "How do I enroll in the program?",
-      answer:
-        "You can enroll by visiting our website and completing the registration form.",
+      question: t("HowDoIEnrollInTheProgramQ"),
+      answer: t("HowDoIEnrollInTheProgramA"),
     },
     {
       id: "3",
-      question: "What support is available?",
-      answer: "We offer 24/7 customer support via email and chat.",
+      question: t("WhatSupportIsAvailableQ"),
+      answer: t("WhatSupportIsAvailableA"),
     },
     {
       id: "4",
-      question: "Can I cancel my enrollment?",
-      answer:
-        "Yes, you can cancel your enrollment within 14 days of signing up.",
+      question: t("CanICancelMyEnrollmentQ"),
+      answer: t("CanICancelMyEnrollmentA"),
     },
     {
       id: "5",
-      question: "Are there any discounts available?",
-      answer:
-        "We offer discounts during seasonal sales. Keep an eye on our website for updates.",
+      question: t("AreThereAnyDiscountsAvailableQ"),
+      answer: t("AreThereAnyDiscountsAvailableA"),
     },
     {
       id: "6",
-      question: "Is the program accessible on mobile?",
-      answer: "Yes, our platform is fully optimized for mobile devices.",
+      question: t("IsTheProgramAccessibleOnMobileQ"),
+      answer: t("IsTheProgramAccessibleOnMobileA"),
     },
   ];
 
@@ -64,7 +64,10 @@ export default function FaqPage() {
   return (
     <View className="bg-blue-50/20 h-full p-4">
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-xl font-bold text-neutral-800 ">Help Center</Text>
+        <Text className="text-xl font-bold text-neutral-800 ">
+          {" "}
+          {t("HelpCenter")}
+        </Text>
         <TouchableOpacity
           onPress={() => contactUsBottomSheetRef.current?.expand()}
           activeOpacity={0.7}
@@ -75,7 +78,7 @@ export default function FaqPage() {
         </TouchableOpacity>
       </View>
       <Text className="text-lg font-medium text-neutral-700  mb-4">
-        Frequently Asked Questions (FAQ)
+        {t("Frequently Asked Questions")}
       </Text>
       <Accordion type="single" collapsible className="">
         <FlatList

@@ -112,9 +112,9 @@ export default function SupportDetailPage() {
         programbookingId: bookingResult?.data?._id,
         amount: groupDetails.cost,
         currency: "SAR",
-        description: "program_session ",
+        description: "Programs",
         status: "initiated",
-        bookingType: "Program",
+        bookingType: "Programs_session",
       };
 
       const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {

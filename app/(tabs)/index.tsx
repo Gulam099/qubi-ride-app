@@ -5,6 +5,7 @@ import { H3 } from "@/components/ui/Typography";
 import {
   PatientHomeImage,
   PatientPageInstantMenuImage,
+  consultPageHomeImage
 } from "@/features/patient/constPatient";
 import { Image } from "react-native";
 import { cn } from "@/lib/utils";
@@ -44,15 +45,15 @@ const PatientPage = () => {
         </H3>
 
         <TouchableOpacity onPress={() => router.push("/instant-booking")}>
-          <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
+          <View className="flex justify-between rounded-xl p-4 backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
-            <View className="w-2/3 flex flex-col justify-end">
-              <H3 className="font-normal">{t("Instant")}</H3>
-              <Text className=" text-base font-normal">
+            <View className="w-2/2 flex flex-col justify-end pr-6">
+              <H3 className="font-normal justify-end mr-28">{t("Instant")}</H3>
+              <Text className="text-base font-normal">
                 {t("Immediate sessions with a specialist")}
               </Text>
             </View>
-            <View className="flex justify-end w-1/3  items-end">
+            <View className="flex justify-end w-1/3 items-end pl-8">
               <Image
                 source={PatientPageInstantMenuImage}
                 className={cn("w-full h-[undefined] aspect-square")}
@@ -62,11 +63,11 @@ const PatientPage = () => {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/consult")}>
-          <View className="flex justify-between  rounded-xl p-4  backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
+          <View className="flex justify-between rounded-xl p-4 backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
             <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
-            <View className="w-2/3 flex flex-col justify-end">
-              <H3 className="font-normal">{t("Scheduled")}</H3>
-              <Text className=" text-base font-normal">
+            <View className="w-2/2 flex flex-col justify-end pr-8">
+              <H3 className="font-normal justify-end mr-44">{t("Scheduled")}</H3>
+              <Text className="text-base font-normal">
                 {t(
                   "Book your appointment with the appropriate specialist for you"
                 )}
@@ -76,7 +77,7 @@ const PatientPage = () => {
         </TouchableOpacity>
 
         <Button
-          className="bg-blue-50/30 backdrop-blur-md "
+          className="bg-blue-50/30 backdrop-blur-md"
           onPress={() => router.push("/(stacks)/find-consultant")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">

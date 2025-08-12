@@ -30,6 +30,10 @@ import {
   ScrollView,
   Alert,
   Share,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  Dimensions,
 } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { createLibraryDeepLink } from "@/utils/deeplink";
@@ -92,6 +96,7 @@ export default function LibraryCard(props: LibraryCardProps) {
   const [commentText, setCommentText] = useState("");
   const [localComments, setLocalComments] = useState<Comment[]>(comments);
   const [localLikeCount, setLocalLikeCount] = useState(likeCount);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const [localShareCount, setLocalShareCount] = useState(shareCount);
   const [isSharing, setIsSharing] = useState(false);
@@ -106,6 +111,26 @@ export default function LibraryCard(props: LibraryCardProps) {
     audio: AudioSquare,
   };
   const Icon = IconList[type.toLowerCase()] || Notepad;
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener?.remove();
+      keyboardDidShowListener?.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const checkFavorites = async () => {
@@ -405,7 +430,7 @@ export default function LibraryCard(props: LibraryCardProps) {
         </CardFooter>
       </Card>
 
-      {/* Comment Modal */}
+      {/* Comment Modal with better keyboard handling for iOS */}
       <Modal
         visible={isCommentModalVisible}
         animationType="slide"
@@ -426,47 +451,67 @@ export default function LibraryCard(props: LibraryCardProps) {
             </TouchableOpacity>
           </View>
 
-          {/* Comments List */}
-          <ScrollView className="flex-1 p-4">
-            {localComments.length === 0 ? (
-              <View className="items-center justify-center py-8">
-                <Text className="text-gray-500 text-center">
-                  {t("noComments")}
-                </Text>
-              </View>
-            ) : (
-              localComments.map((comment) => (
-                <View
-                  key={comment._id}
-                  className="mb-4 p-3 bg-gray-50 rounded-lg"
-                >
-                  <View className="flex-row justify-between items-start mb-2">
-                    <Text className="font-semibold text-gray-800">
-                      {comment?.userId?.name || comment?.user || "Anonymous"}
-                    </Text>
-                    <Text className="text-xs text-gray-500">
-                      {formatTimeAgo(comment?.createdAt)}
-                    </Text>
-                  </View>
-                  <Text className="text-gray-700">
-                    {comment.comment || comment.text}
+          <KeyboardAvoidingView 
+            className="flex-1"
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          >
+            {/* Comments List */}
+            <ScrollView 
+              className="flex-1 p-4"
+              contentContainerStyle={{ flexGrow: 1 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {localComments.length === 0 ? (
+                <View className="items-center justify-center py-8">
+                  <Text className="text-gray-500 text-center">
+                    {t("noComments")}
                   </Text>
                 </View>
-              ))
-            )}
-          </ScrollView>
+              ) : (
+                localComments.map((comment) => (
+                  <View
+                    key={comment._id}
+                    className="mb-4 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <View className="flex-row justify-between items-start mb-2">
+                      <Text className="font-semibold text-gray-800">
+                        {comment?.userId?.name || comment?.user || "Anonymous"}
+                      </Text>
+                      <Text className="text-xs text-gray-500">
+                        {formatTimeAgo(comment?.createdAt)}
+                      </Text>
+                    </View>
+                    <Text className="text-gray-700">
+                      {comment.comment || comment.text}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
 
-          {/* Comment Input */}
-          <View className="p-4 border-t border-gray-200">
-            <TextInput
-              value={commentText}
-              onChangeText={setCommentText}
-              placeholder= {t("addCommentPlaceholder")}
-              multiline
-              className="border border-gray-300 rounded-lg p-3 max-h-24"
-              style={{ textAlignVertical: "top" }}
-            />
-          </View>
+            {/* Comment Input - Fixed positioning for iOS */}
+            <View 
+              className="p-4 border-t border-gray-200 bg-white"
+              style={Platform.OS === 'ios' ? { 
+                paddingBottom: Math.max(16, keyboardHeight > 0 ? 16 : 16) 
+              } : {}}
+            >
+              <TextInput
+                value={commentText}
+                onChangeText={setCommentText}
+                placeholder={t("addCommentPlaceholder")}
+                 placeholderTextColor="#999"
+                multiline
+                className="border border-gray-300 rounded-lg p-3 max-h-24"
+                style={{ 
+                  textAlignVertical: "top",
+                  minHeight: 44, // Ensure minimum touch target
+                }}
+                maxLength={500}
+              />
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </>

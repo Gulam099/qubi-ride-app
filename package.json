@@ -109,6 +109,7 @@
     "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-gifted-chat": "^2.8.0",
+    "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-international-phone-number": "^0.8.3",
     "react-native-localize": "^3.3.0",
     "react-native-otp-entry": "^1.7.3",

@@ -88,7 +88,7 @@ export default function StacksLayout() {
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">
-              {t("Help Center")}
+              {t("HelpCenter")}
             </Text>
           ),
         }}
@@ -99,7 +99,7 @@ export default function StacksLayout() {
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">
-              {t("Frequently Asked Questions (FAQ)")}
+              {t("Frequently Asked Questions")}
             </Text>
           ),
         }}
@@ -109,7 +109,7 @@ export default function StacksLayout() {
         options={{
           headerTitle: () => (
             <Text className="font-semibold text-lg">
-              {t("Numbers that concern you")}
+              {t("NumbersThatConcernYou")}
             </Text>
           ),
         }}
