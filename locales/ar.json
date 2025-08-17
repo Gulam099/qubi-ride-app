@@ -682,7 +682,23 @@
   "No previous prescriptions available.": "لا توجد وصفات طبية سابقة.",
   "No reports available.": "لا توجد تقارير متاحة.",
   "Unknown Doctor": "طبيب غير معروف",
-  "Treatment Prescription": "وصفة العلاج"
+  "Treatment Prescription": "وصفة العلاج",
+   "Last measure": "آخر قياس",
+  "Latest Score": "أحدث نتيجة",
+  "Chart": "الرسم البياني",
+  "View all": "عرض الكل",
+  "Record Details": "تفاصيل السجل",
+  "Details": "تفاصيل",
+  "Score": "النتيجة",
+  "Mental health encouragement": "نشجعك على العناية بصحتك النفسية وحجز جلسة في أقرب وقت ممكن للتأمل للمساعدة في تخفيف القلق وتحقيق الاسترخاء الذهني.",
+  "Anxiety Score": "درجة القلق",
+  "Last Result": "النتيجة الأخيرة",
+  "No records found": "لم يتم العثور على سجلات",
+  "Minimal Anxiety": "قلق طفيف جدًا",
+  "Mild Anxiety": "قلق طفيف",
+  "Moderate Anxiety": "قلق معتدل",
+  "Severe Anxiety": "قلق شديد", 
+  "We encourage you": "نشجعك على الاهتمام بصحتك النفسية والسعي للحصول على جلسة في أقرب وقت ممكن للتأمل للمساعدة في تخفيف القلق وتحقيق الاسترخاء الذهني. تذكر أنك لست وحدك في هذه الرحلة، ونحن هنا في بصيرة لمساعدتك."
 
 
 

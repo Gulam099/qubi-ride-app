@@ -21,8 +21,11 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import colors from "@/utils/colors";
 import { H3 } from "@/components/ui/Typography";
-import { ArrowRight } from "iconsax-react-native";
+import { ArrowLeft, ArrowRight } from "iconsax-react-native";
 import { apiNewUrl } from "@/const";
+import { useTranslation } from "react-i18next";
+import { t } from "i18next";
+import i18n from "@/lib/i18n";
 
 type RecordType = {
   _id: string;
@@ -31,10 +34,10 @@ type RecordType = {
 };
 
 const getAnxietyLevel = (score: number) => {
-  if (score < 5) return "Minimal Anxiety";
-  if (score < 10) return "Mild Anxiety";
-  if (score < 15) return "Moderate Anxiety";
-  return "Severe Anxiety";
+  if (score < 5) return t("Minimal Anxiety");
+  if (score < 10) return t("Mild Anxiety");
+  if (score < 15) return t("Moderate Anxiety");
+  return t("Severe Anxiety");
 };
 
 const CircularProgress = ({ score }: { score: number }) => {
@@ -102,6 +105,8 @@ export default function GeneralizedAnxietyDisorderScale() {
   const [isListActive, setIsListActive] = useState(false);
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
+  const currentLanguage = i18n.language;
 
   const fetchRecords = async ({ pageParam = 1 }) => {
     try {
@@ -165,29 +170,33 @@ export default function GeneralizedAnxietyDisorderScale() {
         >
           {/* Last Result Section */}
           <View className="bg-white p-4 rounded-2xl relative">
-            <H3 className="text-xl mb-2">Last Result</H3>
+            <H3 className="text-xl mb-2">{t("Last Result")}</H3>
             <View className="items-center justify-center mt-4">
               <CircularProgress score={RecordList[0]?.score || 0} />
             </View>
             <Text className="text-sm text-neutral-500 mt-4 text-center">
-              We encourage you to take care of your mental health and seek a
-              session as soon as possible for meditation to help alleviate
-              anxiety and achieve mental relaxation.
+              {t("Mental health encouragement")}
             </Text>
           </View>
 
           {/* Record List Preview */}
           <View className="flex-col rounded-xl bg-background py-4 px-4">
             <View className="flex-row">
-              <Text className="text-lg font-semibold flex-1">Record</Text>
+              <Text className="text-lg font-semibold flex-1">
+                {t("Record")}
+              </Text>
               <TouchableOpacity
                 onPress={() => setIsListActive(true)}
                 className="flex-row items-center justify-center gap-1"
               >
                 <Text className="text-sm font-semibold text-primary-500">
-                  View all
+                  {t("View all")}
                 </Text>
-                <ArrowRight size="20" color={colors.primary[500]} />
+                {currentLanguage === "ar" ? (
+                  <ArrowLeft size="20" color={colors.primary[500]} />
+                ) : (
+                  <ArrowRight size="20" color={colors.primary[500]} />
+                )}
               </TouchableOpacity>
             </View>
 
@@ -197,7 +206,7 @@ export default function GeneralizedAnxietyDisorderScale() {
                   <View key={record._id} className="flex-row gap-2 py-2">
                     <View className="flex-1 gap-1">
                       <Text className="text-base font-semibold leading-8">
-                        Anxiety Score: {record.score}
+                        {t("Anxiety Score")}: {record.score}
                       </Text>
                       <Text className="text-xs">
                         {getAnxietyLevel(record.score)}
@@ -212,7 +221,7 @@ export default function GeneralizedAnxietyDisorderScale() {
                 ))
               ) : (
                 <Text className="text-neutral-500 text-sm">
-                  No records found
+                  {t("No records found")}
                 </Text>
               )}
             </View>
@@ -231,9 +240,7 @@ export default function GeneralizedAnxietyDisorderScale() {
             ) : null
           }
           renderItem={({ item, index }) => (
-            <TouchableOpacity
-              className="flex flex-row justify-between items-center bg-white border rounded-2xl border-blue-600 gap-2 overflow-hidden h-20"
-            >
+            <TouchableOpacity className="flex flex-row justify-between items-center bg-white border rounded-2xl border-blue-600 gap-2 overflow-hidden h-20">
               <View className="bg-blue-600 w-6 h-20 flex justify-center items-center">
                 <Text className="text-white font-semibold text-center text-sm">
                   {index + 1}
@@ -241,7 +248,7 @@ export default function GeneralizedAnxietyDisorderScale() {
               </View>
               <View className="flex-1 p-2">
                 <Text className="text-lg font-medium leading-6">
-                  Anxiety Score: {item.score}
+                  {t("Anxiety Score")}: {item.score}
                 </Text>
                 <Text className="text-xs">{getAnxietyLevel(item.score)}</Text>
               </View>

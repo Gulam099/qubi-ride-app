@@ -59,8 +59,8 @@ type LibraryCardProps = {
   title: string;
   category: string;
   type: string;
-  seenCount:Number;
-  likeCount:Number;
+  seenCount: Number;
+  likeCount: Number;
   rating: number;
   image: string;
   link: string;
@@ -102,7 +102,7 @@ export default function LibraryCard(props: LibraryCardProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  console.log('localComments',localComments)
+  console.log("localComments", localComments);
 
   // Define icons based on type
   const IconList: Record<string, React.ElementType> = {
@@ -114,13 +114,13 @@ export default function LibraryCard(props: LibraryCardProps) {
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
+      "keyboardDidShow",
       (event) => {
         setKeyboardHeight(event.endCoordinates.height);
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
+      "keyboardDidHide",
       () => {
         setKeyboardHeight(0);
       }
@@ -178,7 +178,7 @@ export default function LibraryCard(props: LibraryCardProps) {
       if (!response.ok) throw new Error(result.message || "Failed to add");
       toast.success("Added to favorites!");
       setIsFavorited(true);
-       setLocalLikeCount((prev) => prev + 1);
+      setLocalLikeCount((prev) => prev + 1);
     } catch (err) {
       toast.error("Something went wrong");
     }
@@ -377,9 +377,7 @@ export default function LibraryCard(props: LibraryCardProps) {
                   variant={isFavorited ? "Bold" : "Linear"}
                 />
               </TouchableOpacity>
-              <Text className="text-xs mt-1 text-center">
-                {localLikeCount}
-              </Text>
+              <Text className="text-xs mt-1 text-center">{localLikeCount}</Text>
             </View>
 
             {/* Comment */}
@@ -415,7 +413,7 @@ export default function LibraryCard(props: LibraryCardProps) {
                 <Icon size="22" color={colors.primary[500]} />
               </View>
               <Text className="text-xs mt-1 capitalize text-center">
-                {type}
+                {t(type)}
               </Text>
             </View>
 
@@ -424,7 +422,9 @@ export default function LibraryCard(props: LibraryCardProps) {
               <View className="w-11 h-11 rounded-full bg-purple-100 justify-center items-center">
                 <People size="22" color={colors.primary[500]} />
               </View>
-              <Text className="text-xs mt-1">{seenCount} {t("seen")}</Text>
+              <Text className="text-xs mt-1">
+                {seenCount} {t("seen")}
+              </Text>
             </View>
           </View>
         </CardFooter>
@@ -451,13 +451,13 @@ export default function LibraryCard(props: LibraryCardProps) {
             </TouchableOpacity>
           </View>
 
-          <KeyboardAvoidingView 
+          <KeyboardAvoidingView
             className="flex-1"
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
           >
             {/* Comments List */}
-            <ScrollView 
+            <ScrollView
               className="flex-1 p-4"
               contentContainerStyle={{ flexGrow: 1 }}
               keyboardShouldPersistTaps="handled"
@@ -491,20 +491,24 @@ export default function LibraryCard(props: LibraryCardProps) {
             </ScrollView>
 
             {/* Comment Input - Fixed positioning for iOS */}
-            <View 
+            <View
               className="p-4 border-t border-gray-200 bg-white"
-              style={Platform.OS === 'ios' ? { 
-                paddingBottom: Math.max(16, keyboardHeight > 0 ? 16 : 16) 
-              } : {}}
+              style={
+                Platform.OS === "ios"
+                  ? {
+                      paddingBottom: Math.max(16, keyboardHeight > 0 ? 16 : 16),
+                    }
+                  : {}
+              }
             >
               <TextInput
                 value={commentText}
                 onChangeText={setCommentText}
                 placeholder={t("addCommentPlaceholder")}
-                 placeholderTextColor="#999"
+                placeholderTextColor="#999"
                 multiline
                 className="border border-gray-300 rounded-lg p-3 max-h-24"
-                style={{ 
+                style={{
                   textAlignVertical: "top",
                   minHeight: 44, // Ensure minimum touch target
                 }}
