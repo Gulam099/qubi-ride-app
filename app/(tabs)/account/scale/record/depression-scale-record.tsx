@@ -12,10 +12,13 @@ import Drawer from "@/components/ui/Drawer";
 import { H3 } from "@/components/ui/Typography";
 import { format } from "date-fns";
 import colors from "@/utils/colors";
-import { ArrowRight } from "iconsax-react-native";
+import { ArrowLeft, ArrowRight } from "iconsax-react-native";
 import { useUser } from "@clerk/clerk-expo";
 import { apiNewUrl } from "@/const";
 import Svg, { Circle, G, Text as SvgText } from "react-native-svg";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
+import { t } from "i18next";
 
 type RecordType = {
   _id: string;
@@ -24,10 +27,10 @@ type RecordType = {
 };
 
 const getAnxietyLevel = (score: number) => {
-  if (score < 5) return "Minimal Anxiety";
-  if (score < 10) return "Mild Anxiety";
-  if (score < 15) return "Moderate Anxiety";
-  return "Severe Anxiety";
+  if (score < 5) return t("Minimal Anxiety");
+  if (score < 10) return t("Mild Anxiety");
+  if (score < 15) return t("Moderate Anxiety");
+  return t("Severe Anxiety");
 };
 
 const CircularProgress = ({ score }: { score: number }) => {
@@ -95,7 +98,8 @@ export default function DepressionScaleRecord() {
   const [hasMore, setHasMore] = useState(true);
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
-
+  const { t } = useTranslation();
+  const currentLanguage = i18n.language;
   useEffect(() => {
     fetchRecords(currentPage);
   }, [currentPage]);
@@ -147,21 +151,20 @@ export default function DepressionScaleRecord() {
           className="bg-blue-50/10 flex flex-col gap-4 h-full w-full"
         >
           <View className="bg-white p-4 rounded-2xl relative h-[400]">
-            <H3 className="text-xl">Last Result</H3>
+            <H3 className="text-xl">{t("Last Result")}</H3>
             <View className="flex items-center justify-center mt-4">
               <CircularProgress score={RecordList[0]?.score || 0} />
             </View>
             <Text className="text-sm text-neutral-500 mt-4">
-              We encourage you to take care of your mental health and seek a
-              session as soon as possible for meditation to help alleviate
-              anxiety and achieve mental relaxation. Remember that you are not
-              alone on this journey, and we are here at Baserah to assist you.
+              {t("We encourage you")}
             </Text>
           </View>
 
           <View className="flex-col rounded-xl bg-background py-4 px-4 ">
             <View className="flex-row">
-              <Text className="text-lg font-semibold flex-1 ">Record</Text>
+              <Text className="text-lg font-semibold flex-1 ">
+                {t("Record")}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setIsListActive(!isListActive);
@@ -169,9 +172,13 @@ export default function DepressionScaleRecord() {
                 className="flex-row items-center justify-center gap-1"
               >
                 <Text className="text-sm font-semibold text-primary-500">
-                  View all
+                  {t("View all")}
                 </Text>
-                <ArrowRight size="20" color={colors.primary[500]} />
+                {currentLanguage === "ar" ? (
+                  <ArrowLeft size="20" color={colors.primary[500]} />
+                ) : (
+                  <ArrowRight size="20" color={colors.primary[500]} />
+                )}
               </TouchableOpacity>
             </View>
             <View className="flex-col h-full gap-2">

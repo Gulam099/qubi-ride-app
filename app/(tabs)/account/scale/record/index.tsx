@@ -14,16 +14,19 @@ import { cn } from "@/lib/utils";
 import { LineChart } from "react-native-chart-kit";
 import colors from "@/utils/colors";
 import { format } from "date-fns";
-import { ArrowRight } from "iconsax-react-native";
+import { ArrowLeft, ArrowRight } from "iconsax-react-native";
 import { useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { apiNewUrl } from "@/const";
 import Drawer from "@/components/ui/Drawer";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 export default function ScaleRecordPage() {
   const router = useRouter();
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
 
   // State management
   const [isListActive, setIsListActive] = useState(false);
@@ -31,16 +34,18 @@ export default function ScaleRecordPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [recordActive, setRecordActive] = useState(null);
-  
+
   // Data states for all scales
   const [gadRecords, setGadRecords] = useState([]);
   const [moodRecords, setMoodRecords] = useState([]);
   const [depressionRecords, setDepressionRecords] = useState([]);
   const [lifeScaleRecords, setLifeScaleRecords] = useState([]);
-  
+
   // Combined records for display
   const [allRecords, setAllRecords] = useState([]);
   const [lastMeasure, setLastMeasure] = useState(null);
+
+  const currentLanguage = i18n.language;
 
   // Chart configuration
   const chartConfig = {
@@ -69,15 +74,16 @@ export default function ScaleRecordPage() {
   const fetchAllScaleData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch all scale data in parallel
-      const [gadResponse, moodResponse, depressionResponse, lifeResponse] = await Promise.all([
-        fetch(`${apiNewUrl}/api/gad-scale/user/${userId}?page=1`),
-        fetch(`${apiNewUrl}/api/mood-scale/${userId}?page=1`),
-        fetch(`${apiNewUrl}/api/depression-scale/user/${userId}?page=1`),
-        fetch(`${apiNewUrl}/api/life_scale/get/${userId}`)
-      ]);
+      const [gadResponse, moodResponse, depressionResponse, lifeResponse] =
+        await Promise.all([
+          fetch(`${apiNewUrl}/api/gad-scale/user/${userId}?page=1`),
+          fetch(`${apiNewUrl}/api/mood-scale/${userId}?page=1`),
+          fetch(`${apiNewUrl}/api/depression-scale/user/${userId}?page=1`),
+          fetch(`${apiNewUrl}/api/life_scale/get/${userId}`),
+        ]);
 
       // Parse responses
       const gadData = await gadResponse.json();
@@ -98,63 +104,68 @@ export default function ScaleRecordPage() {
 
       // Combine and sort all records
       const combined = [
-        ...gadRecordsData.map(record => ({
+        ...gadRecordsData.map((record) => ({
           ...record,
-          type: 'Generalized Anxiety Disorder',
-          scale: 'GAD',
+          type: "Generalized Anxiety Disorder",
+          scale: "GAD",
           record_Id: `gad_${record._id}`,
           title: `GAD Scale - Score: ${record.score}`,
           desc: getAnxietyLevel(record.score),
           date: new Date(record.createdAt),
-          color: colors.green[200]
+          color: colors.green[200],
         })),
-        ...moodRecordsData.map(record => ({
+        ...moodRecordsData.map((record) => ({
           ...record,
-          type: 'Mood Scale',
-          scale: 'MOOD',
+          type: "Mood Scale",
+          scale: "MOOD",
           record_Id: `mood_${record._id}`,
           title: `Mood Scale - ${record.mood}`,
           desc: `Score: ${record.score}`,
           date: new Date(record.createdAt),
-          color: colors.red[200]
+          color: colors.red[200],
         })),
-        ...depressionRecordsData.map(record => ({
+        ...depressionRecordsData.map((record) => ({
           ...record,
-          type: 'Depression Scale',
-          scale: 'DEPRESSION',
+          type: "Depression Scale",
+          scale: "DEPRESSION",
           record_Id: `depression_${record._id}`,
           title: `Depression Scale - Score: ${record.score}`,
           desc: getAnxietyLevel(record.score),
           date: new Date(record.createdAt),
-          color: colors.orange[300]
+          color: colors.orange[300],
         })),
-        ...lifeRecordsData.map(record => {
+        ...lifeRecordsData.map((record) => {
           // Extract average score from activity array
           let averageScore = 0;
-          if (record.activity && Array.isArray(record.activity) && record.activity.length > 0) {
+          if (
+            record.activity &&
+            Array.isArray(record.activity) &&
+            record.activity.length > 0
+          ) {
             const activityScores = record.activity
-              .map(item => item.score || 0)
-              .filter(score => score > 0);
-            
+              .map((item) => item.score || 0)
+              .filter((score) => score > 0);
+
             if (activityScores.length > 0) {
               averageScore = Math.round(
-                activityScores.reduce((sum, score) => sum + score, 0) / activityScores.length
+                activityScores.reduce((sum, score) => sum + score, 0) /
+                  activityScores.length
               );
             }
           }
-          
+
           return {
             ...record,
             score: averageScore,
-            type: 'Quality of Life Scale',
-            scale: 'LIFE',
+            type: t("Quality of Life Scale"),
+            scale: "LIFE",
             record_Id: `life_${record._id}`,
             title: `Quality of Life - Score: ${averageScore}%`,
-            desc: `Mood: ${record.mood || 'Not specified'}`,
+            desc: `Mood: ${record.mood || "Not specified"}`,
             date: new Date(record.createdAt || record.updatedAt),
-            color: colors.blue[200]
+            color: colors.blue[200],
           };
-        })
+        }),
       ].sort((a, b) => b.date - a.date);
 
       setAllRecords(combined);
@@ -163,10 +174,9 @@ export default function ScaleRecordPage() {
       if (combined.length > 0) {
         setLastMeasure(combined[0]);
       }
-
     } catch (err) {
-      console.error('Error fetching scale data:', err);
-      setError('Failed to load scale data');
+      console.error("Error fetching scale data:", err);
+      setError("Failed to load scale data");
     } finally {
       setLoading(false);
     }
@@ -183,13 +193,13 @@ export default function ScaleRecordPage() {
   const generateChartData = () => {
     const last6Months = [];
     const now = new Date();
-    
+
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       last6Months.push({
         label: format(date, "MMM"),
         month: date.getMonth(),
-        year: date.getFullYear()
+        year: date.getFullYear(),
       });
     }
 
@@ -197,125 +207,151 @@ export default function ScaleRecordPage() {
 
     // GAD Dataset - score is directly available
     const gadData = [];
-    last6Months.forEach(monthInfo => {
-      const gadMonthRecords = gadRecords.filter(record => {
+    last6Months.forEach((monthInfo) => {
+      const gadMonthRecords = gadRecords.filter((record) => {
         const recordDate = new Date(record.createdAt);
-        return recordDate.getMonth() === monthInfo.month && recordDate.getFullYear() === monthInfo.year;
+        return (
+          recordDate.getMonth() === monthInfo.month &&
+          recordDate.getFullYear() === monthInfo.year
+        );
       });
-      const gadAvg = gadMonthRecords.length > 0 
-        ? gadMonthRecords.reduce((sum, r) => sum + (r.score || 0), 0) / gadMonthRecords.length 
-        : 0;
+      const gadAvg =
+        gadMonthRecords.length > 0
+          ? gadMonthRecords.reduce((sum, r) => sum + (r.score || 0), 0) /
+            gadMonthRecords.length
+          : 0;
       gadData.push(Math.round(gadAvg));
     });
-    
-    if (gadData.some(val => val > 0)) {
-      datasets.push({ 
-        data: gadData, 
-        color: (opacity = 1) => colors.green[200], 
-        strokeWidth: 2, 
-        withDots: true
+
+    if (gadData.some((val) => val > 0)) {
+      datasets.push({
+        data: gadData,
+        color: (opacity = 1) => colors.green[200],
+        strokeWidth: 2,
+        withDots: true,
       });
     }
 
-    // Depression Dataset - score is directly available  
+    // Depression Dataset - score is directly available
     const depressionData = [];
-    last6Months.forEach(monthInfo => {
-      const depressionMonthRecords = depressionRecords.filter(record => {
+    last6Months.forEach((monthInfo) => {
+      const depressionMonthRecords = depressionRecords.filter((record) => {
         const recordDate = new Date(record.createdAt);
-        return recordDate.getMonth() === monthInfo.month && recordDate.getFullYear() === monthInfo.year;
+        return (
+          recordDate.getMonth() === monthInfo.month &&
+          recordDate.getFullYear() === monthInfo.year
+        );
       });
-      const depressionAvg = depressionMonthRecords.length > 0 
-        ? depressionMonthRecords.reduce((sum, r) => sum + (r.score || 0), 0) / depressionMonthRecords.length 
-        : 0;
+      const depressionAvg =
+        depressionMonthRecords.length > 0
+          ? depressionMonthRecords.reduce((sum, r) => sum + (r.score || 0), 0) /
+            depressionMonthRecords.length
+          : 0;
       depressionData.push(Math.round(depressionAvg));
     });
 
-    if (depressionData.some(val => val > 0)) {
-      datasets.push({ 
-        data: depressionData, 
-        color: (opacity = 1) => colors.orange[300], 
-        strokeWidth: 2, 
-        withDots: true
+    if (depressionData.some((val) => val > 0)) {
+      datasets.push({
+        data: depressionData,
+        color: (opacity = 1) => colors.orange[300],
+        strokeWidth: 2,
+        withDots: true,
       });
     }
 
     // Mood Dataset - score is directly available
     const moodData = [];
-    last6Months.forEach(monthInfo => {
-      const moodMonthRecords = moodRecords.filter(record => {
+    last6Months.forEach((monthInfo) => {
+      const moodMonthRecords = moodRecords.filter((record) => {
         const recordDate = new Date(record.createdAt);
-        return recordDate.getMonth() === monthInfo.month && recordDate.getFullYear() === monthInfo.year;
+        return (
+          recordDate.getMonth() === monthInfo.month &&
+          recordDate.getFullYear() === monthInfo.year
+        );
       });
-      const moodAvg = moodMonthRecords.length > 0 
-        ? moodMonthRecords.reduce((sum, r) => sum + (r.score || 0), 0) / moodMonthRecords.length 
-        : 0;
+      const moodAvg =
+        moodMonthRecords.length > 0
+          ? moodMonthRecords.reduce((sum, r) => sum + (r.score || 0), 0) /
+            moodMonthRecords.length
+          : 0;
       moodData.push(Math.round(moodAvg));
     });
 
-    if (moodData.some(val => val > 0)) {
-      datasets.push({ 
-        data: moodData, 
-        color: (opacity = 1) => colors.red[200], 
-        strokeWidth: 2, 
-        withDots: true
+    if (moodData.some((val) => val > 0)) {
+      datasets.push({
+        data: moodData,
+        color: (opacity = 1) => colors.red[200],
+        strokeWidth: 2,
+        withDots: true,
       });
     }
 
     // Life Quality Dataset - need to extract score from activity array
     const lifeData = [];
-    last6Months.forEach(monthInfo => {
-      const lifeMonthRecords = lifeScaleRecords.filter(record => {
+    last6Months.forEach((monthInfo) => {
+      const lifeMonthRecords = lifeScaleRecords.filter((record) => {
         const recordDate = new Date(record.createdAt || record.updatedAt);
-        return recordDate.getMonth() === monthInfo.month && recordDate.getFullYear() === monthInfo.year;
+        return (
+          recordDate.getMonth() === monthInfo.month &&
+          recordDate.getFullYear() === monthInfo.year
+        );
       });
-      
+
       let totalScore = 0;
       let recordCount = 0;
-      
-      lifeMonthRecords.forEach(record => {
-        if (record.activity && Array.isArray(record.activity) && record.activity.length > 0) {
+
+      lifeMonthRecords.forEach((record) => {
+        if (
+          record.activity &&
+          Array.isArray(record.activity) &&
+          record.activity.length > 0
+        ) {
           // Calculate average score from activity array
           const activityScores = record.activity
-            .map(item => item.score || 0)
-            .filter(score => score > 0);
-          
+            .map((item) => item.score || 0)
+            .filter((score) => score > 0);
+
           if (activityScores.length > 0) {
-            const avgScore = activityScores.reduce((sum, score) => sum + score, 0) / activityScores.length;
+            const avgScore =
+              activityScores.reduce((sum, score) => sum + score, 0) /
+              activityScores.length;
             totalScore += avgScore;
             recordCount++;
           }
         }
       });
-      
+
       const lifeAvg = recordCount > 0 ? totalScore / recordCount : 0;
       lifeData.push(Math.round(lifeAvg));
     });
 
-    if (lifeData.some(val => val > 0)) {
-      datasets.push({ 
-        data: lifeData, 
-        color: (opacity = 1) => colors.blue[200], 
-        strokeWidth: 2, 
-        withDots: true
+    if (lifeData.some((val) => val > 0)) {
+      datasets.push({
+        data: lifeData,
+        color: (opacity = 1) => colors.blue[200],
+        strokeWidth: 2,
+        withDots: true,
       });
     }
 
     // If no data, return default structure
     if (datasets.length === 0) {
       return {
-        labels: last6Months.map(m => m.label),
-        datasets: [{
-          data: [0, 0, 0, 0, 0, 0],
-          color: (opacity = 1) => colors.gray[400],
-          strokeWidth: 2,
-          withDots: true
-        }]
+        labels: last6Months.map((m) => m.label),
+        datasets: [
+          {
+            data: [0, 0, 0, 0, 0, 0],
+            color: (opacity = 1) => colors.gray[400],
+            strokeWidth: 2,
+            withDots: true,
+          },
+        ],
       };
     }
 
     return {
-      labels: last6Months.map(m => m.label),
-      datasets: datasets
+      labels: last6Months.map((m) => m.label),
+      datasets: datasets,
     };
   };
 
@@ -326,17 +362,20 @@ export default function ScaleRecordPage() {
   };
 
   const legend = [
-    { title: "Generalized Anxiety Disorder scale", color: colors.green[200] },
-    { title: "Mood scale", color: colors.red[200] },
-    { title: "Quality of life scale", color: colors.blue[200] },
-    { title: "Depression scale", color: colors.orange[300] },
+    {
+      title: t("Generalized Anxiety Disorder scale"),
+      color: colors.green[200],
+    },
+    { title: t("Mood scale"), color: colors.red[200] },
+    { title: t("Quality of Life scale"), color: colors.blue[200] },
+    { title: t("Depression scale"), color: colors.orange[300] },
   ];
 
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-blue-50/10">
         <ActivityIndicator size="large" color={colors.primary[500]} />
-        <Text className="mt-4 text-lg text-neutral-600">Loading scale data...</Text>
+        <Text className="mt-4 text-lg text-neutral-600">{t("Loading")}</Text>
       </View>
     );
   }
@@ -344,12 +383,11 @@ export default function ScaleRecordPage() {
   if (error) {
     return (
       <View className="flex-1 justify-center items-center bg-blue-50/10 p-4">
-        <Text className="text-lg text-red-600 text-center mb-2">Error</Text>
+        <Text className="text-lg text-red-600 text-center mb-2">
+          {t("errorTitle")}
+        </Text>
         <Text className="text-sm text-gray-600 text-center">{error}</Text>
-        <Button 
-          onPress={fetchAllScaleData}
-          className="mt-4"
-        >
+        <Button onPress={fetchAllScaleData} className="mt-4">
           <Text>Retry</Text>
         </Button>
       </View>
@@ -369,8 +407,10 @@ export default function ScaleRecordPage() {
           {/* Last Measure Section */}
           {lastMeasure && (
             <Text className="text-lg font-semibold text-neutral-600">
-              Last measure :{" "}
-              <Text className="text-lg text-blue-900">{lastMeasure.type}</Text>
+              {t("Last measure")} :{" "}
+              <Text className="text-lg text-blue-900">
+                {t(lastMeasure.type)}
+              </Text>
             </Text>
           )}
 
@@ -385,13 +425,11 @@ export default function ScaleRecordPage() {
                 <Text className="text-xs">
                   {format(lastMeasure.date, "dd-MM-yyyy")}
                 </Text>
-                <Text className="text-sm font-medium">
-                  {lastMeasure.desc}
-                </Text>
+                <Text className="text-sm font-medium">{lastMeasure.desc}</Text>
               </View>
               <View className="flex-col justify-center items-center gap-3 bg-blue-900 aspect-square w-1/3 rounded-xl p-2">
                 <Text className="text-white text-xs text-center">
-                  Latest Score
+                  {t("Latest Score")}
                 </Text>
                 <Text className="text-white text-4xl text-center">
                   {lastMeasure.score}
@@ -403,7 +441,7 @@ export default function ScaleRecordPage() {
           {/* Chart Section */}
           {chartData.datasets.length > 0 && (
             <View className="overflow-hidden rounded-xl bg-background py-4 px-4">
-              <Text className="text-lg font-semibold">Chart</Text>
+              <Text className="text-lg font-semibold">{t("Chart")}</Text>
               <LineChart
                 data={chartData}
                 width={Dimensions.get("window").width + 70}
@@ -440,15 +478,21 @@ export default function ScaleRecordPage() {
           {/* Records Section */}
           <View className="flex-col rounded-xl bg-background py-4 px-4">
             <View className="flex-row">
-              <Text className="text-lg font-semibold flex-1">Record</Text>
+              <Text className="text-lg font-semibold flex-1">
+                {t("Record")}
+              </Text>
               <TouchableOpacity
                 onPress={() => setIsListActive(true)}
                 className="flex-row items-center justify-center gap-1"
               >
                 <Text className="text-sm font-semibold text-end text-primary-500">
-                  View all
+                  {t("View all")}
                 </Text>
-                <ArrowRight size="20" color={colors.primary[500]} />
+                {currentLanguage === "ar" ? (
+                  <ArrowLeft size="20" color={colors.primary[500]} />
+                ) : (
+                  <ArrowRight size="20" color={colors.primary[500]} />
+                )}
               </TouchableOpacity>
             </View>
             <View className="flex-col h-full gap-2">
@@ -482,7 +526,7 @@ export default function ScaleRecordPage() {
                 onPress={() => handleRecordActive(item.record_Id)}
                 className="flex flex-row justify-between items-center bg-white border rounded-2xl border-blue-600 gap-2 overflow-hidden h-20"
               >
-                <View 
+                <View
                   className="w-6 h-20 flex-col justify-center items-center"
                   style={{ backgroundColor: item.color }}
                 >
@@ -504,24 +548,24 @@ export default function ScaleRecordPage() {
               </TouchableOpacity>
             )}
           />
-          
+
           {/* Drawer for Record Details */}
           <View className="flex-1 justify-center items-center mt-10 mb-20">
             <Drawer
               visible={isDrawerVisible}
               onClose={() => setIsDrawerVisible(false)}
-              title="Record Details"
+              title={t("Record Details")}
               height="40%"
               className="max-h-[40%]"
             >
               {recordActive && (
                 <View className="flex flex-col flex-1 justify-center items-center w-full gap-6 px-6">
                   <Text className="text-xl font-semibold text-neutral-600">
-                    Details
+                    {t("Details")}
                   </Text>
                   <View className="flex-col justify-center items-center gap-3 bg-blue-900 aspect-square w-1/3 rounded-xl p-2">
                     <Text className="text-white text-xs text-center">
-                      Score
+                      {t("Score")}
                     </Text>
                     <Text className="text-white text-4xl text-center">
                       {recordActive.score}
