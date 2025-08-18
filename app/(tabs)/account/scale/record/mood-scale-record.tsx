@@ -6,7 +6,7 @@ import { LineChart } from "react-native-chart-kit";
 import { Button } from "@/components/ui/Button";
 import { AddCircle, ArrowCircleDown } from "iconsax-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Calendar } from "@/components/ui/Calendar";
+import { Calendar, LocaleConfig } from "@/components/ui/Calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,11 +18,13 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import { moodOptions } from "@/features/scale/constScale";
 import { useUser } from "@clerk/clerk-expo";
 import { apiNewUrl } from "@/const";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 export default function MoodScaleRecord() {
   const [LastMoodOption, setLastMoodOption] = useState(null);
   const [ActiveRecordType, setActiveRecordType] = useState<
-    "weekly" | "monthly"
+   ( "weekly") | "monthly"
   >("weekly");
   const [markedDates, setMarkedDates] = useState({});
   const [selectedDate, setSelectedDate] = useState("");
@@ -30,6 +32,7 @@ export default function MoodScaleRecord() {
   const [chartData, setChartData] = useState({ weekly: [], monthly: [] });
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
+  const { t } = useTranslation();
 
   const chartConfig = {
     backgroundColor: "#fff",
@@ -98,6 +101,14 @@ export default function MoodScaleRecord() {
     fetchMoodScaleData();
   }, []);
 
+  useEffect(() => {
+  if (i18n.language === "ar") {
+    LocaleConfig.defaultLocale = "ar";
+  } else {
+    LocaleConfig.defaultLocale = "en";
+  }
+}, [i18n.language]);
+
   const filteredRecords = selectedDate
     ? moodRecords.filter((record) => record.createdAt.startsWith(selectedDate))
     : moodRecords;
@@ -113,12 +124,12 @@ export default function MoodScaleRecord() {
         <View className="flex-col gap-2 justify-center items-center rounded-xl bg-background py-4 px-4">
           <View className="flex-1 gap-1 flex-row justify-between items-center w-full">
             <Text className="text-lg font-semibold text-neutral-600">
-              Last mood recording
+             {t("lastMoodRecording")}
             </Text>
             <View className="flex-row gap-2 justify-center items-center">
               <AddCircle size="16" color={colors.gray[500]} />
               <Text className="text-sm font-medium text-neutral-600 leading-7 text-center">
-                Add a feeling
+               {t("addFeeling")}
               </Text>
             </View>
           </View>
@@ -130,14 +141,14 @@ export default function MoodScaleRecord() {
           </Text>
           <LastMoodOption.Icon height={60} width={60} />
           <Text className="text-sm font-medium text-neutral-600">
-            {LastMoodOption.mood}
+            {t(LastMoodOption.mood)}
           </Text>
         </View>
       )}
 
       {/* Mood Chart */}
       <View className="overflow-hidden rounded-xl bg-background py-4 px-4">
-        <Text className="text-lg font-semibold">Chart</Text>
+        <Text className="text-lg font-semibold">{t("chart")}</Text>
         { (chartData.weekly.length != 0 || chartData.monthly.length != 0) &&  
          <LineChart
           data={{
@@ -178,22 +189,22 @@ export default function MoodScaleRecord() {
       {/* Calendar */}
       <View className="flex-col gap-2">
         <View className="flex-row justify-between items-center">
-          <Text className="text-lg font-semibold">Mood record</Text>
+          <Text className="text-lg font-semibold">{t("moodRecords")}</Text>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="bg-primary-50/30 flex-row gap-2">
                 <Text className="text-primary-500 font-semibold">
-                  {toCapitalizeFirstLetter(ActiveRecordType)}
+                  {toCapitalizeFirstLetter(t(ActiveRecordType))}
                 </Text>
                 <ArrowCircleDown size="20" color={colors.primary[500]} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-28">
               <DropdownMenuItem onPress={() => setActiveRecordType("weekly")}>
-                <Text>Weekly</Text>
+                <Text>{t("weekly")}</Text>
               </DropdownMenuItem>
               <DropdownMenuItem onPress={() => setActiveRecordType("monthly")}>
-                <Text>Monthly</Text>
+                <Text>{t("monthly")}</Text>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -211,18 +222,18 @@ export default function MoodScaleRecord() {
       {selectedDate && (
         <View className="bg-white rounded-xl p-4 mt-4">
           <Text className="text-lg font-semibold text-neutral-700">
-            Mood Records
+            {t("moodRecords")}
           </Text>
           {filteredRecords.map((record) => (
             <View key={record._id} className="mt-2">
               <Text className="text-sm text-neutral-600">
-                Mood: {record.mood}
+                {t("mood")}: {t(record.mood)}
               </Text>
               <Text className="text-sm text-neutral-600">
-                Reasons: {record.reasons.join(", ")}
+                {t("reasons")}: {t(record.reasons.join(", "))}
               </Text>
               <Text className="text-sm text-neutral-600">
-                Score: {record.score}
+                {t("score")}: {record.score}
               </Text>
             </View>
           ))}

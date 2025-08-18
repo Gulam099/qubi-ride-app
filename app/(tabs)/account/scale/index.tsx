@@ -28,7 +28,7 @@ export default function ScalePage() {
     },
     {
       id: "3",
-      title: t("Quality of Life scale"),
+      title: t("Quality of Life Scale"),
       time: "3 min",
       users: "1.1M",
       link: "/account/scale/quality-of-life-scale",

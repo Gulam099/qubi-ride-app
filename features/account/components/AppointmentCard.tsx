@@ -366,7 +366,7 @@ export default function AppointmentCard({
   const router = useRouter();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  console.log("appointment", appointment);
+  console.log("appointment>>", appointment);
 
   // Get the correct date values
   const appointmentDate = getAppointmentDate(appointment);

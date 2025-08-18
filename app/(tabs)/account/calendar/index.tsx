@@ -14,8 +14,9 @@ import { useUser } from "@clerk/clerk-expo";
 import {
   fetchAppointments,
   fetchInstantAppointments,
+  fetchGroupAppointments,
+  fetchPrograms,
 } from "@/features/util/constHome";
-import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { useTranslation } from "react-i18next";
 
 export default function AppointmentCalendarScreen() {
@@ -24,60 +25,88 @@ export default function AppointmentCalendarScreen() {
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
   const { t } = useTranslation();
-
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [appointments, setAppointments] = useState<any[]>([]);
   const [error, setError] = useState("");
+  const [appointments, setAppointments] = useState<{
+    scheduled: any[];
+    instant: any[];
+    group: any[];
+    program: any[];
+  }>({
+    scheduled: [],
+    instant: [],
+    group: [],
+    program: [],
+  });
 
-  // Fetch all appointments (scheduled + instant)
-  const loadAppointments = useCallback(async (isRefresh = false) => {
-    if (!userId) return;
+  // Fetch all appointments (scheduled + instant + group + program)
+  const loadAppointments = useCallback(
+    async (isRefresh = false) => {
+      if (!userId) return;
 
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setError("");
-
-    try {
-      const [scheduledRes, instantRes] = await Promise.all([
-        fetchAppointments({ userId }),
-        fetchInstantAppointments({ userId }),
-      ]);
-
-      let allAppointments: any[] = [];
-
-      // Combine scheduled appointments
-      if (scheduledRes.success) {
-        const scheduledData = scheduledRes.data.filter(
-          (appointment: any) =>
-            appointment.type === "scheduled" ||
-            appointment.appointmentType === "scheduled" ||
-            !appointment.isInstant ||
-            (!appointment.type && !appointment.appointmentType)
-        );
-        allAppointments = [...allAppointments, ...scheduledData];
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
       }
+      setError("");
 
-      // Combine instant appointments
-      if (instantRes.success) {
-        allAppointments = [...allAppointments, ...instantRes.data];
+      try {
+        const [scheduledRes, instantRes, groupRes, programRes] =
+          await Promise.all([
+            fetchAppointments({ userId }),
+            fetchInstantAppointments({ userId }),
+            fetchGroupAppointments(userId),
+            fetchPrograms(userId),
+          ]);
+
+        let scheduledData = [];
+        let instantData = [];
+        let groupData = [];
+        let programData = [];
+
+        if (scheduledRes.success) {
+          scheduledData = scheduledRes.data.filter(
+            (appointment: any) =>
+              appointment.type === "scheduled" ||
+              appointment.appointmentType === "scheduled" ||
+              !appointment.isInstant ||
+              (!appointment.type && !appointment.appointmentType)
+          );
+        }
+
+        if (instantRes.success) {
+          instantData = instantRes.data;
+        }
+
+        if (groupRes.success) {
+          groupData = groupRes.data;
+        }
+
+        if (programRes.success) {
+          programData = programRes.data;
+        }
+
+        setAppointments({
+          scheduled: scheduledData,
+          instant: instantData,
+          group: groupData,
+          program: programData,
+        });
+      } catch (error) {
+        console.error("Error loading appointments:", error);
+        setError("Failed to load appointments");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-
-      setAppointments(allAppointments);
-    } catch (error) {
-      console.error("Error loading appointments:", error);
-      setError("Failed to load appointments");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [userId]);
+    },
+    [userId]
+  );
 
   // Load appointments when component mounts or userId changes
   useEffect(() => {
@@ -86,47 +115,69 @@ export default function AppointmentCalendarScreen() {
 
   // Apply filters to appointments
   const filteredAppointments = useMemo(() => {
-    if (!appState.filter) return appointments;
+    const applyFilters = (appointmentList: any[]) => {
+      if (!appState.filter) return appointmentList;
 
-    const { name, startDate, endDate, sortBy } = appState.filter;
-    let filtered = [...appointments];
+      const { name, startDate, endDate, sortBy } = appState.filter;
+      let filtered = [...appointmentList];
 
-    if (name) {
-      filtered = filtered.filter((appointment: any) =>
-        appointment.user?.name?.toLowerCase().includes(name.toLowerCase())
-      );
-    }
+      if (name) {
+        filtered = filtered.filter((appointment: any) =>
+          appointment.user?.name?.toLowerCase().includes(name.toLowerCase())
+        );
+      }
 
-    if (startDate) {
-      filtered = filtered.filter((appointment: any) =>
-        new Date(appointment.createdAt) >= new Date(startDate)
-      );
-    }
+      if (startDate) {
+        filtered = filtered.filter(
+          (appointment: any) =>
+            new Date(appointment.createdAt) >= new Date(startDate)
+        );
+      }
 
-    if (endDate) {
-      filtered = filtered.filter((appointment: any) =>
-        new Date(appointment.createdAt) <= new Date(endDate)
-      );
-    }
+      if (endDate) {
+        filtered = filtered.filter(
+          (appointment: any) =>
+            new Date(appointment.createdAt) <= new Date(endDate)
+        );
+      }
 
-    if (sortBy) {
-      filtered = filtered.sort((a: any, b: any) =>
-        sortBy === "Recent"
-          ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-    }
+      if (sortBy) {
+        filtered = filtered.sort((a: any, b: any) =>
+          sortBy === "Recent"
+            ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
 
-    return filtered;
+      return filtered;
+    };
+
+    return {
+      scheduled: applyFilters(appointments.scheduled),
+      instant: applyFilters(appointments.instant),
+      group: applyFilters(appointments.group),
+      program: applyFilters(appointments.program),
+    };
   }, [appointments, appState.filter]);
 
-  // Group appointments by date
+  // Get all appointments combined (no tab filtering)
+  const allAppointments = useMemo(() => {
+    return [
+      ...filteredAppointments.scheduled,
+      ...filteredAppointments.instant,
+      ...filteredAppointments.group,
+      ...filteredAppointments.program,
+    ];
+  }, [filteredAppointments]);
+
+  // Group ALL appointments by date for calendar marking and selection
   const appointmentsByDate = useMemo(() => {
     const grouped: { [key: string]: any[] } = {};
-    
-    filteredAppointments.forEach((appointment) => {
-      const date = (appointment.appointmentDate || appointment.createdAt)
-        .split("T")[0];
+
+    allAppointments.forEach((appointment) => {
+      const date = (appointment.appointmentDate || appointment.createdAt).split(
+        "T"
+      )[0];
       if (!grouped[date]) {
         grouped[date] = [];
       }
@@ -134,12 +185,12 @@ export default function AppointmentCalendarScreen() {
     });
 
     return grouped;
-  }, [filteredAppointments]);
+  }, [allAppointments]);
 
   // Get marked dates for calendar
   const markedDates = useMemo(() => {
     const marked: { [key: string]: any } = {};
-    
+
     Object.keys(appointmentsByDate).forEach((date) => {
       const appointmentCount = appointmentsByDate[date].length;
       marked[date] = {
@@ -192,12 +243,6 @@ export default function AppointmentCalendarScreen() {
     loadAppointments(true);
   }, [loadAppointments]);
 
-  // Get today's date for quick navigation
-  const goToToday = useCallback(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setSelectedDate(today);
-  }, []);
-
   // Calendar theme
   const calendarTheme = useMemo(
     () => ({
@@ -222,19 +267,6 @@ export default function AppointmentCalendarScreen() {
     []
   );
 
-  // Get appointment statistics
-  const appointmentStats = useMemo(() => {
-    const total = filteredAppointments.length;
-    const today = new Date().toISOString().split("T")[0];
-    const todayAppointments = appointmentsByDate[today]?.length || 0;
-    const upcoming = filteredAppointments.filter(appointment => {
-      const appointmentDate = (appointment.appointmentDate || appointment.createdAt).split("T")[0];
-      return appointmentDate >= today;
-    }).length;
-
-    return { total, todayAppointments, upcoming };
-  }, [filteredAppointments, appointmentsByDate]);
-
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-blue-50/20">
@@ -246,43 +278,14 @@ export default function AppointmentCalendarScreen() {
 
   return (
     <View className="flex-1 bg-blue-50/20">
-      {/* Header with Statistics */}
-      {/* <View className="bg-white mx-4 mt-4 rounded-lg p-4 shadow-sm">
-        <View className="flex-row justify-between items-center mb-3">
+      {/* Header with Today Button */}
+      <View className="mx-4 mt-4 rounded-lg p-4 ">
+        <View className="flex-row justify-between items-center">
           <Text className="text-lg font-semibold text-gray-800">
-            {t("appointmentCalendar")}
+            {t("My Calendar")}
           </Text>
-          <TouchableOpacity
-            onPress={goToToday}
-            className="bg-[#000F8F] px-3 py-1 rounded-full"
-          >
-            <Text className="text-white text-sm font-medium">
-              {t("today")}
-            </Text>
-          </TouchableOpacity>
         </View>
-        
-        <View className="flex-row justify-around">
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-[#000F8F]">
-              {appointmentStats.total}
-            </Text>
-            <Text className="text-xs text-gray-600">{t("total")}</Text>
-          </View>
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-green-600">
-              {appointmentStats.todayAppointments}
-            </Text>
-            <Text className="text-xs text-gray-600">{t("today")}</Text>
-          </View>
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-orange-600">
-              {appointmentStats.upcoming}
-            </Text>
-            <Text className="text-xs text-gray-600">{t("upcoming")}</Text>
-          </View>
-        </View>
-      </View> */}
+      </View>
 
       {/* Calendar */}
       <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm">
@@ -305,11 +308,11 @@ export default function AppointmentCalendarScreen() {
         <View className="bg-white rounded-lg p-4 shadow-sm mb-2">
           <View className="flex-row justify-between items-center">
             <Text className="text-lg font-semibold text-gray-800">
-              {new Date(selectedDate).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+              {new Date(selectedDate).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </Text>
             <Text className="text-sm text-gray-600">
@@ -318,8 +321,9 @@ export default function AppointmentCalendarScreen() {
           </View>
         </View>
 
-        {error ? (
-          <View className="bg-red-50 border border-red-200 rounded-lg p-4">
+        {/* Error message */}
+        {error && (
+          <View className="bg-red-50 border border-red-200 rounded-lg p-4 mb-2">
             <Text className="text-red-600 text-center">{error}</Text>
             <TouchableOpacity
               onPress={() => loadAppointments()}
@@ -328,7 +332,9 @@ export default function AppointmentCalendarScreen() {
               <Text className="text-white font-medium">{t("retry")}</Text>
             </TouchableOpacity>
           </View>
-        ) : selectedDateAppointments.length === 0 ? (
+        )}
+
+        {selectedDateAppointments.length === 0 ? (
           <View className="flex-1 justify-center items-center bg-white rounded-lg p-8">
             <Text className="text-gray-500 text-center text-lg mb-2">
               {t("noAppointmentsForDate")}
@@ -341,21 +347,65 @@ export default function AppointmentCalendarScreen() {
           <FlatList
             data={selectedDateAppointments}
             keyExtractor={(item, index) => `${item._id}-${index}`}
-            renderItem={({ item }) => (
-              <View className="mb-2">
-                <AppointmentCard
-                  appointment={item}
-                  type={
-                    (item.status?.toLowerCase?.() || "upcoming") as
-                      | "completed"
-                      | "delayed"
-                      | "ongoing"
-                      | "urgent"
-                      | "upcoming"
-                  }
-                />
-              </View>
-            )}
+            renderItem={({ item }) => {
+              const dateObj = new Date(item.appointmentDate || item.createdAt);
+
+              const time = dateObj.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              });
+
+              const date = dateObj.toLocaleDateString("en-US", {
+                month: "long",
+                day: "2-digit",
+              });
+
+              return (
+                <View className="bg-white rounded-lg p-4 mb-2 shadow-sm flex-row items-start">
+                  {/* Left side: Time & Date */}
+                  <View className="w-24 border-r border-gray-200 pr-3">
+                    <Text className="text-base font-medium text-gray-800">
+                      {time}
+                    </Text>
+                    <Text className="text-base text-gray-500 mt-1">{date}</Text>
+                  </View>
+
+                  {/* Right side: Details */}
+                  <View className="flex-1 pl-3">
+                    <Text className="text-lg font-semibold text-gray-800 mb-1">
+                      {item.groupId
+                        ? t("Group")
+                        : item.programId
+                        ? t("program")
+                        : t("appointment")}
+                    </Text>
+
+                    {/* <Text className="text-sm text-gray-500" numberOfLines={1}>
+                      {item.description ||
+                        item.notes ||
+                        "Simple text, not more than one line"}
+                    </Text> */}
+
+                    {item.doctorId?.full_name && (
+                      <Text className="text-sm text-gray-400 mt-1">
+                        {t("with")} {item?.doctorId?.full_name}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Actions (Edit/Delete) */}
+                  {/* <View className="flex-row ml-2">
+                    <TouchableOpacity className="p-2">
+                      <Text className="text-red-500 text-lg">🗑</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="p-2">
+                      <Text className="text-gray-500 text-lg">✏️</Text>
+                    </TouchableOpacity>
+                  </View> */}
+                </View>
+              );
+            }}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
