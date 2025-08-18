@@ -27,7 +27,6 @@ export async function fetchAppointments({ userId }: { userId: string }) {
   }
 }
 
-
 export const fetchInstantAppointments = async ({
   userId,
 }: {
@@ -58,8 +57,6 @@ export const fetchGroupAppointments = async (userId: string) => {
     const res = await fetch(`${ApiUrl}/api/groups-booking/fetch-group/${userId}`);
     const json = await res.json();
 
-    console.log("Fetched group appointments:", json);
-
     // Return only the actual array
     return { success: true, data: json.data || [] };
   } catch (err) {
@@ -73,7 +70,6 @@ export const fetchPrograms = async (userId: string) => {
     const res = await fetch(`${ApiUrl}/api/programs-booking/fetch-program/${userId}`);
     const json = await res.json();
 
-    console.log("Fetched group appointments:", json);
 
     // Return only the actual array
     return { success: true, data: json.data || [] };

@@ -59,7 +59,7 @@ export default function HomeLayout() {
                     setActiveTab(tab);
                   }}
                   className={cn(
-                    isActiveTab ? "bg-blue-900" : "bg-white",
+                    isActiveTab ? "bg-blue-600" : "bg-white",
                     " h-9 rounded-xl "
                   )}
                 >

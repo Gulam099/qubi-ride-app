@@ -106,30 +106,30 @@ export default function ScaleRecordPage() {
       const combined = [
         ...gadRecordsData.map((record) => ({
           ...record,
-          type: "Generalized Anxiety Disorder",
+          type: t("Generalized Anxiety Disorder"),
           scale: "GAD",
           record_Id: `gad_${record._id}`,
-          title: `GAD Scale - Score: ${record.score}`,
+          title: `${t("GAD Scale")} - ${t("Score")}: ${record.score}`,
           desc: getAnxietyLevel(record.score),
           date: new Date(record.createdAt),
           color: colors.green[200],
         })),
         ...moodRecordsData.map((record) => ({
           ...record,
-          type: "Mood Scale",
+          type: t("Mood scale"),
           scale: "MOOD",
           record_Id: `mood_${record._id}`,
-          title: `Mood Scale - ${record.mood}`,
-          desc: `Score: ${record.score}`,
+          title: `${t("Mood scale")} - ${t(record.mood)}`,
+          desc: `${t("Score")}: ${record.score}`,
           date: new Date(record.createdAt),
           color: colors.red[200],
         })),
         ...depressionRecordsData.map((record) => ({
           ...record,
-          type: "Depression Scale",
+          type: t("Depression scale"),
           scale: "DEPRESSION",
           record_Id: `depression_${record._id}`,
-          title: `Depression Scale - Score: ${record.score}`,
+          title: `${t("Depression scale")} - ${t("Score")}: ${record.score}`,
           desc: getAnxietyLevel(record.score),
           date: new Date(record.createdAt),
           color: colors.orange[300],
@@ -160,8 +160,8 @@ export default function ScaleRecordPage() {
             type: t("Quality of Life Scale"),
             scale: "LIFE",
             record_Id: `life_${record._id}`,
-            title: `Quality of Life - Score: ${averageScore}%`,
-            desc: `Mood: ${record.mood || "Not specified"}`,
+            title: `${t("Quality of Life")} - ${t("Score")}: ${averageScore}%`,
+            desc: `${t("Mood")}: ${record.mood || "Not specified"}`,
             date: new Date(record.createdAt || record.updatedAt),
             color: colors.blue[200],
           };
@@ -367,7 +367,7 @@ export default function ScaleRecordPage() {
       color: colors.green[200],
     },
     { title: t("Mood scale"), color: colors.red[200] },
-    { title: t("Quality of Life scale"), color: colors.blue[200] },
+    { title: t("Quality of Life Scale"), color: colors.blue[200] },
     { title: t("Depression scale"), color: colors.orange[300] },
   ];
 
@@ -388,7 +388,7 @@ export default function ScaleRecordPage() {
         </Text>
         <Text className="text-sm text-gray-600 text-center">{error}</Text>
         <Button onPress={fetchAllScaleData} className="mt-4">
-          <Text>Retry</Text>
+          <Text>{t("Retry")}</Text>
         </Button>
       </View>
     );
@@ -427,7 +427,7 @@ export default function ScaleRecordPage() {
                 </Text>
                 <Text className="text-sm font-medium">{lastMeasure.desc}</Text>
               </View>
-              <View className="flex-col justify-center items-center gap-3 bg-blue-900 aspect-square w-1/3 rounded-xl p-2">
+              <View className="flex-col justify-center items-center gap-3 bg-blue-600 aspect-square w-1/3 rounded-xl p-2">
                 <Text className="text-white text-xs text-center">
                   {t("Latest Score")}
                 </Text>
@@ -502,7 +502,7 @@ export default function ScaleRecordPage() {
                     <Text className="text-base font-semibold">
                       {record.title}
                     </Text>
-                    <Text className="text-xs">{record.desc}</Text>
+                    {/* <Text className="text-xs">{record.desc}</Text> */}
                   </View>
                   <View className="w-1/4">
                     <Text className="text-xs">
@@ -538,7 +538,7 @@ export default function ScaleRecordPage() {
                   <Text className="text-lg font-medium leading-5">
                     {item.title}
                   </Text>
-                  <Text className="text-xs">{item.desc}</Text>
+                  <Text className="text-xs">{t(item.desc)}</Text>
                 </View>
                 <View className="px-4">
                   <Text className="text-sm">

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/clerk-expo";
 import { apiBaseUrl } from "@/features/Home/constHome";
 import { apiNewUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 export default function QualityOfLifeScaleRecord() {
   const { user } = useUser();
@@ -18,6 +19,7 @@ export default function QualityOfLifeScaleRecord() {
   const [lifeScaleData, setLifeScaleData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!userId) {
@@ -162,7 +164,7 @@ export default function QualityOfLifeScaleRecord() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-blue-50/10">
-        <Text className="text-lg">Loading quality of life data...</Text>
+        <Text className="text-lg">{t("Loading")}</Text>
       </View>
     );
   }
@@ -172,7 +174,7 @@ export default function QualityOfLifeScaleRecord() {
     return (
       <View className="flex-1 justify-center items-center bg-blue-50/10 p-4">
         <Text className="text-lg text-red-600 text-center mb-2">
-          Error loading data
+          {t("errorLoadingData")}
         </Text>
         <Text className="text-sm text-gray-600 text-center">{error}</Text>
       </View>
@@ -186,7 +188,7 @@ export default function QualityOfLifeScaleRecord() {
       className="bg-blue-50/10 flex flex-col gap-4 h-full w-full"
     >
       <View className="bg-white p-4 rounded-2xl relative flex-row w-full h-[150] justify-start items-center">
-        <H3 className="text-xl w-1/3">Quality of life ratio</H3>
+        <H3 className="text-xl w-1/3">{t("qualityOfLifeRatio")}</H3>
         <View className="absolute top-[60] right-[50] z-10">
           <Text className="text-3xl font-semibold text-blue-600 text-center">
             {Math.round(progressData.data[0] * 100)}%
@@ -206,7 +208,7 @@ export default function QualityOfLifeScaleRecord() {
       </View>
 
       <View className="overflow-hidden rounded-xl bg-white p-4">
-        <Text className="text-lg font-semibold mb-2">Quality Trend</Text>
+        <Text className="text-lg font-semibold mb-2">{t("qualityTrend")}</Text>
         <LineChart
           data={chartData}
           width={Dimensions.get("window").width - 32}
@@ -227,7 +229,7 @@ export default function QualityOfLifeScaleRecord() {
 
       {lifeScaleData.length > 0 && (
         <View className="rounded-xl bg-white p-4">
-          <Text className="text-lg font-semibold mb-2">Feeling Details</Text>
+          <Text className="text-lg font-semibold mb-2">{t("feelingDetails")}</Text>
 
           {lifeScaleData.map((item, index) => {
             if (!item || !item.mood) return null;
@@ -245,7 +247,7 @@ export default function QualityOfLifeScaleRecord() {
                   className={cn("text-lg font-semibold")}
                   style={{ color: Mood?.color }}
                 >
-                  {toCapitalizeFirstLetter(item.mood)}
+                  {toCapitalizeFirstLetter(t(item.mood))}
                   <Text className="text-sm font-normal text-neutral-700">
                     {"    ( " +
                       format(
@@ -256,32 +258,32 @@ export default function QualityOfLifeScaleRecord() {
                   </Text>
                 </Text>
 
-                <Text className="font-semibold">Best Activities</Text>
+                <Text className="font-semibold">{t("bestActivities")}</Text>
                 <Text className="text-sm font-medium text-neutral-700">
                   {item.activity && item.activity.length > 0
                     ? item.activity
                         .filter((a) => a?.type === "bestForMe" && a?.reason)
                         .map((a, i, arr) => (
                           <React.Fragment key={i}>
-                            {toCapitalizeFirstLetter(a.reason)}
+                            {toCapitalizeFirstLetter(t(a.reason))}
                             {i !== arr.length - 1 ? ", " : ""}
                           </React.Fragment>
                         ))
                     : "No activities recorded"}
                 </Text>
 
-                <Text className="font-semibold">Worst Activities</Text>
+                <Text className="font-semibold">{t("worstActivities")}</Text>
                 <Text className="text-sm font-medium text-neutral-700">
                   {item.activity && item.activity.length > 0
                     ? item.activity
                         .filter((a) => a?.type === "worstForMe" && a?.reason)
                         .map((a, i, arr) => (
                           <React.Fragment key={i}>
-                            {toCapitalizeFirstLetter(a.reason)}
+                            {toCapitalizeFirstLetter(t(a.reason))}
                             {i !== arr.length - 1 ? ", " : ""}
                           </React.Fragment>
                         ))
-                    : "No activities recorded"}
+                    : t("noActivitiesRecorded")}
                 </Text>
               </View>
             );
