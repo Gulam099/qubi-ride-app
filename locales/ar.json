@@ -529,11 +529,16 @@
   "share_with_specialist_label": "شارك السجل مع الأخصائي الخاص بي",
   "share_with_specialist_desc": "شارك السجل مع الأخصائيين الذين ستحجز معهم جلسات استشارية",
   "save_feeling": "حفظ الشعور",
-  "Excellent": "ممتاز",
+ "Excellent": "ممتاز",
+  "excellent": "ممتاز",
   "Good": "جيد",
+  "good": "جيد",
   "Average": "متوسط",
+  "average": "متوسط",
   "Weak": "ضعيف",
+  "weak": "ضعيف",
   "Bad": "سيء",
+  "bad": "سيء",
 
   "Relaxation": "الاسترخاء",
   "Relationships": "العلاقات",
@@ -692,7 +697,7 @@
   "No reports available.": "لا توجد تقارير متاحة.",
   "Unknown Doctor": "طبيب غير معروف",
   "Treatment Prescription": "وصفة العلاج",
-   "Last measure": "آخر قياس",
+  "Last measure": "آخر قياس",
   "Latest Score": "أحدث نتيجة",
   "Chart": "الرسم البياني",
   "View all": "عرض الكل",
@@ -736,7 +741,8 @@
   "feelingDetails": "تفاصيل المشاعر",
   "bestActivities": "أفضل الأنشطة",
   "worstActivities": "أسوأ الأنشطة",
-  "noActivitiesRecorded": "لا توجد أنشطة مسجلة"
+  "noActivitiesRecorded": "لا توجد أنشطة مسجلة",
+  "ClientAnswersShow": "إجابات العميل تظهر"
 
 
 
