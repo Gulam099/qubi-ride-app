@@ -181,6 +181,7 @@ export default function QualityOfLifeScaleRecord() {
     );
   }
 
+    console.log("lifeScaleData",lifeScaleData[0]?.activity)
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -229,7 +230,9 @@ export default function QualityOfLifeScaleRecord() {
 
       {lifeScaleData.length > 0 && (
         <View className="rounded-xl bg-white p-4">
-          <Text className="text-lg font-semibold mb-2">{t("feelingDetails")}</Text>
+          <Text className="text-lg font-semibold mb-2">
+            {t("feelingDetails")}
+          </Text>
 
           {lifeScaleData.map((item, index) => {
             if (!item || !item.mood) return null;
@@ -269,7 +272,7 @@ export default function QualityOfLifeScaleRecord() {
                             {i !== arr.length - 1 ? ", " : ""}
                           </React.Fragment>
                         ))
-                    : "No activities recorded"}
+                    : t("noActivitiesRecorded")}
                 </Text>
 
                 <Text className="font-semibold">{t("worstActivities")}</Text>

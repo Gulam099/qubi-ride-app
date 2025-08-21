@@ -214,7 +214,7 @@ export default function GeneralizedAnxietyDisorderScale() {
                     </View>
                     <View className="w-1/3 items-end">
                       <Text className="text-xs text-right">
-                        {format(new Date(record.createdAt), "dd-MM-yyyy , p")}
+                        {format(new Date(record.createdAt), "dd-MM-yyyy")}
                       </Text>
                     </View>
                   </View>

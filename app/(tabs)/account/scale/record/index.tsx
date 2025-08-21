@@ -119,8 +119,8 @@ export default function ScaleRecordPage() {
           type: t("Mood scale"),
           scale: "MOOD",
           record_Id: `mood_${record._id}`,
-          title: `${t("Mood scale")} - ${t(record.mood)}`,
-          desc: `${t("Score")}: ${record.score}`,
+          title: `${t("Mood scale")} - ${t("Score")}: ${t(record.score)}`,
+          desc: getAnxietyLevel(record.score),
           date: new Date(record.createdAt),
           color: colors.red[200],
         })),
@@ -161,7 +161,7 @@ export default function ScaleRecordPage() {
             scale: "LIFE",
             record_Id: `life_${record._id}`,
             title: `${t("Quality of Life")} - ${t("Score")}: ${averageScore}%`,
-            desc: `${t("Mood")}: ${record.mood || "Not specified"}`,
+            desc: getAnxietyLevel(averageScore),
             date: new Date(record.createdAt || record.updatedAt),
             color: colors.blue[200],
           };
@@ -182,11 +182,11 @@ export default function ScaleRecordPage() {
     }
   };
 
-  const getAnxietyLevel = (score) => {
-    if (score < 5) return "Minimal";
-    if (score < 10) return "Mild";
-    if (score < 15) return "Moderate";
-    return "Severe";
+  const getAnxietyLevel = (score: number) => {
+    if (score < 5) return t("Minimal Anxiety");
+    if (score < 10) return t("Mild Anxiety");
+    if (score < 15) return t("Moderate Anxiety");
+    return t("Severe Anxiety");
   };
 
   // Generate chart data from last 6 months
@@ -502,7 +502,7 @@ export default function ScaleRecordPage() {
                     <Text className="text-base font-semibold">
                       {record.title}
                     </Text>
-                    {/* <Text className="text-xs">{record.desc}</Text> */}
+                    <Text className="text-xs">{record.desc}</Text>
                   </View>
                   <View className="w-1/4">
                     <Text className="text-xs">

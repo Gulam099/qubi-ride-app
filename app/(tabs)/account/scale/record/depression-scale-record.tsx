@@ -186,7 +186,7 @@ export default function DepressionScaleRecord() {
                 <View key={record._id} className="flex-row gap-2 py-2">
                   <View className="flex-1 gap-1">
                     <Text className="text-base font-semibold leading-8">
-                      Anxiety Score: {record.score}
+                     {t("Anxiety Score")}: {record.score}
                     </Text>
                     <Text className="text-xs">
                       {getAnxietyLevel(record.score)}
@@ -194,7 +194,7 @@ export default function DepressionScaleRecord() {
                   </View>
                   <View className=" w-1/4">
                     <Text className="text-xs">
-                      {format(new Date(record.createdAt), "dd-MM-yyyy , p")}
+                      {format(new Date(record.createdAt), "dd-MM-yyyy")}
                     </Text>
                   </View>
                 </View>
@@ -228,7 +228,7 @@ export default function DepressionScaleRecord() {
                 </View>
                 <View className="flex-1 p-2">
                   <Text className="text-lg font-medium leading-6">
-                    Anxiety Score: {item.score}
+                   {t("Anxiety Score")}: {item.score}
                   </Text>
                   <Text className="text-xs">{getAnxietyLevel(item.score)}</Text>
                 </View>
@@ -250,12 +250,12 @@ export default function DepressionScaleRecord() {
             >
               <View className="flex flex-col flex-1 justify-center items-center w-full gap-6 px-6">
                 <Text className="text-xl font-semibold text-neutral-600">
-                  Details
+                  {t("Details")}
                 </Text>
 
                 <View className="flex-col justify-center items-center gap-3 bg-blue-900 aspect-square w-1/3 rounded-xl p-2">
                   <Text className="text-white text-xs text-center">
-                    Client's answers show
+                    {t("ClientAnswersShow")}
                   </Text>
                   <Text className="text-white text-4xl text-center">
                     {RecordActive?.score}

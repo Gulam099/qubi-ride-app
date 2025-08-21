@@ -529,10 +529,15 @@
   "share_with_specialist_desc": "Share the record with the specialists with whom you will book consultation sessions",
   "save_feeling": "Save Feeling",
   "Excellent": "Excellent",
+  "excellent": "Excellent",
   "Good": "Good",
+  "good": "Good",
   "Average": "Average",
+  "average": "Average",
   "Weak": "Weak",
-  "Dad": "Bad",
+  "weak": "Weak",
+  "Bad": "Bad",
+  "bad": "Bad",
   "Relaxation": "Relaxation",
   "Relationships": "Relationships",
   "Work": "Work",
@@ -735,7 +740,8 @@
   "feelingDetails": "Feeling Details",
   "bestActivities": "Best Activities",
   "worstActivities": "Worst Activities",
-  "noActivitiesRecorded": "No activities recorded"
+  "noActivitiesRecorded": "No activities recorded",
+  "ClientAnswersShow": "Client's answers show"
 
 
 
