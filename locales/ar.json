@@ -742,7 +742,9 @@
   "bestActivities": "أفضل الأنشطة",
   "worstActivities": "أسوأ الأنشطة",
   "noActivitiesRecorded": "لا توجد أنشطة مسجلة",
-  "ClientAnswersShow": "إجابات العميل تظهر"
+  "ClientAnswersShow": "إجابات العميل تظهر",
+  "suggestionMessage": "بناءً على حالتك، نقترح أن تحجز جلسة مع أي من الأخصائيين التاليين"
+
 
 
 

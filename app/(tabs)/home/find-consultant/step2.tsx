@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, FlatList } from "react-native";
 import React, { useEffect, useState } from "react";
 import {
   RelativePathString,
@@ -6,12 +6,9 @@ import {
   useRouter,
 } from "expo-router";
 import SpecialistCard from "@/features/account/components/SpecialistCard";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { toast } from "sonner-native";
 import { ApiUrl } from "@/const";
 import { useQuery } from "@tanstack/react-query";
-import { SearchNormal1, ArrowDown2 } from "iconsax-react-native";
 import { useTranslation } from "react-i18next";
 import { useUser } from "@clerk/clerk-expo";
 
@@ -19,99 +16,42 @@ type ConsultType = {
   _id: string;
   full_name: string;
   specialization: string;
+  specialist?: string; // Added this as it's used in filtering
   profile_picture: string;
   fees: number;
   likes: number;
-};
-
-const SPECIALIST_TYPES = [
-  "All Specialists",
-  "Assistant Specialist",
-  "Specialist",
-  "First Specialist",
-  "Consultant",
-  "Deputy Specialist Doctor",
-  "First Deputy Specialist Doctor",
-  "Consultant Doctor",
-  "First Consultant Doctor (Subspecialty)",
-];
-
-// Dropdown Component
-const SpecialistDropdown = ({
-  selectedValue,
-  onValueChange,
-  options,
-}: {
-  selectedValue: string;
-  onValueChange: (value: string) => void;
-  options: string[];
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation();
-
-  return (
-    <View className="relative">
-      <TouchableOpacity
-        className="flex-row items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3"
-        onPress={() => setIsOpen(!isOpen)}
-      >
-        <Text className="text-gray-700 flex-1">{t(selectedValue)}</Text>
-        <ArrowDown2 size={16} color="#6B7280" />
-      </TouchableOpacity>
-
-      {isOpen && (
-        <View className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-lg mt-1 max-h-48">
-          <FlatList
-            data={options}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                className={`px-4 py-3 border-b border-gray-100 ${
-                  selectedValue === item ? "bg-blue-50" : ""
-                }`}
-                onPress={() => {
-                  onValueChange(item);
-                  setIsOpen(false);
-                }}
-              >
-                <Text
-                  className={`${
-                    selectedValue === item
-                      ? "text-blue-600 font-medium"
-                      : "text-gray-700"
-                  }`}
-                >
-                  {t(item)}
-                </Text>
-              </TouchableOpacity>
-            )}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      )}
-    </View>
-  );
+  gender?: string;
+  languages?: string[];
+  sessionDurations?: string[];
 };
 
 export default function ConsultPage() {
   const router = useRouter();
   const { user } = useUser();
   const userId = user?.publicMetadata.dbPatientId as string;
-  const {
-    situation,
-    budget,
-    type,
-    language,
-    gender,
-    duration,
-    ClosestAppointment,
-  } = useLocalSearchParams();
+
+  // Get all parameters from the previous page
+  const { budget, consultantType, language, sessionDuration, gender } =
+    useLocalSearchParams();
+
   const { t } = useTranslation();
   const [favoriteDoctors, setFavoriteDoctors] = useState<string[]>([]);
 
-  const [searchText, setSearchText] = useState("");
-  const [selectedSpecialistType, setSelectedSpecialistType] =
-    useState("All Specialists");
+  // Helper function to parse budget range
+  const parseBudgetRange = (budgetStr: string) => {
+    if (!budgetStr) return { min: 0, max: Infinity };
+
+    if (budgetStr.includes("More than")) {
+      return { min: 501, max: Infinity };
+    }
+
+    const matches = budgetStr.match(/(\d+)\s*-\s*(\d+)/);
+    if (matches) {
+      return { min: parseInt(matches[1]), max: parseInt(matches[2]) };
+    }
+
+    return { min: 0, max: Infinity };
+  };
 
   // Fetching consultants using `useQuery`
   const {
@@ -180,26 +120,73 @@ export default function ConsultPage() {
     };
 
     if (userId) {
-      fetchFavorites(); // 🔁 call it on page mount
+      fetchFavorites();
     }
   }, [userId]);
-  // Handle search and dropdown filtering
+
+  // Enhanced filtering logic based on user requirements
   const filteredConsult = consultData?.filter((consultant: ConsultType) => {
-    const name = consultant.full_name?.toLowerCase() || "";
-    const specialization = consultant.specialist?.toLowerCase() || "";
+    // User requirement filters from first component
+    let matchesUserRequirements = true;
 
-    // Text search filter
-    const matchesSearch =
-      name.includes(searchText.toLowerCase()) ||
-      specialization.includes(searchText.toLowerCase());
+    // Budget filter
+    if (budget) {
+      const budgetRange = parseBudgetRange(budget as string);
+      const doctorFees = consultant.fees || 0;
+      matchesUserRequirements =
+        matchesUserRequirements &&
+        doctorFees >= budgetRange.min &&
+        doctorFees <= budgetRange.max;
+    }
 
-    // Specialist type filter
-    const matchesSpecialistType =
-      selectedSpecialistType === "All Specialists" ||
-      specialization.includes(selectedSpecialistType.toLowerCase());
+    // Consultant type filter
+    if (consultantType) {
+      const requiredType = (consultantType as string).toLowerCase();
+      const specialization = consultant.specialization?.toLowerCase() || "";
+      matchesUserRequirements =
+        matchesUserRequirements && specialization.includes(requiredType);
+    }
 
-    return matchesSearch && matchesSpecialistType;
+    // Language filter (assuming doctor has languages array)
+    if (language && consultant.languages) {
+      const requiredLanguage = (language as string).toLowerCase();
+      matchesUserRequirements =
+        matchesUserRequirements &&
+        consultant.languages.some((lang) =>
+          lang.toLowerCase().includes(requiredLanguage)
+        );
+    }
+
+    // Gender filter (assuming doctor has gender field)
+    if (gender && gender !== "Rather not say" && consultant.gender) {
+      matchesUserRequirements =
+        matchesUserRequirements &&
+        consultant.gender.toLowerCase() === (gender as string).toLowerCase();
+    }
+
+    // // Session duration filter (assuming doctor has sessionDurations array)
+    // if (sessionDuration && consultant.sessionDurations) {
+    //   matchesUserRequirements = matchesUserRequirements &&
+    //     consultant.sessionDurations.includes(sessionDuration as string);
+    // }
+
+    return matchesUserRequirements;
   });
+
+  // Show applied filters
+  const getAppliedFilters = () => {
+    const filters = [];
+    if (budget) filters.push(`${t("Budget")}: ${budget}`);
+    if (consultantType)
+      filters.push(`${t("Type")}: ${t(consultantType as string)}`);
+    if (language) filters.push(`${t("Language")}: ${t(language as string)}`);
+    if (gender && gender !== "Rather not say")
+      filters.push(`${t("Gender")}: ${t(gender as string)}`);
+    if (sessionDuration) filters.push(`${t("Duration")}: ${sessionDuration}`);
+    return filters;
+  };
+
+  const appliedFilters = getAppliedFilters();
 
   if (isLoading) {
     return (
@@ -218,21 +205,19 @@ export default function ConsultPage() {
   }
 
   return (
-    <View className="px-4 py-6 bg-blue-50/10 h-full w-full">
+    <View className="px-4 py-6 bg-blue-50/20 h-full w-full">
       <View className="flex-col gap-3">
-        {/* Search Input */}
-        <Input
-          placeholder={t("Search for a doctor")}
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+        {/* Applied Filters Display */}
+        <Text className="text-lg">
+          {t(
+            "Based on your condition, we suggest that you book a session with any of the following specialists"
+          )}
+        </Text>
 
-        {/* Specialist Type Dropdown */}
-        <SpecialistDropdown
-          selectedValue={selectedSpecialistType}
-          onValueChange={setSelectedSpecialistType}
-          options={SPECIALIST_TYPES}
-        />
+        {/* Results Count */}
+        <Text className="text-gray-600 text-sm">
+          {filteredConsult?.length || 0} {t("doctors found")}
+        </Text>
 
         {/* Results */}
         {filteredConsult?.length > 0 ? (
@@ -260,9 +245,14 @@ export default function ConsultPage() {
             contentContainerClassName="flex flex-col gap-3 pb-16"
           />
         ) : (
-          <Text className="text-center text-gray-500">
-            {t("noDoctorsMatchSearch")}
-          </Text>
+          <View className="flex-1 justify-center items-center py-8">
+            <Text className="text-center text-gray-500 text-lg mb-2">
+              {t("No doctors match your criteria")}
+            </Text>
+            <Text className="text-center text-gray-400 text-sm">
+              {t("Try adjusting your search or filters")}
+            </Text>
+          </View>
         )}
       </View>
     </View>

@@ -72,6 +72,7 @@ const ProfilePage = () => {
           ...user?.unsafeMetadata,
           dob: formattedDob,
           gender: data.gender || user?.unsafeMetadata?.gender,
+          onboardingCompleted: true,
           fcmToken: user?.unsafeMetadata?.fcmToken,
         },
       });
@@ -88,7 +89,7 @@ const ProfilePage = () => {
 
       toast.success("Profile updated successfully!");
       router.replace({
-        pathname: "/(tabs)",
+        pathname: "/",
         params: { refresh: Date.now().toString() },
       });
     } catch (error) {

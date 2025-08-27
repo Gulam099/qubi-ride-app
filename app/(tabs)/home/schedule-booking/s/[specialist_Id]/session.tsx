@@ -183,7 +183,7 @@ export default function SessionConsultPage() {
         currency: t("SAR"),
         description: t("consultation"), // Fixed: removed undefined reference
         status: "initiated",
-        bookingType: t("Scheduled"),
+        bookingType: "Scheduled",
       };
 
       // 2. Create Payment record

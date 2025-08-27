@@ -279,7 +279,7 @@ export default function SpecialistConsultantPage() {
         className="mt-4 mb-6"
         onPress={() =>
           router.push({
-            pathname: `/consult/s/${specialist_Id}/session`,
+            pathname: `/(tabs)/home/schedule-booking/s/${specialist_Id}/session`,
             params: {
               doctorFees: specialistData?.data?.fees?.toString() || "0",
             },

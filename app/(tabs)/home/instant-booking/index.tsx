@@ -172,7 +172,7 @@ export default function UsersTodayPage() {
                 onPress={() => {
                   router.push({
                     pathname:
-                      `/instant-booking/i/${item.id}` as RelativePathString,
+                      `(tabs)/home/instant-booking/i/${item.id}` as RelativePathString,
                     params: {
                       todaySchedule: JSON.stringify(item.schedule),
                       doctorFees: "0",
