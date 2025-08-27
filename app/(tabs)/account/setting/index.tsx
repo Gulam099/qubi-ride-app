@@ -24,7 +24,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { t, i18n } = useTranslation(); // Make sure i18n is imported
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
 
   const appState: AppStateType = useSelector((state: any) => state.appState);
@@ -43,6 +43,9 @@ export default function SettingsPage() {
   const [isPassCodeDrawer, setIsPassCodeDrawer] = useState(false);
   const [tempPasscode, setTempPasscode] = useState("");
 
+  const isPasscodeEnabled = () => {
+    return profilePasscode && profilePasscode.trim().length > 0;
+  };
   const updateState = (key: string, value: string | null | boolean) => {
     dispatch(updateAppState({ [key]: value }));
   };
@@ -50,29 +53,25 @@ export default function SettingsPage() {
   // Fixed language change handler
   const handleLanguageChange = (selectedLanguage: string) => {
     const langCode = selectedLanguage === "Arabic" ? "ar" : "en";
-    
+
     if (language === langCode) {
-      toast(
-        langCode === "ar"
-          ? t("alreadyArabic") 
-          : t("alreadyEnglish")
-      );
+      toast(langCode === "ar" ? t("alreadyArabic") : t("alreadyEnglish"));
       return;
     }
-    
+
     try {
       // Update local state
       setLanguage(langCode);
-      
+
       // Update Redux store
       dispatch(updateAppState({ language: langCode }));
-      
+
       // Change i18n language
       i18n.changeLanguage(langCode);
-      
+
       // Set layout direction for RTL/LTR
       setLayoutDirection(langCode);
-      
+
       // Show success toast
       toast.success(
         langCode === "ar"
@@ -135,14 +134,8 @@ export default function SettingsPage() {
             onValueChange={handleLanguageChange}
             className="gap-2"
           >
-            <RadioGroupItemWithLabel
-              value="Arabic"
-              label={t("Arabic")}
-            />
-            <RadioGroupItemWithLabel
-              value="English" 
-              label={t("English")}
-            />
+            <RadioGroupItemWithLabel value="Arabic" label={t("Arabic")} />
+            <RadioGroupItemWithLabel value="English" label={t("English")} />
           </RadioGroup>
         </View>
 
@@ -217,7 +210,9 @@ export default function SettingsPage() {
 
         {/* Notifications Settings */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">{t("notifications")}</Text>
+          <Text className="text-lg font-semibold mb-3">
+            {t("notifications")}
+          </Text>
           <SwitchWithLabel
             label={t("enableNotifications")}
             value={notifications}
@@ -229,11 +224,14 @@ export default function SettingsPage() {
         </View>
 
         {/* Profile Passcode */}
+        {/* Profile Passcode */}
         <View className="bg-white rounded-2xl p-4 ">
-          <Text className="text-lg font-semibold mb-3">{t("profilePasscode")} </Text>
+          <Text className="text-lg font-semibold mb-3">
+            {t("profilePasscode")}{" "}
+          </Text>
           <SwitchWithLabel
             label={t("enablePasscode")}
-            value={profilePasscode !== null}
+            value={isPasscodeEnabled()}
             onValueChange={(value: boolean) => PassCodeToggle(value)}
           />
         </View>
@@ -251,7 +249,9 @@ export default function SettingsPage() {
           variant={"secondary"}
           className="bg-white"
         >
-          <Text className="text-neutral-700  font-semibold ">{t("helpCenter")}</Text>
+          <Text className="text-neutral-700  font-semibold ">
+            {t("helpCenter")}
+          </Text>
         </Button>
       </View>
       <BottomSheet
@@ -288,14 +288,18 @@ export default function SettingsPage() {
             }}
           />
           <Button onPress={handlePasscodeSubmit} className="w-full">
-            <Text className="text-white font-semibold">{t("savePasscode")}</Text>
+            <Text className="text-white font-semibold">
+              {t("savePasscode")}
+            </Text>
           </Button>
           <Button
             onPress={() => setIsPassCodeDrawer(false)}
             variant={"ghost"}
             className="w-full"
           >
-            <Text className="text-neutral-500 font-semibold">{t("cancel")}</Text>
+            <Text className="text-neutral-500 font-semibold">
+              {t("cancel")}
+            </Text>
           </Button>
         </BottomSheetView>
       </BottomSheet>
@@ -304,13 +308,17 @@ export default function SettingsPage() {
 }
 
 // Updated RadioGroupItemWithLabel component
-function RadioGroupItemWithLabel({ value, label }: { value: string; label: string }) {
+function RadioGroupItemWithLabel({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
   return (
     <View className="flex-row gap-2 items-center">
       <RadioGroupItem aria-labelledby={`label-for-${value}`} value={value} />
-      <Label nativeID={`label-for-${value}`}>
-        {label}
-      </Label>
+      <Label nativeID={`label-for-${value}`}>{label}</Label>
     </View>
   );
 }

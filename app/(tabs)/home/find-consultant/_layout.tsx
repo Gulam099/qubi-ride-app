@@ -14,15 +14,15 @@ export default function ProgramLayout() {
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#000F8F", 
+          backgroundColor: "#000F8F",
         },
-        headerTintColor: "#fff", 
+        headerTintColor: "#fff",
         headerTitleStyle: {
           color: "#fff",
           fontWeight: "500",
           fontSize: 16,
         },
-        headerLeft: () => <WhiteBackButton className="mr-4"  />,
+        headerLeft: () => <WhiteBackButton className="mr-4" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
         headerShadowVisible: false,
       }}
@@ -30,19 +30,19 @@ export default function ProgramLayout() {
       <Stack.Screen
         name="index"
         options={{
-          headerTitle: "Help me find the right consultant",
+          headerTitle: t("Help me find the right consultant"),
         }}
       />
       <Stack.Screen
         name="step1"
         options={{
-          headerTitle: "Help me find the right consultant",
+          headerTitle: t("Help me find the right consultant"),
         }}
       />
       <Stack.Screen
         name="step2"
         options={{
-          headerTitle: "Help me find the right consultant",
+          headerTitle: t("Help me find the right consultant"),
         }}
       />
     </Stack>
