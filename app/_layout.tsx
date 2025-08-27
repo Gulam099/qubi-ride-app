@@ -1,9 +1,9 @@
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as Linking from "expo-linking";
-
+import WelcomeScreen from "@/features/Home/Components/welcomeScreeenSlider";
 import "react-native-reanimated";
 // Import your global CSS file
 import "../global.css";
@@ -94,7 +94,8 @@ if (!firebase.apps.length) {
     appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
   });
 }
-console.log("firebase.apps>>>>>>>>", firebase.apps)
+console.log("firebase.apps>>>>>>>>", firebase.apps);
+
 // Separate component that uses Clerk hooks - this will be INSIDE ClerkProvider
 const AppContent = () => {
   const router = useRouter();
@@ -102,6 +103,171 @@ const AppContent = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const language = useSelector((state: any) => state.appState.language);
   const isRTL = language === "ar";
+
+  // Enhanced state management for onboarding
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState<boolean>(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
+    boolean | null
+  >(null);
+  const [hasSeenWelcomeScreen, setHasSeenWelcomeScreen] = useState<
+    boolean | null
+  >(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
+  // Check onboarding status - now independent of authentication
+  const checkAppStatus = async () => {
+    try {
+      if (user && isSignedIn) {
+        // Get status from Clerk metadata
+        const onboardingCompleted =
+          user.unsafeMetadata?.onboardingCompleted === true;
+        const welcomeScreenSeen =
+          user.unsafeMetadata?.welcomeScreenSeen === true;
+
+        setHasCompletedOnboarding(onboardingCompleted);
+        setHasSeenWelcomeScreen(welcomeScreenSeen);
+
+        logger.info("App status checked from Clerk", {
+          userId: user.id,
+          onboardingCompleted,
+          welcomeScreenSeen,
+        });
+      } else {
+        // For non-authenticated users, assume they need to complete everything
+        setHasCompletedOnboarding(false);
+        setHasSeenWelcomeScreen(false);
+
+        logger.info("App status checked (non-authenticated)", {
+          onboardingCompleted: false,
+          welcomeScreenSeen: false,
+        });
+      }
+    } catch (error) {
+      logger.error("Error checking app status:", error);
+      setHasCompletedOnboarding(false);
+      setHasSeenWelcomeScreen(false);
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  // Function to complete onboarding
+  const completeOnboarding = async () => {
+    try {
+      if (user && isSignedIn) {
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            onboardingCompleted: true,
+            onboardingCompletedAt: new Date().toISOString(),
+          },
+        });
+
+        setHasCompletedOnboarding(true);
+        logger.info("Onboarding completed successfully in Clerk");
+      }
+    } catch (error) {
+      logger.error("Error completing onboarding:", error);
+      // Still update local state to prevent blocking
+      setHasCompletedOnboarding(true);
+    }
+  };
+
+  const completeWelcomeScreen = async () => {
+    try {
+      if (user && isSignedIn) {
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            welcomeScreenSeen: true,
+            welcomeScreenSeenAt: new Date().toISOString(),
+          },
+        });
+      }
+
+      setHasSeenWelcomeScreen(true);
+      setShowWelcomeScreen(false);
+
+      // Navigate to main app
+      router.push("/(tabs)/home");
+
+      logger.info("Welcome screen completed successfully in Clerk");
+    } catch (error) {
+      logger.error("Error completing welcome screen:", error);
+      // Still proceed with navigation
+      setHasSeenWelcomeScreen(true);
+      setShowWelcomeScreen(false);
+      router.push("/(tabs)/home");
+    }
+  };
+
+  useEffect(() => {
+    if (isLoaded && userLoaded) {
+      checkAppStatus();
+    }
+  }, [
+    isLoaded,
+    userLoaded,
+    isSignedIn,
+    user?.id,
+    user?.unsafeMetadata?.onboardingCompleted,
+    user?.unsafeMetadata?.welcomeScreenSeen,
+  ]); // React to auth changes
+
+  // Main navigation logic
+  useEffect(() => {
+    if (
+      !isLoaded ||
+      !userLoaded ||
+      isCheckingStatus ||
+      hasCompletedOnboarding === null ||
+      hasSeenWelcomeScreen === null
+    ) {
+      return; // Wait for all data to load
+    }
+
+    logger.info("Navigation logic", {
+      isLoaded,
+      isSignedIn,
+      hasCompletedOnboarding,
+      hasSeenWelcomeScreen,
+      isCheckingStatus,
+      userId: user?.id,
+    });
+
+    // If user is not signed in, go to auth
+    if (!isSignedIn) {
+      router.replace("/(auth)/sign-in");
+      setShowWelcomeScreen(false);
+      return;
+    }
+
+    // Priority 1: If onboarding is not completed, stay on current screen or redirect to profile
+    if (!hasCompletedOnboarding) {
+      // Let the existing navigation handle profile completion
+      // The profile page will call completeOnboarding when done
+      return;
+    }
+
+    // Priority 2: If onboarding is completed but welcome screen hasn't been seen
+    if (hasCompletedOnboarding && !hasSeenWelcomeScreen) {
+      setShowWelcomeScreen(true);
+      return;
+    }
+
+    // Priority 3: If both onboarding and welcome screen are completed
+    if (hasCompletedOnboarding && hasSeenWelcomeScreen) {
+      router.push("/(tabs)/home");
+      setShowWelcomeScreen(false);
+    }
+  }, [
+    isLoaded,
+    userLoaded,
+    isSignedIn,
+    hasCompletedOnboarding,
+    hasSeenWelcomeScreen,
+    isCheckingStatus,
+    user?.id,
+  ]);
 
   // Android 13+ Notification Permission Helper
   const requestNotificationPermission = async () => {
@@ -237,16 +403,16 @@ const AppContent = () => {
               smallIcon: "ic_launcher",
               ...(deepLinkString &&
                 deepLinkString !== "{}" && {
-                actions: [
-                  {
-                    title: "Join Room",
-                    pressAction: {
-                      id: "join-room",
-                      launchActivity: "default",
+                  actions: [
+                    {
+                      title: "Join Room",
+                      pressAction: {
+                        id: "join-room",
+                        launchActivity: "default",
+                      },
                     },
-                  },
-                ],
-              }),
+                  ],
+                }),
             },
             data: {
               deepLink: deepLinkString,
@@ -352,15 +518,44 @@ const AppContent = () => {
     I18nManager.allowRTL(isRTL);
   }, [language]);
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace("/(tabs)");
-    } else {
-      router.replace("/(auth)/sign-in");
-    }
-  }, [isLoaded]);
+  // Show loading while checking onboarding status
+  if (
+    !isLoaded ||
+    !userLoaded ||
+    isCheckingStatus ||
+    hasCompletedOnboarding === null ||
+    hasSeenWelcomeScreen === null
+  ) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={colors.primary[500]} />
+        <Text style={{ marginTop: 10 }}>Loading...</Text>
+      </View>
+    );
+  }
 
-  if (!userLoaded) return null;
+  // Show welcome screen if onboarding is not completed (regardless of auth status)
+  if (
+    showWelcomeScreen &&
+    hasCompletedOnboarding &&
+    !hasSeenWelcomeScreen &&
+    isSignedIn
+  ) {
+    return (
+      <ThemeProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <SafeAreaView style={{ flex: 1 }}>
+              <WelcomeScreen onComplete={completeWelcomeScreen} />
+            </SafeAreaView>
+          </SafeAreaProvider>
+          <Toaster position="top-center" />
+          <StatusBar style="light" backgroundColor={colors.blue[700]} />
+          <PortalHost />
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>

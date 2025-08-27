@@ -129,7 +129,7 @@ export default function AccountNotificationPage() {
   console.log("notifications", notifications);
   return (
     <>
-      <View className="p-4 flex-1 bg-neutral-200">
+      <View className="p-4 flex-1 bg-blue-500/20">
         {loading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#0000ff" />

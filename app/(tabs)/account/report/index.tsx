@@ -4,6 +4,7 @@ import {
   FlatList,
   Modal,
   ScrollView,
+  Image,
   TouchableOpacity,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
@@ -19,8 +20,10 @@ import { apiBaseUrl } from "@/features/Home/constHome";
 import { AppStateType } from "@/features/setting/types/setting.type";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import { ApiUrl } from "@/const";
+import { apiNewUrl, ApiUrl } from "@/const";
 import { useTranslation } from "react-i18next";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 type ReportProps = {
   _id: string;
@@ -231,6 +234,28 @@ export default function AccountReportPage() {
     }
   }, [treatments, activeCategory, activeTab]);
 
+ const handledownload = async (id:string) => {
+     if (!id) return;
+ 
+     const downloadUrl = `${apiNewUrl}/api/treatments/${id}/pdf`;
+     const fileUri = FileSystem.documentDirectory + `invoice_${id}.pdf`;
+ 
+     try {
+       const downloadResumable = FileSystem.createDownloadResumable(
+         downloadUrl,
+         fileUri
+       );
+ 
+       const { uri } = await downloadResumable.downloadAsync();
+       console.log("Downloaded to:", uri);
+ 
+       // Share the PDF (e.g., open with other apps like WhatsApp, Drive, etc.)
+       await Sharing.shareAsync(uri);
+     } catch (error) {
+       console.error("Failed to download PDF:", error);
+     }
+   };
+
   // Treatment Details Modal Component
   const TreatmentModal = () => (
     <Modal
@@ -239,7 +264,7 @@ export default function AccountReportPage() {
       visible={modalVisible}
       onRequestClose={() => setModalVisible(false)}
     >
-      <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+      <View className="flex-1 justify-center items-center bg-blue-50/10">
         <View className="bg-white rounded-lg p-6 m-4 max-h-4/5 w-11/12">
           <ScrollView showsVerticalScrollIndicator={false}>
             <View className="mb-4">
@@ -292,12 +317,10 @@ export default function AccountReportPage() {
                   </View>
 
                   <View className="mb-4">
-                    <Text className="font-semibold text-gray-700 mb-1">
-                      {t("Empty Stomach")}:
-                    </Text>
-                    <Text className="text-gray-600">
+                    <Text className="font-semibold text-gray-700 mb-1"></Text>
+                    {/* <Text className="text-gray-600">
                       {selectedTreatment.isEmptyStomach ? t("Yes") : t("No")}
-                    </Text>
+                    </Text> */}
                   </View>
 
                   <View className="mb-4">
@@ -319,8 +342,17 @@ export default function AccountReportPage() {
                             </Text>
                           )}
                           <Text className="text-gray-600 text-sm">
-                            {t("Quantity")}: {item.quantity} | {t("Frequency")}:{" "}
-                            {item.frequency} | {t("Duration")}: {item.duration}
+                            {t("Quantity")}: {item.quantity}
+                          </Text>
+                          <Text className="text-gray-600 text-sm">
+                            {t("Frequency")}: {item.frequency}
+                          </Text>
+                          <Text className="text-gray-600 text-sm">
+                            {t("Duration")}: {item.duration}
+                          </Text>
+                          <Text className="text-gray-600 text-sm">
+                            {t("Empty Stomach")}:{" "}
+                            {item.isEmptyStomach ? t("Yes") : t("No")}
                           </Text>
                         </View>
                       ))
@@ -330,19 +362,32 @@ export default function AccountReportPage() {
                       </Text>
                     )}
                   </View>
+
+                  <Image
+                    source={{ uri: selectedTreatment.photo }}
+                    className="w-full h-64"
+                    resizeMode="cover"
+                  />
                 </>
               )}
             </View>
+            <TouchableOpacity
+              className="bg-blue-900 p-3 rounded-lg mt-4"
+              onPress={() => setModalVisible(false)}
+            >
+              <Text className="text-white text-center font-semibold">
+                {t("Close")}
+              </Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity
+              className="bg-green-600 p-3 rounded-lg mt-4"
+              onPress={() => handledownload(selectedTreatment?._id || "")}
+            >
+              <Text className="text-white text-center font-semibold">
+                {t("Download PDF")}
+              </Text>
+            </TouchableOpacity> */}
           </ScrollView>
-
-          <TouchableOpacity
-            className="bg-blue-900 p-3 rounded-lg mt-4"
-            onPress={() => setModalVisible(false)}
-          >
-            <Text className="text-white text-center font-semibold">
-              {t("Close")}
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>

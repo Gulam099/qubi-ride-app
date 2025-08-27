@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons"; // For icons (optional)
 import { ExportCurve, Moneys } from "iconsax-react-native";
 import colors from "@/utils/colors";
@@ -14,7 +14,53 @@ type ReportCardProps = {
   category: "plan" | "prescription";
 };
 
-const ReportCard = ({ title, doctorName, date, number }: ReportCardProps) => {
+const ReportCard = ({ title, doctorName, date, number,_id }: ReportCardProps) => {
+
+
+   // Fix the handledownload function
+    // const handledownload = async (_id: string) => {
+    //   if (!_id) {
+    //     toast.error(t("Treatment ID not found"));
+    //     return;
+    //   }
+  
+    //   try {
+    //     // Show loading state
+  
+    //     const downloadUrl = `${apiNewUrl}/api/treatments/${_id}/pdf`;
+    //     const fileUri = FileSystem.documentDirectory + `treatment_${_id}.pdf`;
+  
+    //     console.log("Download URL:", downloadUrl);
+    //     console.log("File URI:", fileUri);
+  
+    //     const downloadResumable = FileSystem.createDownloadResumable(
+    //       downloadUrl,
+    //       fileUri
+    //     );
+  
+    //     const result = await downloadResumable.downloadAsync();
+  
+    //     if (result?.uri) {
+    //       console.log("Downloaded to:", result.uri);
+    //       toast.success(t("Download completed successfully!"));
+  
+    //       // Share the PDF (opens with other apps like WhatsApp, Drive, etc.)
+    //       if (await Sharing.isAvailableAsync()) {
+    //         await Sharing.shareAsync(result.uri, {
+    //           mimeType: "application/pdf",
+    //           dialogTitle: t("Open PDF with..."),
+    //         });
+    //       } else {
+    //         toast.error(t("Sharing not available on this device"));
+    //       }
+    //     } else {
+    //       throw new Error("Download failed - no URI returned");
+    //     }
+    //   } catch (error) {
+    //     console.error("Failed to download PDF:", error);
+    //     toast.error(t("Failed to download PDF. Please try again."));
+    //   }
+    // };
   return (
     <View className="bg-background rounded-xl p-4 ">
       {/* Card Header */}

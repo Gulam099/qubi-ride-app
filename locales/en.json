@@ -741,7 +741,8 @@
   "bestActivities": "Best Activities",
   "worstActivities": "Worst Activities",
   "noActivitiesRecorded": "No activities recorded",
-  "ClientAnswersShow": "Client's answers show"
+  "ClientAnswersShow": "Client's answers show",
+  "suggestionMessage": "Based on your condition, we suggest that you book a session with any of the following specialists"
 
 
 

@@ -146,7 +146,7 @@ export default function InvoiceIdPerPage() {
                     {t("sessionDay")}:
                   </Text>
                   <View className="flex-1 items-end">
-                    {invoice.booking.selectedSlots.length > 0 ? (
+                    {invoice.booking.selectedSlots && invoice.booking.selectedSlots.length > 0 ? (
                       invoice.booking.selectedSlots.map((slot, index) => (
                         <Text
                           key={index}
@@ -155,6 +155,13 @@ export default function InvoiceIdPerPage() {
                           {format(new Date(slot), "EEEE, MMM d, yyyy")}
                         </Text>
                       ))
+                    ) : invoice.booking.dateTime && invoice.booking.dateTime ? (
+                      <Text className="text-sm text-gray-800 font-medium">
+                        {format(
+                          new Date(invoice.booking.dateTime),
+                          "EEEE, MMM d, yyyy"
+                        )}
+                      </Text>
                     ) : (
                       <Text className="text-sm text-gray-800 font-medium">
                         {t("notAvailable")}
@@ -169,7 +176,7 @@ export default function InvoiceIdPerPage() {
                     {t("sessionTime")}:
                   </Text>
                   <View className="flex-1 items-end">
-                    {invoice.booking.selectedSlots.length > 0 ? (
+                    {invoice.booking.selectedSlots && invoice.booking.selectedSlots.length > 0 ? (
                       invoice.booking.selectedSlots.map((slot, index) => (
                         <Text
                           key={index}
@@ -178,6 +185,10 @@ export default function InvoiceIdPerPage() {
                           {format(new Date(slot), "hh:mm a")}
                         </Text>
                       ))
+                    ) : invoice.booking.dateTime && invoice.booking.dateTime ? (
+                      <Text className="text-sm text-gray-800 font-medium">
+                        {format(new Date(invoice.booking.dateTime), "hh:mm a")}
+                      </Text>
                     ) : (
                       <Text className="text-sm text-gray-800 font-medium">
                         {t("notAvailable")}

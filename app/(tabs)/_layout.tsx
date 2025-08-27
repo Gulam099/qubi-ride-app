@@ -21,34 +21,12 @@ const PatientLayout = () => {
 
   const tabConfig = [
     {
-      name: "index",
+      name: "home", 
       title: t("Home"),
       icon: Home,
-      headerLeft: ({ user }: any) => (
-        <View className="pl-4">
-          <Link href={"/account"}>
-            <ProfileImage
-              className="size-12 border border-primary-600"
-              TextClassName="text-sm font-bold"
-              imageUrl={user?.imageUrl!}
-              name={user?.firstName!}
-            />
-          </Link>
-        </View>
-      ),
-      headerTitle: ({ user }: any) => (
-        <Link href={"/account"} className="ml-2">
-          <Text className="font-semibold text-lg text-white">
-            {t("Hello")}, {user?.firstName ?? "User"}
-          </Text>
-        </Link>
-      ),
-      headerTransparent: true,
-      headerStyle: {
-        backgroundColor: "#00000056",
-      },
+      headerShown: false,
     },
-     {
+    {
       name: "group",
       title: t("Group"),
       icon: Profile2User,
@@ -85,11 +63,11 @@ const PatientLayout = () => {
 
   return (
     <Tabs
+      initialRouteName="home"
       screenOptions={{
         tabBarActiveTintColor: colors.blue[600],
         headerBackButtonDisplayMode: "generic",
         headerShadowVisible: false,
-        headerRight: () => <NotificationIconButton className="mr-4" />,
         headerStyle: {
           backgroundColor: "white",
         },
@@ -98,16 +76,19 @@ const PatientLayout = () => {
         ),
       }}
     >
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null, 
+        }}
+      />
       {tabConfig.map(
         ({
           name,
           title,
           icon: Icon,
           headerShown = true,
-          headerLeft,
-          headerTitle,
-          headerTransparent,
-          headerStyle,
+         
         }) => (
           <Tabs.Screen
             key={name}
@@ -115,16 +96,10 @@ const PatientLayout = () => {
             options={{
               title,
               headerShown,
-              headerLeft: headerLeft ? () => headerLeft({ user }) : undefined,
-              headerTitle: headerTitle
-                ? () => headerTitle({ user })
-                : undefined,
-              headerTransparent,
-              headerStyle,
               tabBarIcon: ({ focused }) => (
                 <View
                   className={cn(
-                     "text-[16px] text-nowrap",
+                    "text-[16px] text-nowrap",
                     focused ? "bg-primary-300 p-1 rounded-full" : ""
                   )}
                 >

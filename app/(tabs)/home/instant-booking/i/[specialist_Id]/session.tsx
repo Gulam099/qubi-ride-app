@@ -512,7 +512,7 @@ const InstantBookingContent = () => {
       }
       reset();
       setSelectedSlots([]);
-      router.push("/instant-booking");
+      router.push("/(tabs)");
     },
     onError: (err: any) => {
       toast.error(err.message || "Something went wrong. Please try again.");

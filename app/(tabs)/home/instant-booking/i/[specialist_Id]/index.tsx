@@ -228,7 +228,7 @@ export default function SpecialistConsultantPage() {
           className="mt-4 mb-6"
           onPress={() =>
             router.push({
-              pathname: `/instant-booking/i/${specialist_Id}/session`as RelativePathString,
+              pathname: `(tabs)/home/instant-booking/i/${specialist_Id}/session`as RelativePathString,
               params: {
                 todaySchedule: JSON.stringify(todaySchedule), 
                 doctorFees: specialistData?.data?.fees?.toString() || "0",

@@ -2,7 +2,7 @@ import { useSignUp, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-// import messaging from "@react-native-firebase/messaging";
+import messaging from "@react-native-firebase/messaging";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LangToggleButton from "@/components/custom/LangToggle";
 import Logo from "@/features/Home/Components/Logo";
@@ -64,40 +64,40 @@ export default function Page() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // useEffect(() => {
-  //   const getFcmToken = async () => {
-  //     console.log("GET FCM STARTED");
-  //     try {
-  //       // Request user permission for notifications (iOS & Android 13+)
-  //       const authStatus = await messaging().requestPermission();
-  //       const enabled =
-  //         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-  //         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  //       if (enabled) {
-  //         const fcmToken = await messaging().getToken();
-  //         if (fcmToken) {
-  //           console.log("FCM Token:", fcmToken);
-  //           setfcmTokenFirebase(fcmToken);
-  //           // You can send this token to your backend server here
-  //         } else {
-  //           console.log("FCM No token received");
-  //         }
-  //       } else {
-  //         console.log("FCM Notification permission not granted");
-  //       }
-  //     } catch (error) {
-  //       console.error("FCM Error getting FCM token:", error);
-  //     }
-  //   };
-  //   console.log("FCM USE EFFECT");
-  //   getFcmToken();
-  //   // Optional: Listen for token refresh
-  //   const unsubscribe = messaging().onTokenRefresh((token) => {
-  //     console.log("New FCM Token:", token);
-  //     // Send updated token to server
-  //   });
-  //   return unsubscribe;
-  // }, []);
+  useEffect(() => {
+    const getFcmToken = async () => {
+      console.log("GET FCM STARTED");
+      try {
+        // Request user permission for notifications (iOS & Android 13+)
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        if (enabled) {
+          const fcmToken = await messaging().getToken();
+          if (fcmToken) {
+            console.log("FCM Token:", fcmToken);
+            setfcmTokenFirebase(fcmToken);
+            // You can send this token to your backend server here
+          } else {
+            console.log("FCM No token received");
+          }
+        } else {
+          console.log("FCM Notification permission not granted");
+        }
+      } catch (error) {
+        console.error("FCM Error getting FCM token:", error);
+      }
+    };
+    console.log("FCM USE EFFECT");
+    getFcmToken();
+    // Optional: Listen for token refresh
+    const unsubscribe = messaging().onTokenRefresh((token) => {
+      console.log("New FCM Token:", token);
+      // Send updated token to server
+    });
+    return unsubscribe;
+  }, []);
 
   // Handle the submission of the sign-up form
   const onSignUpPress = async () => {

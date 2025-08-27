@@ -50,11 +50,40 @@ const JoinRoom = () => {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to fetch room data");
+        // Handle expired room specifically
+        if (
+          response.status === 400 &&
+          data.error &&
+          data.error.includes("expired")
+        ) {
+          setError("Your session has expired");
+          handleSessionEnd();
+          return;
+        }
+
+        // Handle scheduled room
+        if (
+          response.status === 400 &&
+          data.error &&
+          data.error.includes("not yet created")
+        ) {
+          setError(data.error);
+          return;
+        }
+
+        // Handle room not found
+        if (response.status === 404) {
+          setError("Room not found");
+          return;
+        }
+
+        // Handle other errors
+        throw new Error(data.error || "Failed to fetch room data");
       }
 
-      const data = await response.json();
       setRoomData(data);
 
       if (data.expiresAt) {
@@ -65,6 +94,7 @@ const JoinRoom = () => {
         if (timeDiff > 0) {
           setTimeRemaining(Math.floor(timeDiff / 1000));
         } else {
+          setError("Your session has expired");
           handleSessionEnd();
           return;
         }
@@ -74,12 +104,48 @@ const JoinRoom = () => {
         setSessionDuration(data.duration);
       }
     } catch (err) {
-      console.error("Error fetching room data:", err);
+      // console.error("Error fetching room data:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const updateBookingToOngoing = async () => {
+      try {
+        const response = await fetch(
+          `${apiNewUrl}/api/bookings/update/${bookingId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              status: "ongoing",
+              cancelReason: null,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || "Failed to update booking status"
+          );
+        }
+
+        const data = await response.json();
+        console.log("Booking updated successfully:", data);
+      } catch (error: any) {
+        // console.error("Error updating booking:", error);
+      }
+    };
+
+    if (roomData?.bookingId) {
+      updateBookingToOngoing();
+    }
+  }, [roomData?.bookingId]);
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -287,84 +353,87 @@ const JoinRoom = () => {
 
   // Redirect to payment page
   const redirectToPayment = async () => {
-  if (roomData && roomData.instant === true) {
-    try {
-      setPaymentLoading(true);
+    if (roomData && roomData.instant === true) {
+      try {
+        setPaymentLoading(true);
 
-      const userId = roomData?.patientId ?? roomData?.patient?._id;
-      const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
+        const userId = roomData?.patientId ?? roomData?.patient?._id;
+        const doctorId = roomData?.doctorId ?? roomData?.doctor?._id;
 
-      const paymentPayload = {
-        userId,
-        doctorId,
-        amount: totalFee,
-        currency: t("SAR"),
-        description: t("medical_consultation_session"),
-        status: "initiated",
-        bookingId: roomData?.bookingId,
-        bookingType: t("Instant"),
-      };
+        const paymentPayload = {
+          userId,
+          doctorId,
+          amount: totalFee,
+          currency: t("SAR"),
+          description: t("medical_consultation_session"),
+          status: "initiated",
+          bookingId: roomData?.bookingId,
+          bookingType: "Instant",
+        };
 
-      const paymentResponse = await fetch(`${apiNewUrl}/api/payments/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(paymentPayload),
-      });
+        const paymentResponse = await fetch(
+          `${apiNewUrl}/api/payments/create`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(paymentPayload),
+          }
+        );
 
-      const paymentResult = await paymentResponse.json();
+        const paymentResult = await paymentResponse.json();
 
-      if (!paymentResponse.ok) {
-        throw new Error(paymentResult?.message || "Payment creation failed.");
-      }
-
-      const paymentId = paymentResult?.payment?.internalPaymentId;
-      if (!paymentId) throw new Error("Payment ID missing.");
-
-      // ✅ Get redirect URL
-      const processResponse = await fetch(
-        `${apiNewUrl}/api/payments/${paymentId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+        if (!paymentResponse.ok) {
+          throw new Error(paymentResult?.message || "Payment creation failed.");
         }
-      );
 
-      const processResult = await processResponse.json();
-      if (!processResponse.ok)
-        throw new Error(processResult?.error || "Payment processing failed.");
+        const paymentId = paymentResult?.payment?.internalPaymentId;
+        if (!paymentId) throw new Error("Payment ID missing.");
 
-      const redirectUrl = processResult?.redirectUrl;
-      if (!redirectUrl) throw new Error("Redirect URL not found.");
+        // ✅ Get redirect URL
+        const processResponse = await fetch(
+          `${apiNewUrl}/api/payments/${paymentId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-      // Build query params
-      const queryParams = new URLSearchParams({
-        userId: userId,
-        doctorId: doctorId,
-        selectedDateTime: roomData.scheduledAt,
-        sessionDuration: (roomData.duration || 30).toString(),
-        numberOfSessions: "1",
-        totalFee: totalFee.toString(),
-        bookingId: roomData.bookingId || "",
-        redirectUrl,
-        instant: "true",
-      }).toString();
+        const processResult = await processResponse.json();
+        if (!processResponse.ok)
+          throw new Error(processResult?.error || "Payment processing failed.");
 
-      router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
-    } catch (error) {
-      console.error("Payment creation failed:", error);
-      Alert.alert(
-        "Payment Error",
-        "Failed to create payment. Please try again.",
-        [{ text: "OK" }]
-      );
-      setPaymentLoading(false);
+        const redirectUrl = processResult?.redirectUrl;
+        if (!redirectUrl) throw new Error("Redirect URL not found.");
+
+        // Build query params
+        const queryParams = new URLSearchParams({
+          userId: userId,
+          doctorId: doctorId,
+          selectedDateTime: roomData.scheduledAt,
+          sessionDuration: (roomData.duration || 30).toString(),
+          numberOfSessions: "1",
+          totalFee: totalFee.toString(),
+          bookingId: roomData.bookingId || "",
+          redirectUrl,
+          instant: "true",
+        }).toString();
+
+        router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
+      } catch (error) {
+        console.error("Payment creation failed:", error);
+        Alert.alert(
+          "Payment Error",
+          "Failed to create payment. Please try again.",
+          [{ text: "OK" }]
+        );
+        setPaymentLoading(false);
+      }
     }
-  }
-};
+  };
 
   // Format time display
   const formatTime = (seconds) => {
@@ -502,14 +571,14 @@ const JoinRoom = () => {
             <Text
               style={{ color: "#ef4444", fontSize: 16, textAlign: "center" }}
             >
-              Error loading room: {error}
+              {error}
             </Text>
-            <Text
+            {/* <Text
               style={{ color: "#3b82f6", marginTop: 20, fontSize: 16 }}
               onPress={fetchRoomData}
             >
               Retry
-            </Text>
+            </Text> */}
           </View>
         </SafeAreaView>
       </>
