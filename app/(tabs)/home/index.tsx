@@ -5,7 +5,7 @@ import { H3 } from "@/components/ui/Typography";
 import {
   PatientHomeImage,
   PatientPageInstantMenuImage,
-  consultPageHomeImage,
+  shceduleImage,
 } from "@/features/patient/constPatient";
 import { Image } from "react-native";
 import { cn } from "@/lib/utils";
@@ -70,17 +70,17 @@ const PatientPage = () => {
         </H3>
 
         <TouchableOpacity
-          onPress={() => router.push("(tabs)/home/instant-booking")}
+          onPress={() => router.push("/(tabs)/home/instant-booking")}
         >
-          <View className="flex justify-between rounded-xl p-4 backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
-            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
-            <View className="w-2/2 flex flex-col justify-end pr-6">
-              <H3 className="font-normal justify-end mr-28">{t("Instant")}</H3>
-              <Text className="text-base font-normal">
+          <View className="flex justify-between rounded-xl p-4 border border-neutral-300 flex-row relative overflow-hidden h-25 bg-background">
+            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-[105px] w-[105px]"></View>
+            <View className="flex 1">
+              <H3 className="font-normal">{t("Instant")}</H3>
+              <Text className="text-base font-normal mt-3">
                 {t("Immediate sessions with a specialist")}
               </Text>
             </View>
-            <View className="flex justify-end w-1/3 items-end pl-8">
+            <View className="flex justify-end w-1/4 items-end">
               <Image
                 source={PatientPageInstantMenuImage}
                 className={cn("w-full h-[undefined] aspect-square")}
@@ -92,23 +92,27 @@ const PatientPage = () => {
         <TouchableOpacity
           onPress={() => router.push("/(tabs)/home/schedule-booking")}
         >
-          <View className="flex justify-between rounded-xl p-4 backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-40 bg-background">
-            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-40 aspect-square"></View>
-            <View className="w-2/2 flex flex-col justify-end pr-8">
-              <H3 className="font-normal justify-end mr-44">
-                {t("Scheduled")}
-              </H3>
+          <View className="flex justify-between rounded-xl p-4 backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-25 bg-background">
+            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-[105px] w-[105px]"></View>
+            <View className="flex-1 pr-4">
+              <H3 className="font-normal">{t("Scheduled")}</H3>
               <Text className="text-base font-normal">
                 {t(
                   "Book your appointment with the appropriate specialist for you"
                 )}
               </Text>
             </View>
+            <View className="flex justify-end w-1/4 items-end">
+              <Image
+                source={shceduleImage}
+                className={cn("w-full h-[undefined] aspect-square")}
+              />
+            </View>
           </View>
         </TouchableOpacity>
 
         <Button
-          className="bg-blue-50/30 backdrop-blur-md"
+          className="bg-blue-50/30 backdrop-blur-md mt-6"
           onPress={() => router.push("/(tabs)/home/find-consultant")}
         >
           <Text className="font-medium text-left w-full text-neutral-700">

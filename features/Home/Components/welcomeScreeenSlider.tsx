@@ -58,7 +58,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
                 <View className="flex flex-row justify-between items-center mt-8">
                   <TouchableOpacity onPress={handleSkip}>
                     <Text className="text-white/70 text-base">
-                      {t("Skip")}
+                      {t("skip")}
                     </Text>
                   </TouchableOpacity>
                   
