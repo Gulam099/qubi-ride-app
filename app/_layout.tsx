@@ -51,6 +51,7 @@ import { tokenCache } from "@/lib/cache";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import * as Updates from "expo-updates";
 
 import messaging from "@react-native-firebase/messaging";
 import firebase from "@react-native-firebase/app";
@@ -150,28 +151,6 @@ const AppContent = () => {
     }
   };
 
-  // Function to complete onboarding
-  const completeOnboarding = async () => {
-    try {
-      if (user && isSignedIn) {
-        await user.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
-            onboardingCompleted: true,
-            onboardingCompletedAt: new Date().toISOString(),
-          },
-        });
-
-        setHasCompletedOnboarding(true);
-        logger.info("Onboarding completed successfully in Clerk");
-      }
-    } catch (error) {
-      logger.error("Error completing onboarding:", error);
-      // Still update local state to prevent blocking
-      setHasCompletedOnboarding(true);
-    }
-  };
-
   const completeWelcomeScreen = async () => {
     try {
       if (user && isSignedIn) {
@@ -186,6 +165,7 @@ const AppContent = () => {
 
       setHasSeenWelcomeScreen(true);
       setShowWelcomeScreen(false);
+      await Updates.reloadAsync();
 
       // Navigate to main app
       router.push("/(tabs)/home");
@@ -196,6 +176,7 @@ const AppContent = () => {
       // Still proceed with navigation
       setHasSeenWelcomeScreen(true);
       setShowWelcomeScreen(false);
+      await Updates.reloadAsync();
       router.push("/(tabs)/home");
     }
   };
@@ -211,7 +192,7 @@ const AppContent = () => {
     user?.id,
     user?.unsafeMetadata?.onboardingCompleted,
     user?.unsafeMetadata?.welcomeScreenSeen,
-  ]); // React to auth changes
+  ]);
 
   // Main navigation logic
   useEffect(() => {
@@ -518,22 +499,6 @@ const AppContent = () => {
     I18nManager.allowRTL(isRTL);
   }, [language]);
 
-  // Show loading while checking onboarding status
-  if (
-    !isLoaded ||
-    !userLoaded ||
-    isCheckingStatus ||
-    hasCompletedOnboarding === null ||
-    hasSeenWelcomeScreen === null
-  ) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={colors.primary[500]} />
-        <Text style={{ marginTop: 10 }}>Loading...</Text>
-      </View>
-    );
-  }
-
   // Show welcome screen if onboarding is not completed (regardless of auth status)
   if (
     showWelcomeScreen &&
@@ -556,6 +521,21 @@ const AppContent = () => {
       </ThemeProvider>
     );
   }
+  // Show loading while checking onboarding status
+  // if (
+  //   !isLoaded ||
+  //   !userLoaded ||
+  //   isCheckingStatus ||
+  //   hasCompletedOnboarding === null ||
+  //   hasSeenWelcomeScreen === null
+  // ) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <ActivityIndicator size="large" color={colors.primary[500]} />
+  //       <Text style={{ marginTop: 10 }}>Loading...</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <ThemeProvider>
@@ -567,12 +547,6 @@ const AppContent = () => {
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(stacks)" options={{ headerShown: false }} />
-              <Stack.Screen name="(modals)" options={{ headerShown: false }} />
-              <Stack.Screen name="consult" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="instant-booking"
-                options={{ headerShown: false }}
-              />
             </Stack>
           </SafeAreaView>
         </SafeAreaProvider>

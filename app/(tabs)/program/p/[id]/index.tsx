@@ -174,7 +174,7 @@ export default function SupportDetailPage() {
           groupTitle: bookingData.programTitle,
           bookingId: bookingId || "",
           redirectUrl,
-          bookingType: "program", // Add booking type to distinguish
+          bookingType: "program", 
         });
 
         router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);

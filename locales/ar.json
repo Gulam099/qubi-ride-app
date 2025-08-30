@@ -155,7 +155,7 @@
   "calendar": "التقويم",
   "appointmentsFor": "المواعيد لـ",
   "noAppointmentsForDate": "لا توجد مواعيد لهذا التاريخ",
-  "noAppointmentsAvailable": "لا توجد مواعيد {{type}} متاحة.",
+  "noAppointmentsAvailable": "لا توجد مواعيد {{type}}",
   "loadingFailedScheduled": "فشل تحميل المواعيد المجدولة",
   "loadingFailedInstant": "فشل تحميل المواعيد الفورية",
   "appointmentDetails": "تفاصيل الموعد",
@@ -743,8 +743,12 @@
   "worstActivities": "أسوأ الأنشطة",
   "noActivitiesRecorded": "لا توجد أنشطة مسجلة",
   "ClientAnswersShow": "إجابات العميل تظهر",
-  "suggestionMessage": "بناءً على حالتك، نقترح أن تحجز جلسة مع أي من الأخصائيين التاليين"
-
+  "suggestionMessage": "بناءً على حالتك، نقترح أن تحجز جلسة مع أي من الأخصائيين التاليين",
+  "Cancelled": "ألغيت",
+  "Completed": "مكتملة",
+  "My Appointments": "مواعيدي",
+  "Appointment Category": "فئة الموعد",
+  "Get Started": "ابدأ"
 
 
 

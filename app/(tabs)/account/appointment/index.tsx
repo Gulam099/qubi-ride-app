@@ -4,6 +4,7 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacity,
+  Pressable,
 } from "react-native";
 import { Text } from "@/components/ui/Text";
 import { useSelector } from "react-redux";
@@ -13,23 +14,24 @@ import {
   fetchAppointments,
   fetchInstantAppointments,
   fetchGroupAppointments,
-  fetchPrograms
+  fetchPrograms,
 } from "@/features/util/constHome";
 import AppointmentCard from "@/features/account/components/AppointmentCard";
 import { useTranslation } from "react-i18next";
 import { apiNewUrl } from "@/const";
 
 type TabType = "session" | "group" | "program";
+type CategoryType = "cancelled" | "completed" | "current";
 
 export default function AppointmentUpcomingList() {
   const { user } = useUser();
   const userId = user?.publicMetadata?.dbPatientId as string;
 
-
   const appState: AppStateType = useSelector((state: any) => state.appState);
   const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<TabType>("session");
+  const [activeCategory, setActiveCategory] = useState<CategoryType>("current");
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({
     session: "",
@@ -55,12 +57,13 @@ export default function AppointmentUpcomingList() {
     setErrors({ session: "", group: "", program: "" });
 
     try {
-      const [scheduledRes, instantRes, groupRes, programRes] = await Promise.all([
-        fetchAppointments({ userId }),
-        fetchInstantAppointments({ userId }),
-        fetchGroupAppointments(userId),
-        fetchPrograms(userId),
-      ]);
+      const [scheduledRes, instantRes, groupRes, programRes] =
+        await Promise.all([
+          fetchAppointments({ userId }),
+          fetchInstantAppointments({ userId }),
+          fetchGroupAppointments(userId),
+          fetchPrograms(userId),
+        ]);
 
       let scheduledData = [];
       let instantData = [];
@@ -121,10 +124,35 @@ export default function AppointmentUpcomingList() {
 
   const filteredAppointments = useMemo(() => {
     const applyFilters = (appointmentList: any[]) => {
-      if (!appState.filter) return appointmentList;
+      if (!appState.filter && activeCategory === "current")
+        return appointmentList;
 
       const { name, startDate, endDate, sortBy } = appState.filter;
       let filtered = [...appointmentList];
+
+      filtered = filtered.filter((appointment: any) => {
+        const status = appointment.status?.toLowerCase?.() || "upcoming";
+
+        switch (activeCategory) {
+          case "cancelled":
+            return status === "cancelled" || status === "canceled";
+          case "completed":
+            return (
+              status === "completed" ||
+              status === "finished" ||
+              status === "done"
+            );
+          case "current":
+            return (
+              status === "pending" ||
+              status === "ongoing" ||
+              status === "urgent" ||
+              !status
+            );
+          default:
+            return true;
+        }
+      });
 
       if (name) {
         filtered = filtered.filter((appointment: any) =>
@@ -182,6 +210,9 @@ export default function AppointmentUpcomingList() {
     setActiveTab(tab);
   }, []);
 
+  const handleCategoryPress = useCallback((category: CategoryType) => {
+    setActiveCategory(category);
+  }, []);
   const renderAppointmentItem = useCallback(({ item }: { item: any }) => {
     return (
       <View>
@@ -213,13 +244,26 @@ export default function AppointmentUpcomingList() {
     }
   };
 
+  const getCategoryDisplayName = (category: string) => {
+    switch (category) {
+      case "cancelled":
+        return t("Cancelled");
+      case "completed":
+        return t("Completed");
+      case "current":
+        return t("Current");
+      default:
+        return category;
+    }
+  };
+
   const getEmptyMessage = () => {
     const typeMap = {
       session: t("No Sessions"),
       group: t(" No Group"),
       program: t("No Program"),
     };
-    
+
     return t("noAppointmentsAvailable", {
       type: typeMap[activeTab] || activeTab,
     });
@@ -228,28 +272,77 @@ export default function AppointmentUpcomingList() {
   return (
     <View className="bg-blue-50/20 flex-1">
       {/* Tabs */}
-      <View className="flex-row bg-white mx-4 mt-4 rounded-lg p-1 shadow-sm">
-        {(["session", "group", "program"] as TabType[]).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            className={`flex-1 py-3 rounded-md ${
-              activeTab === tab ? "bg-[#000F8F]" : "bg-transparent"
-            }`}
-            onPress={() => handleTabPress(tab)}
-          >
-            <Text
-              className={`text-center font-medium text-xs ${
-                activeTab === tab ? "text-white" : "text-[#000F8F]"
-              }`}
+      <View className="mx-4 mt-8">
+        <Text className="text-black font-semibold text-xl mb-3 ml-2">
+          {t("My Appointments")}
+        </Text>
+        <View className="flex-row gap-2 ml-2">
+          {(["group", "program", "session"] as TabType[]).map((tab) => (
+            <Pressable
+              key={tab}
+              onPress={() => handleTabPress(tab)}
+              style={{
+                backgroundColor: activeTab === tab ? "#000F8F" : "#ffffff",
+                paddingHorizontal: 16,
+                height: 36,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                minWidth: 100,
+              }}
             >
-              {getTabDisplayName(tab)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={{
+                  color: activeTab === tab ? "#ffffff" : "#000000",
+                  fontWeight: "500",
+                  fontSize: 14,
+                }}
+              >
+                {getTabDisplayName(tab)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+      {/* Appointment Category Section */}
+      <View className="mx-4 mt-6">
+        <Text className="text-black font-semibold text-xl mb-3 ml-2">
+          {t("Appointment Category")}
+        </Text>
+        <View className="flex-row gap-2 ml-2">
+          {(["cancelled", "completed", "current"] as CategoryType[]).map(
+            (category) => (
+              <Pressable
+                key={category}
+                onPress={() => handleCategoryPress(category)}
+                style={{
+                  backgroundColor:
+                    activeCategory === category ? "#000F8F" : "#ffffff",
+                  paddingHorizontal: 16,
+                  height: 36,
+                  borderRadius: 16,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minWidth: 100,
+                }}
+              >
+                <Text
+                  style={{
+                    color: activeCategory === category ? "#ffffff" : "#000000",
+                    fontWeight: "500",
+                    fontSize: 14,
+                  }}
+                >
+                  {getCategoryDisplayName(category)}
+                </Text>
+              </Pressable>
+            )
+          )}
+        </View>
       </View>
 
       {/* List */}
-      <View className="flex-1 p-4">
+      <View className="flex-1 p-4 mt-4">
         {loading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#007BFF" />

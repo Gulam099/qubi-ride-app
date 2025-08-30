@@ -158,7 +158,7 @@
 "calendar": "Calendar",
 "appointmentsFor": "Appointments for",
 "noAppointmentsForDate": "No appointments for this date",
-"noAppointmentsAvailable": "No {{type}} appointments available.",
+"noAppointmentsAvailable": "{{type}} appointments available.",
 "loadingFailedScheduled": "Failed to load scheduled appointments",
 "loadingFailedInstant": "Failed to load instant appointments",
 "appointmentDetails": "Appointment : details",
@@ -742,8 +742,12 @@
   "worstActivities": "Worst Activities",
   "noActivitiesRecorded": "No activities recorded",
   "ClientAnswersShow": "Client's answers show",
-  "suggestionMessage": "Based on your condition, we suggest that you book a session with any of the following specialists"
-
+  "suggestionMessage": "Based on your condition, we suggest that you book a session with any of the following specialists",
+  "Cancelled": "Cancelled",
+  "Completed": "Completed",
+  "My Appointments": "My Appointments",
+  "Appointment Category": "Appointment Category",
+  "Get Started": "Get Started"
 
 
 

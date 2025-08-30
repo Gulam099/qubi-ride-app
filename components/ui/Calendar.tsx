@@ -1,3 +1,4 @@
+import i18n from "@/lib/i18n";
 import colors from "@/utils/colors";
 import * as React from "react";
 import { LocaleConfig, Calendar as RNCalendar } from "react-native-calendars";
@@ -17,10 +18,20 @@ function Calendar({
   //   const { colorScheme, isDarkColorScheme } = useColorScheme();
   const id = React.useId();
 
+  React.useEffect(() => {
+    const currentLanguage = i18n.language;
+    if (currentLanguage === 'ar') {
+      LocaleConfig.defaultLocale = 'ar';
+    } else if (currentLanguage === 'fr') {
+      LocaleConfig.defaultLocale = 'fr';
+    } else {
+      LocaleConfig.defaultLocale = 'en';
+    }
+  }, []);
+
   return (
     <RNCalendar
-      key={`${id}`}
-      //   theme={getTheme(isDarkColorScheme, theme)}
+       key={`${id}-${i18n.language}`}
       className="rounded-2xl"
       hideExtraDays
       theme={{

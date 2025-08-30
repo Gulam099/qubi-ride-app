@@ -242,7 +242,8 @@ export default function SessionConsultPage() {
           numberOfSessions: bookingData.numberOfSessions.toString(),
           totalFee: totalFee.toString(),
           bookingId: bookingId || "",
-          redirectUrl, // ✅ use it here
+          redirectUrl, 
+           bookingType: "schedule",
         }).toString();
         router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
       } else {
