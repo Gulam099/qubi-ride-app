@@ -24,7 +24,7 @@ export default function MyFatoorahWebView() {
         },
       });
     } else if (url.includes("payment-error")) {
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/home");
     }
   };
 

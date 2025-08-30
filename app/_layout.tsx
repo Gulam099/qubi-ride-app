@@ -522,20 +522,20 @@ const AppContent = () => {
     );
   }
   // Show loading while checking onboarding status
-  if (
-    !isLoaded ||
-    !userLoaded ||
-    isCheckingStatus ||
-    hasCompletedOnboarding === null ||
-    hasSeenWelcomeScreen === null
-  ) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={colors.primary[500]} />
-        <Text style={{ marginTop: 10 }}>Loading...</Text>
-      </View>
-    );
-  }
+  // if (
+  //   !isLoaded ||
+  //   !userLoaded ||
+  //   isCheckingStatus ||
+  //   hasCompletedOnboarding === null ||
+  //   hasSeenWelcomeScreen === null
+  // ) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <ActivityIndicator size="large" color={colors.primary[500]} />
+  //       <Text style={{ marginTop: 10 }}>Loading...</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <ThemeProvider>

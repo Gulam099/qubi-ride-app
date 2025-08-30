@@ -6,7 +6,7 @@ import { LineChart } from "react-native-chart-kit";
 import { Button } from "@/components/ui/Button";
 import { AddCircle, ArrowCircleDown } from "iconsax-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Calendar, LocaleConfig } from "@/components/ui/Calendar";
+import { Calendar } from "@/components/ui/Calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +19,6 @@ import { moodOptions } from "@/features/scale/constScale";
 import { useUser } from "@clerk/clerk-expo";
 import { apiNewUrl } from "@/const";
 import { useTranslation } from "react-i18next";
-import i18n from "@/lib/i18n";
 
 export default function MoodScaleRecord() {
   const [LastMoodOption, setLastMoodOption] = useState(null);
@@ -101,14 +100,7 @@ export default function MoodScaleRecord() {
     fetchMoodScaleData();
   }, []);
 
-  useEffect(() => {
-  if (i18n.language === "ar") {
-    LocaleConfig.defaultLocale = "ar";
-  } else {
-    LocaleConfig.defaultLocale = "en";
-  }
-}, [i18n.language]);
-
+ 
   const filteredRecords = selectedDate
     ? moodRecords.filter((record) => record.createdAt.startsWith(selectedDate))
     : moodRecords;

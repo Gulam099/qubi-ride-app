@@ -42,6 +42,17 @@ export default function SupportDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [showScheduleSelector, setShowScheduleSelector] = useState(false);
+  const [doctorSchedule, setDoctorSchedule] = useState<
+    Record<
+      string,
+      {
+        start: string;
+        end: string;
+        isHoliday: boolean;
+        weekDay?: string;
+      }
+    >
+  >({});
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -54,6 +65,10 @@ export default function SupportDetailPage() {
 
         if (response.ok && result.success) {
           setGroupDetails(result.data);
+
+          if (result.data?.doctor?.clerkId) {
+            getDoctorSchedulebyId(result.data.doctor.clerkId);
+          }
         } else {
           throw new Error(result.message || t("Failed to fetch group details"));
         }
@@ -67,6 +82,18 @@ export default function SupportDetailPage() {
 
     fetchGroupDetails();
   }, [id]);
+
+  const getDoctorSchedulebyId = async (clerk_Id: string) => {
+    try {
+      const response = await fetch(`${apiNewUrl}/user/${clerk_Id}`);
+      const data = await response.json();
+      if (data && typeof data === "object") {
+        setDoctorSchedule(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  };
 
   const handleBuy = () => {
     setShowScheduleSelector(true);
@@ -176,7 +203,7 @@ export default function SupportDetailPage() {
           groupTitle: bookingData.groupTitle,
           bookingId: bookingId || "",
           redirectUrl,
-          bookingType: "group", // Add booking type to distinguish
+          bookingType: "group", 
         });
 
         router.push(`/(stacks)/fatoorah/MyFatoorahWebView?${queryParams}`);
@@ -191,6 +218,7 @@ export default function SupportDetailPage() {
   });
 
   console.log("groupDetails", groupDetails);
+
   const finalSubmit = () => {
     bookGroup();
   };
@@ -400,7 +428,7 @@ export default function SupportDetailPage() {
             <ScheduleSelector
               selectedDateTime={selectedDateTime}
               setSelectedDateTime={setSelectedDateTime}
-              availableTimes={groupDetails.availableDates || []}
+              doctorSchedule={doctorSchedule}
             />
             <Button className="w-full " onPress={finalSubmit}>
               <Text className="text-white font-semibold">

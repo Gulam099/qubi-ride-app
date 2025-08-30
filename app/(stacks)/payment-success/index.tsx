@@ -31,7 +31,7 @@ export default function PaymentSuccess() {
         <Button
           className="mt-6"
           onPress={() => {
-            router.replace("/(tabs)");
+            router.replace("/(tabs)/home");
           }}
         >
           <Text className="text-white font-medium">{t("goToHome")}</Text>
