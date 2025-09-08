@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, View, Image, TouchableOpacity } from "react-native";
 import PagerView from "react-native-pager-view";
 
@@ -14,6 +14,7 @@ interface WelcomeScreenProps {
 export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(0);
+  const pagerRef = useRef<PagerView>(null);
 
   const handlePageChange = (e: any) => {
     setCurrentPage(e.nativeEvent.position);
@@ -22,7 +23,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   const handleNextOrComplete = () => {
     if (currentPage < welcomeData.length - 1) {
       // Move to next page
-      setCurrentPage(currentPage + 1);
+      pagerRef.current?.setPage(currentPage + 1);
     } else {
       // Call onComplete when on the last page
       onComplete();
@@ -36,8 +37,9 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
 
   return (
     <View className="flex-1 relative">
-      <PagerView 
-        style={styles.container} 
+      <PagerView
+        ref={pagerRef}
+        style={styles.container}
         initialPage={0}
         onPageSelected={handlePageChange}
       >
@@ -53,7 +55,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
                 <Text className="text-white border-0 leading-8 text-lg ">
                   {t(item.desc)}
                 </Text>
-                
+
                 {/* Navigation buttons */}
                 <View className="flex flex-row justify-between items-center mt-8">
                   <TouchableOpacity onPress={handleSkip}>
@@ -61,8 +63,8 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
                       {t("skip")}
                     </Text>
                   </TouchableOpacity>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     onPress={handleNextOrComplete}
                     className="bg-white/20 px-6 py-3 rounded-full"
                   >
@@ -71,15 +73,14 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
                     </Text>
                   </TouchableOpacity>
                 </View>
-                
+
                 {/* Page indicators */}
                 <View className="flex flex-row justify-center gap-2 mt-4">
                   {welcomeData.map((_, idx) => (
                     <View
                       key={idx}
-                      className={`w-2 h-2 rounded-full ${
-                        idx === currentPage ? 'bg-white' : 'bg-white/30'
-                      }`}
+                      className={`w-2 h-2 rounded-full ${idx === currentPage ? 'bg-white' : 'bg-white/30'
+                        }`}
                     />
                   ))}
                 </View>
