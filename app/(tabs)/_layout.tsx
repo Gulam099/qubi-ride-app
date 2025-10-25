@@ -1,6 +1,7 @@
 import { Text } from "@/components/ui/Text";
 import { Link, Tabs } from "expo-router";
 import {
+  Car,
   DocumentText1,
   Home,
   Notepad,
@@ -27,26 +28,20 @@ const PatientLayout = () => {
       headerShown: false,
     },
     {
-      name: "group",
-      title: t("Group"),
-      icon: Profile2User,
+      name: "trips",
+      title: t("Trips"),
+      icon: Car,
       headerShown: false,
     },
     {
-      name: "program",
-      title: t("Programs"),
-      icon: ShieldTick,
-      headerShown: false,
-    },
-    {
-      name: "library",
-      title: t("Library"),
-      icon: Notepad,
+      name: "rides",
+      title: t("Rides"),
+      icon: Car,
       headerShown: false,
     },
     {
       name: "account",
-      title: t("File"),
+      title: t("More"),
       icon: DocumentText1,
       headerShown: false,
     },
@@ -82,6 +77,12 @@ const PatientLayout = () => {
           href: null, 
         }}
       />
+      <Tabs.Screen
+        name="gruop"
+        options={{
+          href: null, 
+        }}
+      />
       {tabConfig.map(
         ({
           name,
@@ -100,7 +101,7 @@ const PatientLayout = () => {
                 <View
                   className={cn(
                     "text-[16px] text-nowrap",
-                    focused ? "bg-primary-300 p-1 rounded-full" : ""
+                    focused ? "bg-blue-600 p-1 rounded-full" : ""
                   )}
                 >
                   <Icon

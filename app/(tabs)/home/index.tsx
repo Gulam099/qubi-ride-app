@@ -16,12 +16,13 @@ import { useTranslation } from "react-i18next";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import { useUser } from "@clerk/clerk-expo";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
+import useUserData from "@/hooks/userData";
 
 const PatientPage = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useTranslation();
-  const { user } = useUser();
+  const user = useUserData();
 
   const reloadApp = async () => {
     try {
@@ -38,87 +39,69 @@ const PatientPage = () => {
   }, [params.refresh]);
 
   return (
-    <ScrollView className="flex-1">
-      <View className="absolute top-0 left-0 right-0 z-10 bg-black/30 pt-12 pb-4 px-4">
-        <View className="flex-row justify-between items-center">
-          {/* Left side - Profile */}
-          <Link href={"/account"}>
-            <View className="flex-row items-center">
-              <ProfileImage
-                className="size-12 border border-primary-600"
-                TextClassName="text-sm font-bold"
-                imageUrl={user?.imageUrl!}
-                name={user?.firstName!}
-              />
-              <Text className="font-semibold text-lg text-white ml-2">
-                {t("Hello")}, {user?.firstName ?? "User"}
-              </Text>
-            </View>
-          </Link>
-
-          {/* Right side - Notification */}
-          <NotificationIconButton className="" />
-        </View>
+     <ScrollView className="flex-1 bg-gray-50">
+      <View className="bg-blue-600 p-6 pt-12 pb-8 rounded-b-3xl">
+        <Text className="text-white text-3xl font-bold mb-2">RideEase</Text>
+        <Text className="text-blue-100 text-base">Your journey, our priority</Text>
       </View>
-      <Image
-        source={PatientHomeImage}
-        className={cn("w-full h-[undefined] aspect-[375/295]")}
-      />
-      <View className="flex gap-6 flex-col px-4">
-        <H3 className="text-center">
-          {t("What type of consultation do you need?")}
-        </H3>
 
-        <TouchableOpacity
-          onPress={() => router.push("/(tabs)/home/instant-booking")}
-        >
-          <View className="flex justify-between rounded-xl p-4 border border-neutral-300 flex-row relative overflow-hidden h-25 bg-background">
-            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-[105px] w-[105px]"></View>
-            <View className="flex 1">
-              <H3 className="font-normal">{t("Instant")}</H3>
-              <Text className="text-base font-normal mt-3">
-                {t("Immediate sessions with a specialist")}
-              </Text>
-            </View>
-            <View className="flex justify-end w-1/4 items-end">
-              <Image
-                source={PatientPageInstantMenuImage}
-                className={cn("w-full h-[undefined] aspect-square")}
-              />
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => router.push("/(tabs)/home/schedule-booking")}
-        >
-          <View className="flex justify-between rounded-xl p-4 backdrop-blur-md border border-neutral-300 flex-row relative overflow-hidden h-25 bg-background">
-            <View className="absolute -right-16 top-0 rounded-full bg-blue-50/30 h-[105px] w-[105px]"></View>
-            <View className="flex-1 pr-4">
-              <H3 className="font-normal">{t("Scheduled")}</H3>
-              <Text className="text-base font-normal">
-                {t(
-                  "Book your appointment with the appropriate specialist for you"
-                )}
-              </Text>
-            </View>
-            <View className="flex justify-end w-1/4 items-end">
-              <Image
-                source={shceduleImage}
-                className={cn("w-full h-[undefined] aspect-square")}
-              />
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <Button
-          className="bg-blue-50/30 backdrop-blur-md mt-6"
-          onPress={() => router.push("/(tabs)/home/find-consultant")}
-        >
-          <Text className="font-medium text-left w-full text-neutral-700">
-            {t("Help me find the right consultant")}
+      <View className="p-6">
+        <View className="bg-white rounded-2xl p-6 mb-4 shadow-sm">
+          <Text className="text-2xl font-bold text-gray-800 mb-3">Welcome to RideEase! 🚗</Text>
+          <Text className="text-gray-600 text-base leading-6 mb-4">
+            Experience seamless travel with our premium ride-booking service. Whether you're commuting to work or heading to the airport, we've got you covered.
           </Text>
-        </Button>
+        </View>
+
+        <View className="bg-white rounded-2xl p-6 mb-4 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-4">✨ Key Features</Text>
+          
+          <View className="mb-3">
+            <Text className="text-gray-800 font-semibold text-base mb-1">🚀 Quick Booking</Text>
+            <Text className="text-gray-600 text-sm">Book your ride in just a few taps</Text>
+          </View>
+
+          <View className="mb-3">
+            <Text className="text-gray-800 font-semibold text-base mb-1">💰 Affordable Prices</Text>
+            <Text className="text-gray-600 text-sm">Transparent pricing with no hidden charges</Text>
+          </View>
+
+          <View className="mb-3">
+            <Text className="text-gray-800 font-semibold text-base mb-1">⭐ Verified Drivers</Text>
+            <Text className="text-gray-600 text-sm">All our drivers are background-checked and rated</Text>
+          </View>
+
+          <View className="mb-3">
+            <Text className="text-gray-800 font-semibold text-base mb-1">🛡️ Safe & Secure</Text>
+            <Text className="text-gray-600 text-sm">Your safety is our top priority</Text>
+          </View>
+        </View>
+
+        <View className="bg-gradient-to-r bg-blue-600 rounded-2xl p-6 mb-4">
+          <Text className="text-white text-xl font-bold mb-2">Ready to ride?</Text>
+          <Text className="text-blue-100 text-sm mb-4">Check out available rides and book your next trip!</Text>
+          <View className="bg-white rounded-xl p-3">
+            <Text className="text-blue-600 text-center font-semibold">Go to Rides Tab →</Text>
+          </View>
+        </View>
+
+        <View className="bg-white rounded-2xl p-6 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-2">📊 Statistics</Text>
+          <View className="flex-row justify-between mt-4">
+            <View className="items-center">
+              <Text className="text-2xl font-bold text-blue-600">50K+</Text>
+              <Text className="text-gray-600 text-xs mt-1">Happy Users</Text>
+            </View>
+            <View className="items-center">
+              <Text className="text-2xl font-bold text-blue-600">100K+</Text>
+              <Text className="text-gray-600 text-xs mt-1">Rides Completed</Text>
+            </View>
+            <View className="items-center">
+              <Text className="text-2xl font-bold text-blue-600">4.8⭐</Text>
+              <Text className="text-gray-600 text-xs mt-1">Average Rating</Text>
+            </View>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );

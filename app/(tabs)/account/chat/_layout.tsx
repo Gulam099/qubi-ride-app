@@ -15,7 +15,7 @@ export default function ChatLayout() {
       screenOptions={{
         headerLeft: () => <BackButton className="mr-4" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
-        headerShadowVisible: true,
+        headerShown: false,
       }}
     >
       <Stack.Screen

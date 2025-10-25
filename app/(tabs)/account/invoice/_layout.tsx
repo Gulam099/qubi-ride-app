@@ -14,10 +14,10 @@ export default function InvoiceLayout() {
       screenOptions={{
         headerLeft: () => <BackButton className="mr-4" />,
         headerRight: () => <NotificationIconButton className="mr-4" />,
-        headerShadowVisible: true,
+        headerShown: false,
       }}
     >
-      <Stack.Screen
+      {/* <Stack.Screen
         name="index"
         options={{
           headerTitle: () => (
@@ -26,8 +26,8 @@ export default function InvoiceLayout() {
             </Text>
           ),
         }}
-      />
-      <Stack.Screen
+      /> */}
+      {/* <Stack.Screen
         name="[invoice_Id]/index"
         options={{
           headerTitle: () => (
@@ -36,7 +36,7 @@ export default function InvoiceLayout() {
             </Text>
           ),
         }}
-      />
+      /> */}
     </Stack>
   );
 }

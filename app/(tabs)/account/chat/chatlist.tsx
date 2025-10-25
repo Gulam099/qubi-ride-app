@@ -1,221 +1,114 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from "react-native";
-import { RelativePathString, useRouter } from "expo-router";
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { Trash } from "iconsax-react-native";
-import colors from "@/utils/colors";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiNewUrl } from "@/const";
-import { useUser } from "@clerk/clerk-expo";
-import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Image } from "react-native";
 
-function ChatListPage() {
-  const { user } = useUser();
-  const [value, setValue] = useState("specific_specialists");
-  const [loading, setLoading] = useState(true);
+// Static chat data
+const chatMessages = [
+  {
+    id: 1,
+    driverName: "John Smith",
+    driverImage: "👨‍✈️",
+    lastMessage: "I'm arriving in 2 minutes",
+    time: "2:30 PM",
+    unread: 2,
+    online: true
+  },
+  {
+    id: 2,
+    driverName: "Sarah Johnson",
+    driverImage: "👩‍✈️",
+    lastMessage: "Thank you for riding with me!",
+    time: "Yesterday",
+    unread: 0,
+    online: false
+  },
+  {
+    id: 3,
+    driverName: "Mike Brown",
+    driverImage: "👨‍✈️",
+    lastMessage: "Pickup location confirmed",
+    time: "Oct 20",
+    unread: 0,
+    online: false
+  },
+  {
+    id: 4,
+    driverName: "Emma Wilson",
+    driverImage: "👩‍✈️",
+    lastMessage: "Have a safe journey!",
+    time: "Oct 18",
+    unread: 0,
+    online: true
+  }
+];
 
-  const [doctors, setDoctors] = useState([]);
-  const router = useRouter();
-  const { t } = useTranslation();
-
-  const userId = user?.publicMetadata?.dbPatientId as string;
-  console.log("userId", userId);
-  console.log("doctors", doctors);
-
-  useEffect(() => {
-    const fetchdoctors = async () => {
-      try {
-        setLoading(true); // Start loading
-        const response = await fetch(
-          `${apiNewUrl}/api/doctor/chat/userId/${userId}`
-        );
-        const doctorData = await response.json();
-        setDoctors(doctorData.doctors);
-      } catch (error) {
-        console.error("Error fetching doctors:", error.message);
-      } finally {
-        setLoading(false); // Stop loading
-      }
-    };
-
-    fetchdoctors();
-  }, [userId]);
-
-  const handleChatPress = (id: string, name: string, canChat: boolean) => {
-    console.log("Navigating to doctor ID:", id);
-    console.log("Navigating to doctor name:", name);
-    console.log("Navigating to:>>>", `/tabs)/account/chat/c/${id}`,canChat);
-    router.push(
-      `/(tabs)/account/chat/c/${id}?name=${encodeURIComponent(
-        name
-      )}&canChat=${canChat}`
-    );
-  };
-
-  const getInitials = (name: string) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map((word) => word.charAt(0))
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
-  const handleDeleteChat = async (doctorId: string) => {
-    Alert.alert(t("deleteChat.title"), t("deleteChat.confirmation"), [
-      {
-        text: t("deleteChat.cancel"),
-        style: "cancel",
-      },
-      {
-        text: t("deleteChat.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const res = await fetch(
-              `${apiNewUrl}/api/doctor/chat/deleteChatForUser`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  userId,
-                  doctorId,
-                }),
-              }
-            );
-
-            if (!res.ok) {
-              const err = await res.json();
-              throw new Error(err.message);
-            }
-          } catch (error) {
-            console.error("Error deleting chat:", error.message);
-            t("deleteChat.errorTitle"), t("deleteChat.errorMessage");
-          }
-        },
-      },
-    ]);
-  };
-
+export default function ChatPage() {
   return (
-    <View className="p-4 bg-blue-50/10 h-full">
-      <Text className="text-xl font-bold text-gray-900 mb-4">
-        {t("Mychats")}
-      </Text>
-      <Tabs
-        value={value}
-        onValueChange={setValue}
-        className="w-full flex-col gap-2"
-      >
-        <TabsContent value="specific_specialists" className="h-full">
-          {loading ? (
-            <View className="flex-1 justify-center items-center">
-              <Text className="text-gray-500">{t("loading")}...</Text>
-              {/* You can replace above Text with ActivityIndicator if needed */}
-              <ActivityIndicator size="large" color="#8A00FA" />
-            </View>
-          ) : (
-            <FlatList
-              data={doctors}
-              contentContainerClassName="gap-3 pb-4"
-              showsVerticalScrollIndicator={false}
-              keyExtractor={(item, index) =>
-                item.id ? item.id.toString() : `doctor-${index}`
-              }
-              renderItem={({ item }) => (
-                <View className="bg-white rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-sm">
-                  {/* LEFT SECTION — tap to chat */}
-                  <TouchableOpacity
-                    className="flex-row items-center gap-3 flex-1"
-                    onPress={() =>
-                      handleChatPress(
-                        item.doctorId,
-                        item.full_name,
-                        item.canChat
-                      )
-                    }
-                  >
-                    {/* Avatar */}
-                    {item?.profile_picture ? (
-                      <Image
-                        source={{ uri: item.profile_picture }}
-                        className="w-12 h-12 rounded-full"
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center">
-                        <Text className="text-white font-bold text-sm">
-                          {getInitials(item.full_name)}
-                        </Text>
+    <View className="flex-1 bg-gray-50">
+      <View className="bg-blue-600 p-6 pt-12 pb-6">
+        <Text className="text-white text-2xl font-bold mb-1">My Chats</Text>
+        <Text className="text-blue-100 text-sm">Messages with your drivers</Text>
+      </View>
+
+      <ScrollView className="flex-1">
+        <View className="p-4">
+          {chatMessages.map((chat) => (
+            <View key={chat.id} className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
+              <View className="flex-row items-center">
+                {/* Driver Image */}
+                <View className="relative">
+                  <View className="bg-blue-100 rounded-full w-14 h-14 items-center justify-center">
+                    <Text className="text-3xl">{chat.driverImage}</Text>
+                  </View>
+                  {chat.online && (
+                    <View className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                  )}
+                </View>
+
+                {/* Chat Content */}
+                <View className="flex-1 ml-4">
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-gray-800 font-bold text-base">{chat.driverName}</Text>
+                    <Text className="text-gray-500 text-xs">{chat.time}</Text>
+                  </View>
+                  <View className="flex-row justify-between items-center">
+                    <Text className="text-gray-600 text-sm flex-1" numberOfLines={1}>
+                      {chat.lastMessage}
+                    </Text>
+                    {chat.unread > 0 && (
+                      <View className="bg-blue-600 rounded-full w-6 h-6 items-center justify-center ml-2">
+                        <Text className="text-white text-xs font-bold">{chat.unread}</Text>
                       </View>
                     )}
-
-                    {/* Name & Date */}
-                    <View>
-                      <Text className="text-lg font-semibold text-black">
-                        {item.full_name}
-                      </Text>
-                      <Text className="text-gray-500 text-sm">
-                        {item.lastMessageDate
-                          ? format(new Date(item.lastMessageDate), "MMMM, dd")
-                          : ""}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* RIGHT SECTION — delete button */}
-                  <TouchableOpacity
-                    onPress={() => handleDeleteChat(item.doctorId)}
-                    className="flex-row items-center gap-1"
-                  >
-                    <Trash size={16} color="red" />
-                    <Text className="text-red-500 text-sm font-medium">
-                      {t("deleteChat.title")}
-                    </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
-              )}
-              ListEmptyComponent={() => (
-                <View className="flex-1 justify-center items-center py-10">
-                  <Text className="text-gray-500 text-center">
-                    {t("noDoctors")}
-                  </Text>
-                </View>
-              )}
-            />
-          )}
-        </TabsContent>
+              </View>
+            </View>
+          ))}
+        </View>
 
-        <TabsContent value="specialists" className="h-full">
-          <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500">
-              Specialists content coming soon
+        {/* Empty State */}
+        {chatMessages.length === 0 && (
+          <View className="items-center justify-center p-8 mt-20">
+            <Text className="text-6xl mb-4">💬</Text>
+            <Text className="text-gray-800 text-lg font-bold mb-2">No messages yet</Text>
+            <Text className="text-gray-600 text-sm text-center">
+              Your conversations with drivers will appear here
             </Text>
           </View>
-        </TabsContent>
+        )}
 
-        <TabsContent value="customers" className="h-full">
-          <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500">Customers content coming soon</Text>
+        {/* Support Section */}
+        <View className="p-4 pb-8">
+          <View className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
+            <View className="flex-row items-center">
+              <Text className="text-3xl mr-3">🛟</Text>
+              <View className="flex-1">
+                <Text className="text-blue-900 font-bold text-base mb-1">Need Help?</Text>
+                <Text className="text-blue-700 text-sm">Contact our 24/7 support team</Text>
+              </View>
+            </View>
           </View>
-        </TabsContent>
-      </Tabs>
+        </View>
+      </ScrollView>
     </View>
   );
 }
-
-export default ChatListPage;

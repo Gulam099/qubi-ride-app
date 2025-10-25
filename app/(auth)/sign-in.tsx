@@ -1,151 +1,97 @@
-import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import LangToggleButton from "@/components/custom/LangToggle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Logo from "@/features/Home/Components/Logo";
 import { Button } from "@/components/ui/Button";
-import PhoneInput, { ICountry } from "react-native-international-phone-number";
-import { useSelector } from "react-redux";
-import { ArrowDown2 } from "iconsax-react-native";
-import { removeSpaces } from "@/utils/string.utils";
-import { PhoneCodeFactor, SignInFirstFactor } from "@clerk/types";
-import { OtpInput } from "react-native-otp-entry";
-import colors from "@/utils/colors";
 import { toast } from "sonner-native";
 import { useTranslation } from "react-i18next";
+import { apiNewUrl } from "@/const";
 
 export default function Page() {
-  const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
-  const language = useSelector((state: any) => state.appState.language);
-  const [phone, setPhone] = React.useState("");
-  const [code, setCode] = React.useState("");
-  const [selectedCountry, setSelectedCountry] = React.useState<null | ICountry>(
-    null
-  );
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [verifying, setVerifying] = React.useState(false);
-  const [timer, setTimer] = React.useState(60);
-  const [isResendDisabled, setIsResendDisabled] = React.useState(true);
-  const [phoneNumberId, setPhoneNumberId] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
   const { t } = useTranslation();
-
-  // Timer effect for resend functionality
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (verifying && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prevTimer) => {
-          if (prevTimer <= 1) {
-            setIsResendDisabled(false);
-            return 0;
-          }
-          return prevTimer - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [verifying, timer]);
-
-  // Format timer to MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
-    if (!isLoaded && !signIn) return null;
-
-    try {
-      const formattedPhone = removeSpaces(
-        `${selectedCountry?.callingCode}${phone}`
-      );
-      const { supportedFirstFactors } = await signIn.create({
-        identifier: formattedPhone,
-      });
-
-      const isPhoneCodeFactor = (
-        factor: SignInFirstFactor
-      ): factor is PhoneCodeFactor => {
-        return factor.strategy === "phone_code";
-      };
-      const phoneCodeFactor = supportedFirstFactors?.find(isPhoneCodeFactor);
-
-      if (phoneCodeFactor) {
-        const { phoneNumberId } = phoneCodeFactor;
-        await signIn.prepareFirstFactor({
-          strategy: "phone_code",
-          phoneNumberId,
-        });
-        setPhoneNumberId(phoneNumberId); // Store phoneNumberId for resend
-        setVerifying(true);
-        setTimer(60); // Reset timer
-        setIsResendDisabled(true); // Disable resend button
-      }
-    } catch (err: any) {
-      toast.error(err.message || t("failedToSendOtp"));
-      console.log(err.message);
+    if (!email.trim()) {
+      toast.error(t("emailRequired") || "Email is required");
+      return;
     }
-  };
 
-  // Handle resend OTP
-  const handleResendOtp = async () => {
-    if (!isLoaded && !signIn && !phoneNumberId) return null;
-
-    try {
-      await signIn.prepareFirstFactor({
-        strategy: "phone_code",
-        phoneNumberId,
-      });
-      setTimer(60); // Reset timer
-      setIsResendDisabled(true); // Disable resend button
-      setCode(""); // Clear current code
-      toast.success(t("otpSentSuccess") || "OTP sent successfully");
-    } catch (err: any) {
-      toast.error(err.message || t("failedToSendOtp"));
-      console.log(err.message);
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error(t("invalidEmail") || "Please enter a valid email");
+      return;
     }
+
+    setVerifying(true);
   };
 
   const handleVerification = async () => {
-    if (!isLoaded && !signIn) return null;
+    if (!password.trim()) {
+      toast.error(t("passwordRequired") || "Password is required");
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      // Use the code provided by the user and attempt verification
-      const signInAttempt = await signIn.attemptFirstFactor({
-        strategy: "phone_code",
-        code,
+      const response = await fetch(`${apiNewUrl}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.toLowerCase().trim(),
+          password: password,
+        }),
       });
-      if (signInAttempt.status === "complete") {
-        await setActive({ session: signInAttempt.createdSessionId });
 
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store JWT token and user data
+        await AsyncStorage.setItem("jwt_token", data.token);
+        await AsyncStorage.setItem("user_data", JSON.stringify(data.user));
+
+        toast.success("Login successful!");
         router.replace("/");
       } else {
-        console.error(signInAttempt);
+        // Handle different error scenarios
+        if (response.status === 401) {
+          toast.error("Invalid email or password");
+        } else if (response.status === 404) {
+          toast.error("User not found");
+        } else if (response.status === 403) {
+          toast.error("Account disabled");
+        } else {
+          toast.error(data.message || "Login failed");
+        }
       }
-    } catch (err: any) {
-      console.error("Error:", JSON.stringify(err, null, 2));
-      toast.error(err.message || t("failedToVerifyOtp"));
+    } catch (error: any) {
+      console.error("Login error:", error);
+      if (error.name === "TypeError" && error.message.includes("Network")) {
+        toast.error("Network connection error");
+      } else {
+        toast.error("Login failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView className="bg-blue-50/40 w-full">
-      <View >
-        <View className="absolute top-16 z-50 flex flex-row w-full justify-between">
-          <LangToggleButton className="rounded-none rounded-r-full px-8 w-24" />
-        </View>
+    <SafeAreaView className="bg-blue-50/40 w-full py-10">
+      <View>
         <View className="flex justify-center items-center w-screen">
-          <Logo size={150} />
+          <Logo size={130} />
         </View>
         <View className="bg-background h-full pt-16 rounded-t-[50px] px-4 gap-6">
           <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
@@ -153,32 +99,28 @@ export default function Page() {
           </Text>
           {!verifying ? (
             <>
-              <PhoneInput
-                value={phone}
-                onChangePhoneNumber={(phone) => setPhone(phone)}
-                selectedCountry={selectedCountry}
-                onChangeSelectedCountry={setSelectedCountry}
-                customCaret={
-                  <ArrowDown2 variant="Bold" size="16" color="#000" />
-                }
-                phoneInputStyles={{
-                  container: {
-                    flexDirection: "row",
-                  },
-                  input: {
-                    direction: "ltr",
-                    writingDirection: "ltr",
-                    fontSize: 16,
-                    color: "#000",
-                  },
+              <TextInput
+                value={email}
+                onChangeText={(text) => setEmail(text)}
+                placeholder="Enter your Email"
+                keyboardType="email-address"
+                placeholderTextColor="#555"
+                autoCapitalize="none"
+                autoComplete="email"
+                className="border border-gray-300 rounded-xl px-4 py-3 text-base"
+                style={{
+                  fontSize: 16,
+                  color: "#000",
+                  textAlign: "left",
+                  direction: "ltr",
+                  writingDirection: "ltr",
                 }}
-                language={language}
-                defaultCountry="SA"
               />
               <Button
                 onPress={onSignInPress}
                 className="rounded-xl py-3 px-4"
-                style={{ backgroundColor: "#8A00FA" }}
+                style={{ backgroundColor: "#000F8F" }}
+                disabled={loading}
               >
                 <Text className="text-secondary font-semibold">
                   {t("continue")}
@@ -187,69 +129,48 @@ export default function Page() {
             </>
           ) : (
             <>
-              <Text className="text-lg font-semibold">
-                {t("enterVerificationCode")}
-              </Text>
               <TouchableOpacity onPress={() => setVerifying(false)}>
                 <Text className="text-blue-600 underline">
-                  {t("verificationSentTo", { phone })}
+                  {`Signing in as ${email}`}
                 </Text>
               </TouchableOpacity>
-              <OtpInput
-                numberOfDigits={6}
-                focusColor={colors.primary[500]}
-                onTextChange={(code) => setCode(code)}
-                theme={{
-                  pinCodeContainerStyle: {
-                    width: 60,
-                    backgroundColor: "white",
-                  },
-                  pinCodeTextStyle: {
-                    direction: "ltr",
-                    writingDirection: "ltr",
-                    textAlign: "left",
-                    fontSize: 20,
-                    color: "#000",
-                  },
-                  containerStyle: {
-                    flexDirection: "row",
-                    direction: "ltr",
-                  },
+              <TextInput
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                placeholder="Enter your password"
+                placeholderTextColor="#555"
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="password"
+                className="border border-gray-300 rounded-xl px-4 py-3 text-base"
+                style={{
+                  fontSize: 16,
+                  color: "#000",
+                  textAlign: "left",
+                  direction: "ltr",
+                  writingDirection: "ltr",
                 }}
               />
 
               <Button
                 onPress={handleVerification}
                 className="rounded-xl py-3 px-4"
-                style={{ backgroundColor: "#8A00FA" }}
+                style={{ backgroundColor: "#000F8F" }}
+                disabled={loading}
               >
                 <Text className="text-secondary font-semibold">
-                  {t("verifyOtp")}
+                  {loading
+                    ? t("signingIn") || "Signing In..."
+                    : t("signIn") || "Sign In"}
                 </Text>
               </Button>
 
-              {/* Resend OTP Section */}
-              <View className="flex flex-row justify-center items-center gap-2">
-                <Text className="text-neutral-600">
-                  {t("didntReceiveCode") || "Didn't receive the code?"}
+              {/* Optional: Forgot Password Link */}
+              <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+                <Text className="text-blue-600 text-center underline">
+                  {t("forgotPassword") || "Forgot Password?"}
                 </Text>
-                <TouchableOpacity
-                  onPress={handleResendOtp}
-                  disabled={isResendDisabled}
-                  className={`${isResendDisabled ? 'opacity-50' : ''}`}
-                >
-                  <Text className={`font-semibold ${
-                    isResendDisabled 
-                      ? 'text-neutral-400' 
-                      : 'text-primary-500 underline'
-                  }`}>
-                    {isResendDisabled 
-                      ? `${t("resendWithin") || "Resend within"} ${formatTime(timer)}`
-                      : t("resend") || "Resend"
-                    }
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">

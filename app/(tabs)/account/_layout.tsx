@@ -14,9 +14,9 @@ export default function AccountLayout() {
     <Stack
       screenOptions={{
         headerBackButtonDisplayMode: "generic",
-        headerLeft: () => <BackButton className="mr-4" />,
-        headerShadowVisible: true,
-        headerRight: () => <NotificationIconButton className="mr-4" />,
+        // headerLeft: () => <BackButton className="mr-4" />,
+        headerShown: false,
+        // headerRight: () => <NotificationIconButton className="mr-4" />,
       }}
     >
       <Stack.Screen
@@ -25,98 +25,6 @@ export default function AccountLayout() {
           headerShown: false,
         }}
       />
-      {/* <Stack.Screen
-        name="notification/index"
-         options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("notifications")}</Text>
-          ),
-        }}
-      /> */}
-
-      <Stack.Screen
-        name="calendar/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">{t("calendar")}</Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="appointment/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">
-              {t("appointments")}
-            </Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="favorite/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">
-              {t("favorites")}
-            </Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="family/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">
-              {t("family")}
-            </Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="profile/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">
-              {t("profile")}
-            </Text>
-          ),
-        }}
-      />
-
-      <Stack.Screen
-        name="payment/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg ">Payment</Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="report/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">
-              {t("profileVerificationCode")}
-            </Text>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="setting/index"
-        options={{
-          headerTitle: () => (
-            <Text className="font-semibold text-lg">
-              {t("settings")}
-            </Text>
-          ),
-        }}
-      />
-      {/* <Stack.Screen
-        name="consult"
-        options={{
-          headerShown: false,
-        }}
-      /> */}
       <Stack.Screen
         name="chat"
         options={{
@@ -125,12 +33,6 @@ export default function AccountLayout() {
       />
       <Stack.Screen
         name="invoice"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="scale"
         options={{
           headerShown: false,
         }}
