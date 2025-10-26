@@ -99,11 +99,7 @@ export default function AccountPage() {
     );
   };
 
-  const handleAccountCardPress = (link: string) => {
-    console.log(`Card pressed: ${link}`);
-    return router.push(`${link}` as RelativePathString);
-    // Perform state updates or navigation if needed
-  };
+
 
   const [value, setValue] = React.useState("");
 
