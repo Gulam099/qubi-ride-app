@@ -2,17 +2,14 @@ import { View } from "react-native";
 import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
-import { CustomIcons } from "@/const";
 import { H3 } from "@/components/ui/Typography";
 import { RadioGroup } from "@/components/ui/RadioGroup";
 import { RadioGroupItemWithLabel } from "@/components/ui/RadioGroupItemWithLabel";
 import { toast } from "sonner-native";
-import { apiBaseUrl } from "@/features/Home/constHome";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
-import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useMutation } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
+import useUserData from "@/hooks/userData";
 
 type DeleteAccountSheetRef = {
   open: () => void;
@@ -20,23 +17,20 @@ type DeleteAccountSheetRef = {
 };
 
 export const DeleteAccountButton = ({ sheetRef }: { sheetRef: React.RefObject<DeleteAccountSheetRef> }) => {
-    const { t } = useTranslation();
-
   return (
     <Button
-    onPress={() => sheetRef.current?.open()}
-    variant={"secondary"}
-    className="w-full my-2"
-  >
-    <Text className="text-neutral-600">{t("DeleteAccount")}</Text>
-  </Button>
+      onPress={() => sheetRef.current?.open()}
+      variant={"secondary"}
+      className="w-full my-2"
+    >
+      <Text className="text-neutral-600">Delete Account</Text>
+    </Button>
   );
 }
 
 export const DeleteAccountSheet = forwardRef<DeleteAccountSheetRef>((_, ref) => {
   const [value, setValue] = useState("");
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const user = useUserData();
 
   
   const internalSheetRef = useRef<BottomSheet>(null);
@@ -61,7 +55,7 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetRef>((_, ref) => 
         feedback,
       };
 
-      const res = await fetch(`${apiBaseUrl}/api/delete-patient-account`, {
+      const res = await fetch(`${process.env}/api/delete-user-account`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -88,7 +82,6 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetRef>((_, ref) => 
     }
 
     try {
-      await signOut();
       mutation.mutate(value);
     } catch (error) {
       toast.error("Error during sign out.");
@@ -114,7 +107,6 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetRef>((_, ref) => 
 
           <View className="aspect-square flex justify-center items-center relative overflow-visible p-2">
             <View className="bg-blue-50/20 aspect-square rounded-full w-[5.5rem] absolute" />
-            <CustomIcons.BellAlert.Icon height={80} width={80} />
           </View>
 
           <H3 className="border-none">Are you sure you want to delete?</H3>

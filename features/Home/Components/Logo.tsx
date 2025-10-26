@@ -5,7 +5,7 @@ export default function Logo(props: { size?: number }) {
   return (
     <View style={styles.container}>
       <Image
-        source={require("@/assets/images/logo.png")} // path ko adjust karein agar alias use nahi kar rahe ho
+        source={require("@/assets/logo.jpeg")} // path ko adjust karein agar alias use nahi kar rahe ho
         style={{
           width: props.size || 100,
           height: props.size || 100,

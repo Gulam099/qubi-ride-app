@@ -8,8 +8,6 @@ import React, {
 import { io } from "socket.io-client";
 import { useLocalSearchParams, useNavigation, router } from "expo-router";
 import axios from "axios";
-import { apiNewUrl } from "@/const";
-import { useUser } from "@clerk/clerk-expo";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -24,15 +22,15 @@ import { Text } from "react-native";
 import { StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next";
+import useUserData from "@/hooks/userData";
 
-const socket = io(`${apiNewUrl}`, {
+const socket = io(`${process.env}`, {
   transports: ["websocket"],
   jsonp: false,
 });
 
 function ChatScreen() {
-  const { user } = useUser();
+  const user = useUserData();
   const { id, name, canChat } = useLocalSearchParams();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -44,7 +42,6 @@ function ChatScreen() {
   const userId = user?.publicMetadata?.dbPatientId as string;
   const doctorId = id as string;
   const navigation = useNavigation();
-  const { t } = useTranslation();
 
   // Parse canChat more safely
   const isChatAllowed = canChat === "true" || canChat === true;
@@ -629,7 +626,7 @@ function ChatScreen() {
           ]}
           value={inputText}
           onChangeText={setInputText}
-          placeholder={isChatAllowed ? t("typeMessage") : "Chat disabled"}
+          placeholder={isChatAllowed ? "Type a message..." : "Chat disabled"}
           placeholderTextColor={!isChatAllowed ? "#ccc" : "#000"}
           multiline
           onSubmitEditing={handleSend}

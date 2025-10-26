@@ -2,26 +2,18 @@ import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { H3 } from "@/components/ui/Typography";
-import {
-  PatientHomeImage,
-  PatientPageInstantMenuImage,
-  shceduleImage,
-} from "@/features/patient/constPatient";
 import { Image } from "react-native";
 import { cn } from "@/lib/utils";
 import { Text } from "@/components/ui/Text";
 import { useEffect } from "react";
 import * as Updates from "expo-updates";
-import { useTranslation } from "react-i18next";
 import ProfileImage from "@/features/account/components/ProfileImage";
-import { useUser } from "@clerk/clerk-expo";
 import NotificationIconButton from "@/features/Home/Components/NotificationIconButton";
 import useUserData from "@/hooks/userData";
 
 const PatientPage = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation();
   const user = useUserData();
 
   const reloadApp = async () => {

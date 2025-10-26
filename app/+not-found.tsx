@@ -21,11 +21,11 @@ export default function NotFoundScreen() {
         }}
       />
       <View className="flex-1 justify-center items-center gap-4 bg-primary-50/30">
-        <Image
+        {/* <Image
           source={require("../assets/images/notfound.png")}
           width={300}
           height={300}
-        />
+        /> */}
         <Text className="text-center text-xl font-semibold text-gray-900">
           This page doesn't exist.
         </Text>

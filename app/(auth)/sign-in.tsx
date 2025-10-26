@@ -6,8 +6,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Logo from "@/features/Home/Components/Logo";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner-native";
-import { useTranslation } from "react-i18next";
-import { apiNewUrl } from "@/const";
 
 export default function Page() {
   const router = useRouter();
@@ -15,19 +13,18 @@ export default function Page() {
   const [password, setPassword] = React.useState("");
   const [verifying, setVerifying] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const { t } = useTranslation();
 
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
     if (!email.trim()) {
-      toast.error(t("emailRequired") || "Email is required");
+      toast.error("Email is required");
       return;
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error(t("invalidEmail") || "Please enter a valid email");
+      toast.error("Please enter a valid email");
       return;
     }
 
@@ -36,14 +33,14 @@ export default function Page() {
 
   const handleVerification = async () => {
     if (!password.trim()) {
-      toast.error(t("passwordRequired") || "Password is required");
+      toast.error("Password is required");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch(`${apiNewUrl}/api/auth/login`, {
+      const response = await fetch(`${process.env}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +92,7 @@ export default function Page() {
         </View>
         <View className="bg-background h-full pt-16 rounded-t-[50px] px-4 gap-6">
           <Text className="text-3xl font-medium text-center leading-10 text-neutral-700">
-            {t("welcomeBack")}
+            Welcome Back
           </Text>
           {!verifying ? (
             <>
@@ -123,7 +120,7 @@ export default function Page() {
                 disabled={loading}
               >
                 <Text className="text-secondary font-semibold">
-                  {t("continue")}
+                  Continue
                 </Text>
               </Button>
             </>
@@ -159,24 +156,22 @@ export default function Page() {
                 disabled={loading}
               >
                 <Text className="text-secondary font-semibold">
-                  {loading
-                    ? t("signingIn") || "Signing In..."
-                    : t("signIn") || "Sign In"}
+                  {loading ? "Signing In..." : "Sign In"}
                 </Text>
               </Button>
 
               {/* Optional: Forgot Password Link */}
               <TouchableOpacity onPress={() => router.push("/forgot-password")}>
                 <Text className="text-blue-600 text-center underline">
-                  {t("forgotPassword") || "Forgot Password?"}
+                  Forgot Password?
                 </Text>
               </TouchableOpacity>
             </>
           )}
           <View className="flex flex-row gap-2 mt-8">
-            <Text>{t("dontHaveAccount")}</Text>
+            <Text>Don't have an account?</Text>
             <Link href="/sign-up">
-              <Text className="text-primary-500">{t("signUp")}</Text>
+              <Text className="text-primary-500">Sign Up</Text>
             </Link>
           </View>
         </View>

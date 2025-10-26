@@ -7,20 +7,17 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { toast } from "sonner-native";
 import { format } from "date-fns";
-import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/Text";
-import { UserType } from "@/features/user/types/user.type";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-import { useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Edit } from "iconsax-react-native";
-import { ApiUrl } from "@/const";
-export default function ProfilePage() {
-  const { user } = useUser();
+import useUserData from "@/hooks/userData";
+
+const ProfilePage = () => {
+  const user = useUserData();
   const router = useRouter();
-  const { t } = useTranslation();
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
@@ -43,21 +40,21 @@ export default function ProfilePage() {
     },
   });
 
-    const createUser = useCallback(async (userPayload: any) => {
-      const userResponse = await fetch(`${ApiUrl}/api/users/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userPayload),
-      });
-  
-      const userResult = await userResponse.json();
-      console.log("userResult", userResult);
-  
-      if (!userResponse.ok)
-        throw new Error(userResult?.message || "user creation failed.");
-  
-      return userResult;
-    }, []);
+  const createUser = useCallback(async (userPayload: any) => {
+    const userResponse = await fetch(`${process.env}/api/users/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userPayload),
+    });
+
+    const userResult = await userResponse.json();
+    console.log("userResult", userResult);
+
+    if (!userResponse.ok)
+      throw new Error(userResult?.message || "user creation failed.");
+
+    return userResult;
+  }, []);
 
   const onSubmit = async (data: Partial<UserType>) => {
     try {
@@ -72,6 +69,8 @@ export default function ProfilePage() {
           ...user?.unsafeMetadata,
           dob: formattedDob,
           gender: data.gender || user?.unsafeMetadata?.gender,
+          onboardingCompleted: true,
+          fcmToken: user?.unsafeMetadata?.fcmToken,
         },
       });
 
@@ -86,6 +85,10 @@ export default function ProfilePage() {
       });
 
       toast.success("Profile updated successfully!");
+      router.replace({
+        pathname: "/",
+        params: { refresh: Date.now().toString() },
+      });
     } catch (error) {
       console.error("Profile update error:", error);
       toast.error("Profile update failed!");
@@ -134,195 +137,205 @@ export default function ProfilePage() {
   };
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
-      contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
-    >
-      <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
-        {/* Profile Image */}
-        <View className="flex justify-center w-full items-center">
-          <View className="flex items-center relative size-48 ">
-            <ProfileImage
-              imageUrl={user?.imageUrl || ""}
-              name={user?.fullName || ""}
-              className="size-48"
-            />
-
-            <Button
-              onPress={onPickImage}
-              className="bg-blue-800 text-white p-0 rounded-full absolute bottom-0 right-2"
-              size="icon"
-            >
-              <Edit size={16} color={"#fff"} />
-            </Button>
-          </View>
-        </View>
-
-        <View>
-          <Label className="mb-2">{t("FirstName")}</Label>
-          <Controller
-            name="first_name"
-            control={control}
-            rules={{ required: t("First Name required") }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                placeholder={t("First name")}
-                value={value ? (value as string) : undefined}
-                onChangeText={onChange}
+    <>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
+          {/* Profile Image */}
+          <View className="flex justify-center w-full items-center">
+            <View className="flex items-center relative size-48 ">
+              <ProfileImage
+                imageUrl={user?.imageUrl || ""}
+                name={user?.fullName || ""}
+                className="size-48"
               />
-            )}
-          />
-          {errors.first_name && (
-            <Text className="text-red-500 text-sm py-1">
-              {errors.first_name.message?.toString()}
-            </Text>
-          )}
-        </View>
 
-        <View>
-          <Label className="mb-2">{t("LastName")}</Label>
-          <Controller
-            name="last_name"
-            control={control}
-            rules={{ required: t("Last name required") }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                placeholder={t("Last name")}
-                value={value ? (value as string) : undefined}
-                onChangeText={onChange}
-              />
-            )}
-          />
-          {errors.last_name && (
-            <Text className="text-red-500 text-sm py-1">
-              {errors.last_name.message?.toString()}
-            </Text>
-          )}
-        </View>
-
-        <View>
-          <Text className="mb-2">{t("PhoneNumber")}</Text>
-          <Controller
-            name="phoneNumber"
-            control={control}
-            rules={{ required: t("PhoneNumberRequired") }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                editable={false}
-                placeholder={t("Phone Number")}
-                value={value}
-                onChangeText={onChange}
-              />
-            )}
-          />
-          {errors.phoneNumber && (
-            <Text className="text-red-500 text-sm py-1">
-              {errors.phoneNumber.message?.toString()}
-            </Text>
-          )}
-        </View>
-
-        <View>
-          <Text className="mb-2">{t("Email")}</Text>
-          <Controller
-            name="email"
-            control={control}
-            rules={{ pattern: /\S+@\S+\.\S+/ }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                placeholder={t("Email")}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-              />
-            )}
-          />
-          {errors.email && (
-            <Text className="text-red-500 text-sm py-1">
-              {errors.email.message?.toString()}
-            </Text>
-          )}
-        </View>
-
-        <View>
-          <Text className="mb-2">{t("DateOfBirth")}</Text>
-          <Controller
-            name="dob"
-            control={control}
-            render={({ field: { onChange } }) => (
-              <View>
-                <Button onPress={showDatePicker} className="bg-background p-2">
-                  <Text className="text-neutral-700">
-                    {selectedDate === "Not selected"
-                      ? t("SelectDate")
-                      : format(selectedDate, "dd  MMM  yyyy")}
-                  </Text>
-                </Button>
-                {datePickerVisible && (
-                  <DateTimePicker
-                    value={
-                      new Date(
-                        selectedDate === "Not selected"
-                          ? new Date()
-                          : selectedDate
-                      ) || new Date()
-                    }
-                    mode="date"
-                    display="default"
-                    onChange={(event, date) => {
-                      handleDateChange(event, date);
-                      onChange(date);
-                    }}
-                  />
-                )}
-              </View>
-            )}
-          />
-          {errors.dob && (
-            <Text className="text-red-500">
-              {errors.dob.message?.toString()}
-            </Text>
-          )}
-        </View>
-
-        <View>
-          <Text className="mb-2">{t("Gender")}</Text>
-          <Controller
-            name="gender"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <RadioGroup
-                value={value}
-                onValueChange={onChange}
-                className="gap-3 flex-row"
+              <Button
+                onPress={onPickImage}
+                className="bg-blue-800 text-white p-0 rounded-full absolute bottom-0 right-2"
+                size="icon"
               >
-                <RadioGroupItem
-                  value="Male"
-                  aria-labelledby="male-label"
-                  onPress={() => onChange("Male")}
-                />
-                <Label nativeID="male-label">{t("Male")}</Label>
-                <RadioGroupItem
-                  value="Female"
-                  aria-labelledby="female-label"
-                  onPress={() => onChange("Female")}
-                />
-                <Label nativeID="female-label">{t("Female")}</Label>
-              </RadioGroup>
-            )}
-          />
-          {errors.gender && (
-            <Text className="text-red-500">
-              {errors.gender.message?.toString()}
-            </Text>
-          )}
-        </View>
+                <Edit size={16} color={"#fff"} />
+              </Button>
+            </View>
+          </View>
 
-        <Button className="mt-4" onPress={handleSubmit(onSubmit)}
-        style={{ backgroundColor: "#8A00FA" }}>
-          <Text className="text-white font-semibold">{t("Update")}</Text>
-        </Button>
-      </View>
-    </ScrollView>
+          <View>
+            <Label className="mb-2">First Name</Label>
+            <Controller
+              name="first_name"
+              control={control}
+              rules={{ required: "First Name required" }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  placeholder="First Name"
+                  value={value ? (value as string) : undefined}
+                  onChangeText={onChange}
+                />
+              )}
+            />
+            {errors.first_name && (
+              <Text className="text-red-500 text-sm py-1">
+                {errors.first_name.message?.toString()}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <Label className="mb-2">Last Name</Label>
+            <Controller
+              name="last_name"
+              control={control}
+              rules={{ required: "Last name required" }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  placeholder="Last Name"
+                  value={value ? (value as string) : undefined}
+                  onChangeText={onChange}
+                />
+              )}
+            />
+            {errors.last_name && (
+              <Text className="text-red-500 text-sm py-1">
+                {errors.last_name.message?.toString()}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <Text className="mb-2">Phone Number</Text>
+            <Controller
+              name="phoneNumber"
+              control={control}
+              rules={{ required: "Phone Number required" }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  editable={false}
+                  placeholder="Phone Number"
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
+            />
+            {errors.phoneNumber && (
+              <Text className="text-red-500 text-sm py-1">
+                {errors.phoneNumber.message?.toString()}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <Text className="mb-2">Email</Text>
+            <Controller
+              name="email"
+              control={control}
+              rules={{ pattern: /\S+@\S+\.\S+/ }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  placeholder="Email"
+                  value={value}
+                  onChangeText={onChange}
+                  keyboardType="email-address"
+                />
+              )}
+            />
+            {errors.email && (
+              <Text className="text-red-500 text-sm py-1">
+                {errors.email.message?.toString()}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <Text className="mb-2">Date of Birth</Text>
+            <Controller
+              name="dob"
+              control={control}
+              render={({ field: { onChange } }) => (
+                <View>
+                  <Button
+                    onPress={showDatePicker}
+                    className="bg-background p-2"
+                  >
+                    <Text className="text-neutral-700">
+                      {selectedDate === "Not selected"
+                        ? "Select Date"
+                        : format(selectedDate, "dd  MMM  yyyy")}
+                    </Text>
+                  </Button>
+                  {datePickerVisible && (
+                    <DateTimePicker
+                      value={
+                        new Date(
+                          selectedDate === "Not selected"
+                            ? new Date()
+                            : selectedDate
+                        ) || new Date()
+                      }
+                      mode="date"
+                      display="default"
+                      onChange={(event, date) => {
+                        handleDateChange(event, date);
+                        onChange(date);
+                      }}
+                    />
+                  )}
+                </View>
+              )}
+            />
+            {errors.dob && (
+              <Text className="text-red-500">
+                {errors.dob.message?.toString()}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <Text className="mb-2">Gender</Text>
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <RadioGroup
+                  value={value}
+                  onValueChange={onChange}
+                  className="gap-3 flex-row"
+                >
+                  <RadioGroupItem
+                    value="Male"
+                    aria-labelledby="male-label"
+                    onPress={() => onChange("Male")}
+                  />
+                  <Label nativeID="male-label">Male</Label>
+                  <RadioGroupItem
+                    value="Female"
+                    aria-labelledby="female-label"
+                    onPress={() => onChange("Female")}
+                  />
+                  <Label nativeID="female-label">Female</Label>
+                </RadioGroup>
+              )}
+            />
+            {errors.gender && (
+              <Text className="text-red-500">
+                {errors.gender.message?.toString()}
+              </Text>
+            )}
+          </View>
+
+          <Button
+            className="mt-4"
+            onPress={handleSubmit(onSubmit)}
+            style={{ backgroundColor: "#8A00FA" }}
+          >
+            <Text className="text-white font-semibold">Update</Text>
+          </Button>
+        </View>
+      </ScrollView>
+    </>
   );
-}
+};
+
+export default ProfilePage;

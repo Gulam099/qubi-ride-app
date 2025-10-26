@@ -7,20 +7,17 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { toast } from "sonner-native";
 import { format } from "date-fns";
-import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/Text";
-import { UserType } from "@/features/user/types/user.type";
 import ProfileImage from "@/features/account/components/ProfileImage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-import { useUser } from "@clerk/clerk-expo";
 import { Stack, useRouter } from "expo-router";
 import { Edit } from "iconsax-react-native";
-import { ApiUrl } from "@/const";
+import useUserData from "@/hooks/userData";
+
 const ProfilePage = () => {
-  const { user } = useUser();
+  const user = useUserData();
   const router = useRouter();
-  const { t } = useTranslation();
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
@@ -44,7 +41,7 @@ const ProfilePage = () => {
   });
 
   const createUser = useCallback(async (userPayload: any) => {
-    const userResponse = await fetch(`${ApiUrl}/api/users/create`, {
+    const userResponse = await fetch(`${process.env}/api/users/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userPayload),
@@ -65,18 +62,6 @@ const ProfilePage = () => {
         ? format(new Date(data.dob), "yyyy-MM-dd")
         : null;
 
-      await user?.update({
-        firstName: data.first_name ?? "",
-        lastName: data.last_name ?? "",
-        unsafeMetadata: {
-          ...user?.unsafeMetadata,
-          dob: formattedDob,
-          gender: data.gender || user?.unsafeMetadata?.gender,
-          onboardingCompleted: true,
-          fcmToken: user?.unsafeMetadata?.fcmToken,
-        },
-      });
-
       await createUser({
         userId: user?.id,
         clerkId: user?.id,
@@ -87,14 +72,14 @@ const ProfilePage = () => {
         dob: formattedDob,
       });
 
-      toast.success("Profile updated successfully!");
+      toast.success("Registration completed successfully!");
       router.replace({
         pathname: "/",
         params: { refresh: Date.now().toString() },
       });
     } catch (error) {
-      console.error("Profile update error:", error);
-      toast.error("Profile update failed!");
+      console.error("Registration error:", error);
+      toast.error("Registration failed!");
     }
   };
 
@@ -142,8 +127,8 @@ const ProfilePage = () => {
   return (
     <>
       <ScrollView
-        showsVerticalScrollIndicator={false} // Optional: hides the scroll bar
-        contentContainerStyle={{ paddingBottom: 20 }} // Ensures some padding at the bottom
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
         <View className="p-4 bg-blue-50/10 h-full flex flex-col gap-4">
           {/* Profile Image */}
@@ -166,14 +151,14 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Label className="mb-2">{t("FirstName")}</Label>
+            <Label className="mb-2">First Name</Label>
             <Controller
               name="first_name"
               control={control}
-              rules={{ required: t("First Name required") }}
+              rules={{ required: "First Name required" }}
               render={({ field: { onChange, value } }) => (
                 <Input
-                  placeholder={t("FirstName")}
+                  placeholder="First Name"
                   value={value ? (value as string) : undefined}
                   onChangeText={onChange}
                 />
@@ -187,14 +172,14 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Label className="mb-2">{t("LastName")}</Label>
+            <Label className="mb-2">Last Name</Label>
             <Controller
               name="last_name"
               control={control}
-              rules={{ required: t("Last name required") }}
+              rules={{ required: "Last name required" }}
               render={({ field: { onChange, value } }) => (
                 <Input
-                  placeholder={t("LastName")}
+                  placeholder="Last Name"
                   value={value ? (value as string) : undefined}
                   onChangeText={onChange}
                 />
@@ -208,15 +193,15 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Text className="mb-2">{t("PhoneNumber")}</Text>
+            <Text className="mb-2">Phone Number</Text>
             <Controller
               name="phoneNumber"
               control={control}
-              rules={{ required: t("PhoneNumberRequired") }}
+              rules={{ required: "Phone Number required" }}
               render={({ field: { onChange, value } }) => (
                 <Input
                   editable={false}
-                  placeholder={t("Phone Number")}
+                  placeholder="Phone Number"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -230,14 +215,14 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Text className="mb-2">{t("Email")}</Text>
+            <Text className="mb-2">Email</Text>
             <Controller
               name="email"
               control={control}
               rules={{ pattern: /\S+@\S+\.\S+/ }}
               render={({ field: { onChange, value } }) => (
                 <Input
-                  placeholder={t("Email")}
+                  placeholder="Email"
                   value={value}
                   onChangeText={onChange}
                   keyboardType="email-address"
@@ -252,7 +237,7 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Text className="mb-2">{t("DateOfBirth")}</Text>
+            <Text className="mb-2">Date of Birth</Text>
             <Controller
               name="dob"
               control={control}
@@ -264,7 +249,7 @@ const ProfilePage = () => {
                   >
                     <Text className="text-neutral-700">
                       {selectedDate === "Not selected"
-                        ? t("SelectDate")
+                        ? "Select Date"
                         : format(selectedDate, "dd  MMM  yyyy")}
                     </Text>
                   </Button>
@@ -296,7 +281,7 @@ const ProfilePage = () => {
           </View>
 
           <View>
-            <Text className="mb-2">{t("Gender")}</Text>
+            <Text className="mb-2">Gender</Text>
             <Controller
               name="gender"
               control={control}
@@ -311,13 +296,13 @@ const ProfilePage = () => {
                     aria-labelledby="male-label"
                     onPress={() => onChange("Male")}
                   />
-                  <Label nativeID="male-label">{t("Male")}</Label>
+                  <Label nativeID="male-label">Male</Label>
                   <RadioGroupItem
                     value="Female"
                     aria-labelledby="female-label"
                     onPress={() => onChange("Female")}
                   />
-                  <Label nativeID="female-label">{t("Female")}</Label>
+                  <Label nativeID="female-label">Female</Label>
                 </RadioGroup>
               )}
             />
@@ -333,7 +318,7 @@ const ProfilePage = () => {
             onPress={handleSubmit(onSubmit)}
             style={{ backgroundColor: "#8A00FA" }}
           >
-            <Text className="text-white font-semibold">{t("Update")}</Text>
+            <Text className="text-white font-semibold">Register</Text>
           </Button>
         </View>
       </ScrollView>

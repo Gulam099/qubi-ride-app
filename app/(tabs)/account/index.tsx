@@ -34,26 +34,21 @@ import { useRouter } from "expo-router";
 import CopyToClipboard from "@/features/Home/Components/CopyToClipboard";
 import AccountCard2 from "@/features/account/components/AccountCard2";
 import ProfileImage from "@/features/account/components/ProfileImage";
-import { useUser } from "@clerk/clerk-expo";
 import {
   SignOutButton,
   SignOutSheet,
 } from "@/features/account/components/SignOutButton";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { DoorOpen, X } from "lucide-react-native";
-import { CustomImages } from "@/const";
 import {
   DeleteAccountButton,
   DeleteAccountSheet,
 } from "@/features/account/components/AccountDeleteButton";
-import { useTranslation } from "react-i18next";
+import useUserData from "@/hooks/userData";
 
 export default function AccountPage() {
-  const { user } = useUser();
-  const userId = user?.publicMetadata?.dbPatientId as string;
   const router = useRouter();
-  const { t } = useTranslation();
-
+  const user = useUserData();
   const contactUsBottomSheetRef = useRef<BottomSheet>(null);
   const signOutRef = useRef(null);
   const deleteAccountRef = useRef(null);
@@ -79,18 +74,18 @@ export default function AccountPage() {
 
   const [sections, setSections] = useState([
     {
-      title: t("Myinformation"),
+      title: "My information",
       shadowColor: colors.blue[100],
       className: "",
       backgroundColor: "white",
       iconColor: colors.gray[700],
       items: [
         // { link: "/account/payment", label: "Payment", icon: EmptyWalletTime },
-        { link: "/account/chat", label: t("Mychats"), icon: Message },
-        { link: "/account/invoice", label: t("Mybills"), icon: Receipt },
+        { link: "/account/chat", label: "My chats", icon: Message },
+        { link: "/account/invoice", label: "My bills", icon: Receipt },
         {
           link: "/contact", // link used for routing
-          label: t("Contactus"),
+          label: "Contact us",
           icon: Messages,
           customPress: () => contactUsBottomSheetRef.current?.expand(),
         },
@@ -130,13 +125,11 @@ export default function AccountPage() {
             </Text>
             {/* <Link href={"/account/profile"}> */}
               <Text className="text-blue-100 text-sm underline">
-                {t("ViewProfile")}
+                View Profile
               </Text>
             {/* </Link> */}
           </View>
-          <View className={"absolute -top-4 -right-6"}>
-            <CustomImages.TextureCircle.image />
-          </View>
+          
 
           <Button
             className="p-2 rounded-2xl aspect-square"
@@ -206,10 +199,10 @@ export default function AccountPage() {
 
             <View className="flex flex-col justify-center items-center w-full gap-4 py-8">
               <H3 className="border-none text-lg text-neutral-700 text-center">
-                {t("contactUsTitle")}
+                Contact Us
               </H3>
               <Text className="text-base text-neutral-500">
-                {t("contactUsSubtitle")}
+                We're here to help you
               </Text>
 
               <Button
@@ -222,10 +215,10 @@ export default function AccountPage() {
                 className="w-full"
               >
                 <Text className="text-white font-semibold">
-                  {t("addTicket")}
+                  Add Ticket
                 </Text>
               </Button>
-              <Text className="text-base text-neutral-500">{t("or")}</Text>
+              <Text className="text-base text-neutral-500">or</Text>
               <View className="mt-4 w-full">
                 <Button className="w-full">
                   <TouchableOpacity
